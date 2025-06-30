@@ -4,7 +4,7 @@ import type React from "react"
 
 import { SidebarProvider } from "@/src/components/ui/sidebar"
 import { AppSidebar } from "@/src/components/app-sidebar"
-import { DashboardHeader } from "@/src/components/dashboard-header"
+import { DashboardHeader } from "@/src/components/dashboard/dashboard-header"
 
 interface DashboardLayoutProps {
   children: React.ReactNode

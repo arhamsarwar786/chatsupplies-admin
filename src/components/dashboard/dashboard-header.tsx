@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/src/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar"
-import { Bell, Search, User, LogOut, Settings } from "lucide-react"
+import { Bell, Plus, User, LogOut, Settings } from "lucide-react"
 
 export function DashboardHeader() {
   const [userEmail, setUserEmail] = useState("")
@@ -44,14 +44,20 @@ export function DashboardHeader() {
   }
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+    <header className="flex shrink-0 items-center gap-2 border-b px-4  py-4">
       <SidebarTrigger className="-ml-1" />
 
       <div className="flex flex-1 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">Admin Dashboard</h1>
+        <div className="flex flex-col items-start">
+          <h1 className="text-2xl font-bold">Platform Overview</h1>
+          <p className="text-md">Monitor and manage your chatbot ecosystem</p>
         </div>
-
+<div className="flex items-center gap-2">
+  <div>
+  <button className="bg-primary text-white px-4 py-2 flex gap-2 rounded-md hover:bg-primary/90 transition-colors">
+  <Plus />  Create Chatbot
+  </button>
+</div>
         <div className="flex items-center gap-2">
           {/* User Menu */}
           <DropdownMenu>
@@ -87,6 +93,8 @@ export function DashboardHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+</div>
+
       </div>
     </header>
   )

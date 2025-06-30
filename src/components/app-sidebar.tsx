@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Inbox, Settings, Users, ShoppingCart, BarChart3, FileText, Shield } from "lucide-react"
+import { Home, Shield, Bot, ChartNoAxesCombined, User, Settings} from "lucide-react"
 
 import {
   Sidebar,
@@ -22,31 +22,26 @@ const items = [
     url: "/dashboard",
     icon: Home,
   },
-//   {
-//     title: "Users",
-//     url: "/dashboard/users",
-//     icon: Users,
-//   },
-//   {
-//     title: "Orders",
-//     url: "/dashboard/orders",
-//     icon: ShoppingCart,
-//   },
-//   {
-//     title: "Analytics",
-//     url: "/dashboard/analytics",
-//     icon: BarChart3,
-//   },
-//   {
-//     title: "Reports",
-//     url: "/dashboard/reports",
-//     icon: FileText,
-//   },
-//   {
-//     title: "Messages",
-//     url: "/dashboard/messages",
-//     icon: Inbox,
-//   },
+  {
+    title: "Chatbot Management",
+    url: "/dashboard/chatbot-management",
+    icon: Bot,
+  },
+  {
+    title: "Analytics",
+    url: "/dashboard/analytics",
+    icon: ChartNoAxesCombined,
+  },
+  {
+    title: "Client Management",
+    url: "/dashboard/client-management",
+    icon: User,
+  },
+  {
+    title: "Settings",
+    url: "/dashboard/settings",
+    icon: Settings,
+  }
 ]
 
 // const settingsItems = [
@@ -71,15 +66,15 @@ export function AppSidebar() {
             <Shield className="size-4" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">Admin Panel</span>
-            <span className="truncate text-xs">Management System</span>
+            <span className="truncate font-semibold">ChatBot Admin</span>
+            <span className="truncate text-xs">Management Panel</span>
           </div>
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
+          {/* <SidebarGroupLabel>Main Menu</SidebarGroupLabel> */}
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
