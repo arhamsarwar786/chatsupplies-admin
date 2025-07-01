@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { DashboardLayout } from "@/src/components/dashboard/dashboard-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
-import { Users, ShoppingCart, DollarSign, Activity } from "lucide-react"
 import { CardSection } from "@/src/components/dashboard/dashboard-card"
 import { UserInteractions } from "@/src/components/dashboard/dashboard-userinteractions"
 import { TopClients } from "@/src/components/dashboard/dashboard-topclient"
@@ -40,7 +37,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <DashboardLayout>
+   
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <CardSection/>
           <div className="grid grid-cols-1 md:grid-cols-2  gap-4">
@@ -53,6 +50,6 @@ export default function DashboardPage() {
        </div>
     
       </div>
-    </DashboardLayout>
+  
   )
 }
