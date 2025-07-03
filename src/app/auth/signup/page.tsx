@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -11,10 +10,11 @@ import { Label } from "@/src/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/src/components/ui/card"
 import { Alert, AlertDescription } from "@/src/components/ui/alert"
 import { Eye, EyeOff } from "lucide-react"
+import { useSignupMutation } from "@/src/hooks/UseAuth" // <-- Import the signup mutation
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -24,6 +24,9 @@ export default function SignupPage() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+
+  const [signup] = useSignupMutation() // <-- Use the mutation hook
+  console.log("Signup mutation:", signup)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -38,7 +41,7 @@ export default function SignupPage() {
     setError("")
 
     // Validation
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
       setError("Please fill in all fields")
       setIsLoading(false)
       return
@@ -56,15 +59,23 @@ export default function SignupPage() {
       return
     }
 
-    // Simulate API call
-    setTimeout(() => {
-      // Store auth state (in real app, use proper auth)
-      localStorage.setItem("isAuthenticated", "true")
-      localStorage.setItem("userEmail", formData.email)
-      localStorage.setItem("userName", formData.name)
+    try {
+      // Call the signup API
+      const result = await signup({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      }).unwrap()
+
+      // Optionally store token or user info here if returned
+      // localStorage.setItem("token", result.token)
+
       router.push("/dashboard")
+    } catch (err: any) {
+      setError(err?.data?.message || "Signup failed. Please try again.")
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   return (
@@ -82,13 +93,13 @@ export default function SignupPage() {
               </Alert>
             )}
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="username">Full Name</Label>
               <Input
                 id="name"
-                name="name"
+                name="username"
                 type="text"
-                placeholder="John Doe"
-                value={formData.name}
+                placeholder="Enter your full name"
+                value={formData.username}
                 onChange={handleInputChange}
                 required
               />
@@ -158,7 +169,7 @@ export default function SignupPage() {
             </Button>
             <div className="text-sm text-center text-gray-600">
               Already have an account?{" "}
-              <Link href="/" className="text-blue-600 hover:underline">
+              <Link href="/auth/login" className="text-blue-600 hover:underline">
                 Sign in here
               </Link>
             </div>
