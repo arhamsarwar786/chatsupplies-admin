@@ -62,7 +62,7 @@ export default function ChatbotTable() {
   return (
     <div className="p-6 space-y-4">
       {/* Top Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap  items-center justify-between gap-4">
         <Input placeholder="Search chatbots..." className="w-64" />
         <div className="flex gap-2">
           <Button variant="outline">All Status</Button>
