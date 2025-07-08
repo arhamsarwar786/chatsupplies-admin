@@ -79,13 +79,13 @@ export default function ClientTable() {
           {clients.map((client, index) => (
             <TableRow key={index}>
               <TableCell className="flex items-center gap-3">
-                <Image
+                {/* <Image
                   src={client.avatar}
                   alt={client.name}
                   width={32}
                   height={32}
                   className="rounded-full"
-                />
+                /> */}
                 <div>
                   <p className="font-medium">{client.name}</p>
                   <p className="text-xs text-gray-500">{client.email}</p>

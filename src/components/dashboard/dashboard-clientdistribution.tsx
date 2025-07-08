@@ -1,96 +1,60 @@
 // components/client-distribution-chart.tsx
-import React from "react";
+import React from "react"
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts"
 
-// Define TypeScript types
-type ClientSegment = {
-  name: "Startup" | "Enterprise" | "SMB";
-  value: number;
-  color: string;
-  textColor: string;
-};
+import { Card, CardHeader, CardTitle, CardContent } from "@/src/components/ui/card"
 
-const data: ClientSegment[] = [
-  { name: "Startup", value: 35, color: "bg-blue-500", textColor: "text-blue-500" },
-  { name: "Enterprise", value: 45, color: "bg-purple-500", textColor: "text-purple-500" },
-  { name: "SMB", value: 20, color: "bg-green-500", textColor: "text-green-500" },
-];
-
-const totalValue = data.reduce((sum, item) => sum + item.value, 0);
+const data = [
+  { name: "Startup", value: 20, color: "#f59e0b" },     // orange-500
+  { name: "SMB", value: 30, color: "#10b981" },         // green-500
+  { name: "Enterprise", value: 50, color: "#6366f1" },  // indigo-500
+]
 
 export const ClientDistributionChart = () => {
-  // Calculate segment angles
-  const segments = data.map((item) => ({
-    ...item,
-    percentage: (item.value / totalValue) * 360,
-  }));
-
-  // Calculate cumulative angles for positioning
-  let cumulativeAngle = 0;
-  const positionedSegments = segments.map((segment) => {
-    const segmentData = {
-      ...segment,
-      startAngle: cumulativeAngle,
-      endAngle: cumulativeAngle + segment.percentage,
-    };
-    cumulativeAngle += segment.percentage;
-    return segmentData;
-  });
-
   return (
-    <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-      <h2 className="text-lg font-semibold text-gray-800 mb-6">Client Distribution</h2>
-      
-      <div className="flex flex-col md:flex-row items-center gap-8">
-        {/* Pie Chart Container */}
-        <div className="relative w-48 h-48">
-          {/* Base circle */}
-          <div className="absolute inset-0 rounded-full border-8 border-gray-100"></div>
-          
-          {/* Segments */}
-          {positionedSegments.map((segment, index) => (
-            <div
-              key={segment.name}
-              className={`absolute inset-0 rounded-full ${segment.color} opacity-90`}
-              style={{
-                clipPath: getSegmentClipPath(segment),
-                transform: `rotate(${segment.startAngle}deg)`,
-              }}
-              aria-label={`${segment.name}: ${Math.round(segment.percentage / 3.6)}%`}
-            />
-          ))}
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Client Distribution</CardTitle>
+      </CardHeader>
+
+      <CardContent className="flex flex-col md:flex-row items-center justify-center gap-8">
+        <div className="h-[200px] w-[200px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={0}
+                outerRadius="100%"
+                stroke="white"
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value: number) => [`${value}%`, "Segment"]}
+                contentStyle={{ borderRadius: "8px", borderColor: "#e5e7eb" }}
+                labelStyle={{ color: "#6b7280" }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
 
         {/* Legend */}
         <div className="space-y-3 min-w-[160px]">
-          {data.map((segment) => (
-            <div key={segment.name} className="flex items-center">
-              <div className={`w-3 h-3 rounded-full ${segment.color} mr-2`}></div>
-              <div className="flex justify-between w-full">
-                <span className="text-sm font-medium text-gray-700">{segment.name}</span>
-                <span className={`text-sm font-medium ${segment.textColor}`}>
-                  {Math.round((segment.value / totalValue) * 100)}%
-                </span>
+          {data.map((entry) => (
+            <div key={entry.name} className="flex items-center justify-between text-sm font-medium">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
+                <span>{entry.name}</span>
               </div>
+              <span>{entry.value}%</span>
             </div>
           ))}
         </div>
-      </div>
-    </div>
-  );
-};
-
-// Helper function to calculate clip paths
-function getSegmentClipPath(segment: {
-  percentage: number;
-  startAngle: number;
-  endAngle: number;
-}): string {
-  if (segment.percentage >= 360) return "none";
-  if (segment.percentage <= 0) return "inset(50%)";
-
-  const isLargeArc = segment.percentage > 180 ? 1 : 0;
-  const endX = Math.cos((segment.endAngle * Math.PI) / 180);
-  const endY = Math.sin((segment.endAngle * Math.PI) / 180);
-
-  return `path('M 1 0 A 1 1 0 ${isLargeArc} 1 ${endX} ${endY} L 0 0 Z')`;
+      </CardContent>
+    </Card>
+  )
 }

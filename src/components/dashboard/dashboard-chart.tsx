@@ -1,50 +1,72 @@
 // components/platform-usage-trends.tsx
-import React from 'react';
+import React from 'react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { TrendingUp } from 'lucide-react'
 
-const data = [
-  { month: 'Jan', value: 70 },
-  { month: 'Feb', value: 60 },
-  { month: 'Mar', value: 50 },
-  { month: 'Apr', value: 40 },
-  { month: 'May', value: 30 },
-  { month: 'Jun', value: 20 },
-];
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/src/components/ui/card'
+
+const chartData = [
+  { month: 'Jan', interactions: 45 },
+  { month: 'Feb', interactions: 53 },
+  { month: 'Mar', interactions: 48 },
+  { month: 'Apr', interactions: 62 },
+  { month: 'May', interactions: 58 },
+  { month: 'Jun', interactions: 69 },
+]
 
 export const PlatformUsageTrends = () => {
-  const maxValue = Math.max(...data.map(item => item.value));
-  
   return (
-    <div className="bg-white p-6 rounded-lg border">
-      <h2 className="text-lg font-semibold mb-6">Platform Usage Trends</h2>
-      
-      <div className="flex">
-        {/* Y-axis labels */}
-        <div className="flex flex-col justify-between  h-48">
-          {[70, 60, 50, 40].map((value) => (
-            <span key={value} className="text-sm text-gray-600 font-medium">
-              {value}
-            </span>
-          ))}
-        </div>
-        
-        {/* Chart bars */}
-       <div className="w-full h-48 flex items-end px-2">
-  {data.map((item) => (
-    <div key={item.month} className="flex flex-col items-center flex-1">
-      <div
-        className="w-6 bg-blue-500 rounded-t-sm transition-all duration-300"
-        style={{ height: `${(item.value / maxValue) * 100}%` }}
-      />
-      <span className="text-sm text-gray-600 mt-2">{item.month}</span>
-    </div>
-  ))}
-</div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Platform Usage Trends</CardTitle>
+      </CardHeader>
 
-      </div>
-      
-      <div className="mt-8 pt-4 border-t">
-        <p className="text-sm text-gray-600">Interactions (K)</p>
-      </div>
-    </div>
-  );
-};
+      <CardContent className="h-[260px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="month" tickLine={false} axisLine={false} />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => `${value}K`}
+              domain={[40, 75]}
+              width={40}
+            />
+            <Tooltip
+              contentStyle={{ borderRadius: '8px', borderColor: '#e5e7eb' }}
+              labelStyle={{ color: '#6b7280' }}
+              formatter={(value: number) => [`${value}K`, 'Interactions']}
+            />
+            <Line
+              type="monotone"
+              dataKey="interactions"
+              stroke="#4f46e5"
+              strokeWidth={3}
+              dot={{ r: 5, stroke: '#4f46e5', strokeWidth: 2, fill: '#4f46e5' }}
+              activeDot={{ r: 6 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+
+      <CardFooter>
+        <div className="flex w-full items-start gap-2 text-sm">
+          <div className="grid gap-1">
+            <div className="flex items-center gap-2 font-medium leading-none">
+              Trending up by 5.2% this month <TrendingUp className="h-4 w-4 text-green-600" />
+            </div>
+            <div className="text-muted-foreground">January – June 2024</div>
+          </div>
+        </div>
+      </CardFooter>
+    </Card>
+  )
+}

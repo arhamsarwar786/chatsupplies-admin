@@ -60,7 +60,7 @@ const data: Chatbot[] = [
 
 export default function ChatbotTable() {
   return (
-    <div className="p-6 space-y-4">
+    <div className="space-y-4">
       {/* Top Controls */}
       <div className="flex flex-wrap  items-center justify-between gap-4">
         <Input placeholder="Search chatbots..." className="w-64" />
@@ -95,13 +95,13 @@ export default function ChatbotTable() {
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <Image
+                  {/* <Image
                     src={bot.clientAvatar}
                     alt="avatar"
                     width={32}
                     height={32}
                     className="rounded-full"
-                  />
+                  /> */}
                   <span>{bot.clientName}</span>
                 </div>
               </TableCell>

@@ -1,7 +1,7 @@
 "use client"
 
-import { Home, Shield, Bot, ChartNoAxesCombined, User, Settings} from "lucide-react"
-
+import { Home, Shield, Bot, ChartNoAxesCombined, User, Settings } from "lucide-react"
+import { usePathname } from "next/navigation"
 import {
   Sidebar,
   SidebarContent,
@@ -44,29 +44,18 @@ const items = [
   }
 ]
 
-// const settingsItems = [
-//   {
-//     title: "Settings",
-//     url: "/dashboard/settings",
-//     icon: Settings,
-//   },
-//   {
-//     title: "Security",
-//     url: "/dashboard/security",
-//     icon: Shield,
-//   },
-// ]
-
 export function AppSidebar() {
+  const pathname = usePathname()
+
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-4 py-2">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <Shield className="size-4" />
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-[#5046E5] text-sidebar-primary-foreground">
+            <Bot className="size-4" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">ChatBot Admin</span>
+            <span className="truncate text-xl font-bold">ChatBot Admin</span>
             <span className="truncate text-xs">Management Panel</span>
           </div>
         </div>
@@ -74,40 +63,30 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          {/* <SidebarGroupLabel>Main Menu</SidebarGroupLabel> */}
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {items.map((item) => {
+                const isActive = pathname === item.url || 
+                                 (item.url !== "/dashboard" && pathname.startsWith(item.url))
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild
+                      className={`hover:bg-[#5146e5b5] hover:text-white ${
+                        isActive ? 'bg-[#5046E5] text-white' : 'text-muted-foreground'
+                      }`}
+                    >
+                      <a href={item.url}>
+                        <item.icon className="size-4" />
+                        <span>{item.title}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {/* <SidebarGroup>
-          <SidebarGroupLabel>System</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {settingsItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup> */}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
