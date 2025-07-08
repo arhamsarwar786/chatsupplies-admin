@@ -26,11 +26,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <title>Umazing Official</title>
-        <meta name="theme-color" content="#5046E5" />
-        <Bot className="size-4" />
-      </head>
       <body
        className={`${roboto.className} w-screen min-h-screen`}
       >
