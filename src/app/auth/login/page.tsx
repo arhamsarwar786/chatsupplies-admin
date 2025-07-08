@@ -10,13 +10,13 @@ import { Label } from "@/src/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/src/components/ui/card"
 import { Alert, AlertDescription } from "@/src/components/ui/alert"
 import { Eye, EyeOff } from "lucide-react"
-import { useLoginMutation } from "@/src/hooks/UseAuth" 
-import { toast } from "sonner" 
+import { useLoginMutation } from "@/src/hooks/UseAuth"
+import { toast } from "sonner"
 import { useDispatch } from "react-redux"
 import { setLogin } from "@/src/slice/authSlice"
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("") 
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
@@ -25,50 +25,41 @@ export default function LoginPage() {
   const dispatch = useDispatch()
   const [login] = useLoginMutation()
 
-const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setError("");
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError("")
 
-  if (!username || !password) {
-    setError("Please fill in all fields");
-    setIsLoading(false);
-    return;
-  }
-
-  try {
-    const result = await login({ username, password }).unwrap();
-    const token = result.token || result.access_token;
-    
-    if (!token) {
-      throw new Error("No token received");
+    if (!username || !password) {
+      setError("Please fill in all fields")
+      toast.error("Please fill in all fields")
+      setIsLoading(false)
+      return
     }
 
-    dispatch(setLogin({ token }));
-    localStorage.setItem("token", token);
-    toast.success("Login successful!");
+    try {
 
-    // Primary method with refresh
-    router.refresh();
-    router.replace("/dashboard");
-
-    // Backup method after delay
-    const redirectTimer = setTimeout(() => {
-      if (window.location.pathname !== "/dashboard") {
-        window.location.href = "/dashboard";
+      const result = await login({ username, password }).unwrap()
+      console.log("Login API result:", result)
+      const token = result.token || result.access_token;
+      if (token) {
+        dispatch(setLogin({ token }))
+        localStorage.setItem("token", token)
+        toast.success("Login successful!")
+        setTimeout(() => {
+          router.push("/dashboard")
+        }, 700);
+      } else {
+        setError("Invalid response from server")
+        toast.error("Invalid response from server")
       }
-    }, 1500);
-
-    // Cleanup timer if navigation succeeds
-    return () => clearTimeout(redirectTimer);
-
-  } catch (err: any) {
-    setError(err?.data?.message || "Login failed");
-    toast.error(err?.data?.message || "Login failed");
-  } finally {
-    setIsLoading(false);
+    } catch (err: any) {
+      setError(err?.data?.message || "Invalid username or password")
+      toast.error(err?.data?.message || "Invalid username or password")
+    } finally {
+      setIsLoading(false)
+    }
   }
-};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

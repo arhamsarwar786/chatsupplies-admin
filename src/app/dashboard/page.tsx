@@ -7,34 +7,21 @@ import { UserInteractions } from "@/src/components/dashboard/dashboard-userinter
 import { TopClients } from "@/src/components/dashboard/dashboard-topclient"
 import { PlatformUsageTrends } from "@/src/components/dashboard/dashboard-chart"
 import { ClientDistributionChart } from "@/src/components/dashboard/dashboard-clientdistribution"
+import { useSelector } from "react-redux"
+import { RootState } from "@/src/store/store"
 
 export default function DashboardPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [userEmail, setUserEmail] = useState("")
+  const token = useSelector((state: RootState) => state.authSlice.token)
   const router = useRouter()
 
   useEffect(() => {
-    const authStatus = localStorage.getItem("isAuthenticated")
-    const email = localStorage.getItem("userEmail")
 
-    if (authStatus === "true" && email) {
-      setIsAuthenticated(true)
-      setUserEmail(email)
-    } else {
+    if (!token) {
       router.push("/")
     }
-  }, [router])
+  }, [token])
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
-  }
+
 
   return (
    
