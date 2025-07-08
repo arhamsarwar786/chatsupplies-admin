@@ -50,8 +50,8 @@ const handleLogin = async (e: React.FormEvent) => {
 
     // Primary method with refresh
     router.refresh();
-    router.push("/dashboard");
-    
+    router.replace("/dashboard");
+
     // Backup method after delay
     const redirectTimer = setTimeout(() => {
       if (window.location.pathname !== "/dashboard") {
