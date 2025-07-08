@@ -10,13 +10,13 @@ import { Label } from "@/src/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/src/components/ui/card"
 import { Alert, AlertDescription } from "@/src/components/ui/alert"
 import { Eye, EyeOff } from "lucide-react"
-import { useLoginMutation } from "@/src/hooks/UseAuth" 
-import { toast } from "sonner" 
+import { useLoginMutation } from "@/src/hooks/UseAuth"
+import { toast } from "sonner"
 import { useDispatch } from "react-redux"
 import { setLogin } from "@/src/slice/authSlice"
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("") 
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
@@ -38,7 +38,7 @@ export default function LoginPage() {
     }
 
     try {
-    
+
       const result = await login({ username, password }).unwrap()
       console.log("Login API result:", result)
       const token = result.token || result.access_token;
@@ -46,9 +46,14 @@ export default function LoginPage() {
         dispatch(setLogin({ token }))
         localStorage.setItem("token", token)
         toast.success("Login successful!")
-       setTimeout(() => {
-    router.push("/dashboard")
-  }, 700);
+        setTimeout(() => {
+          try {
+            router.push("/dashboard")
+          } catch (error) {
+            console.error("Redirect failed:", error)
+            window.location.href = "/dashboard" 
+          }
+        }, 700)
       } else {
         setError("Invalid response from server")
         toast.error("Invalid response from server")
