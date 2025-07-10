@@ -6,6 +6,7 @@ import {
   CheckCircle,
   LucideIcon,
 } from "lucide-react";
+import { useGetSummaryQuery } from "@/src/hooks/useDashboard";
 
 interface StatCardProps {
   title: string;
@@ -50,11 +51,21 @@ const StatCard: FC<StatCardProps> = ({
   );
 };
 
-export const CardSection: FC = () => {
+export function CardSection() {
+  const { data, isLoading, error } = useGetSummaryQuery();
+
+  if (isLoading) {
+    return <div>Loading summary...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">Failed to load summary.</div>;
+  }
+
   const stats: StatCardProps[] = [
     {
       title: "Total Clients",
-      value: "247",
+      value: data?.totalUsers ?? 0,
       change: "+12%",
       note: "this month",
       iconType: "building",
@@ -62,7 +73,7 @@ export const CardSection: FC = () => {
     },
     {
       title: "Active Chatbots",
-      value: "1,847",
+      value: data?.activeClients ?? 0,
       change: "+8%",
       note: "this month",
       iconType: "bot",
@@ -70,7 +81,7 @@ export const CardSection: FC = () => {
     },
     {
       title: "Daily Interactions",
-      value: "89.2K",
+      value: data?.interactions ?? 0,
       change: "+15%",
       note: "today",
       iconType: "message",
@@ -93,4 +104,4 @@ export const CardSection: FC = () => {
       ))}
     </div>
   );
-};
+}

@@ -1,9 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query/react';
 import { authSlice } from '@/src/slice/authSlice';
-
-
 import { auth } from '@/src/hooks/UseAuth';
+import { dashboard } from '../hooks/useDashboard';
 
 
 export const makeStore = () => {
@@ -11,9 +10,14 @@ export const makeStore = () => {
    reducer: {
   authSlice: authSlice.reducer,
   [auth.reducerPath]: auth.reducer, // <-- required
+[dashboard.reducerPath]: dashboard.reducer, 
+
 },
 middleware: (getDefaultMiddleware) =>
-  getDefaultMiddleware().concat(auth.middleware),
+  getDefaultMiddleware().concat(
+    auth.middleware,
+     dashboard.middleware
+    ),
   });
 };
 
