@@ -1,9 +1,9 @@
-"use client"
 
-import { useState, useEffect } from "react"
+"use client"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/src/components/ui/button"
 import { SidebarTrigger } from "@/src/components/ui/sidebar"
+import { Button } from "@/src/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,10 +12,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/src/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/src/components/ui/avatar"
 import { Bell, Plus, User, LogOut, Settings } from "lucide-react"
 
-export function DashboardHeader() {
+type DashboardHeaderProps = {
+  title?: string
+  description?: string
+  buttonText?: string
+  onButtonClick?: () => void
+}
+
+export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
+  title = "",
+  description = "",
+  buttonText = "",
+  onButtonClick,
+}) => {
   const [userEmail, setUserEmail] = useState("")
   const [userName, setUserName] = useState("")
   const router = useRouter()
@@ -28,9 +40,7 @@ export function DashboardHeader() {
   }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated")
-    localStorage.removeItem("userEmail")
-    localStorage.removeItem("userName")
+    localStorage.clear()
     router.push("/")
   }
 
@@ -44,31 +54,31 @@ export function DashboardHeader() {
   }
 
   return (
-    <header className="flex shrink-0 items-center gap-2 border-b px-4  py-4">
+    <header className="flex shrink-0 items-center gap-2 border-b px-4 py-4 bg-white">
       <SidebarTrigger className="-ml-1" />
 
       <div className="flex flex-1 items-center justify-between">
         <div className="flex flex-col items-start">
-          <h1 className="text-2xl font-bold">Platform Overview</h1>
-          <p className="text-md">Monitor and manage your chatbot ecosystem</p>
+          <h1 className="text-2xl font-bold">{title}</h1>
+          <p className="text-md text-muted-foreground">{description}</p>
         </div>
-<div className="flex items-center gap-2">
-  <div>
-  <button className="bg-primary text-white px-4 py-2 flex gap-2 rounded-md hover:bg-primary/90 transition-colors">
-  <Plus />  Create Chatbot
-  </button>
-</div>
+
         <div className="flex items-center gap-2">
-          {/* User Menu */}
+          {buttonText && (
+            <Button onClick={onButtonClick} className="flex gap-2">
+              <Plus className="w-4 h-4" /> {buttonText}
+            </Button>
+          )}
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  {/* <AvatarImage src="/dashboard" alt={userName} /> */}
                   <AvatarFallback>{getInitials(userName)}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
@@ -76,16 +86,21 @@ export function DashboardHeader() {
                   <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
                 </div>
               </DropdownMenuLabel>
+
               <DropdownMenuSeparator />
+
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
+
               <DropdownMenuItem>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
+
               <DropdownMenuSeparator />
+
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
@@ -93,8 +108,6 @@ export function DashboardHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-</div>
-
       </div>
     </header>
   )

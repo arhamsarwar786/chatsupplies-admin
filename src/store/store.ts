@@ -3,6 +3,7 @@ import { setupListeners } from '@reduxjs/toolkit/query/react';
 import { authSlice } from '@/src/slice/authSlice';
 import { auth } from '@/src/hooks/UseAuth';
 import { dashboard } from '../hooks/useDashboard';
+import { client } from '../hooks/useClients';
 
 
 export const makeStore = () => {
@@ -11,12 +12,14 @@ export const makeStore = () => {
   authSlice: authSlice.reducer,
   [auth.reducerPath]: auth.reducer, // <-- required
 [dashboard.reducerPath]: dashboard.reducer, 
+[client.reducerPath]: client.reducer, // <-- required
 
 },
 middleware: (getDefaultMiddleware) =>
   getDefaultMiddleware().concat(
     auth.middleware,
-     dashboard.middleware
+     dashboard.middleware,
+      client.middleware, 
     ),
   });
 };

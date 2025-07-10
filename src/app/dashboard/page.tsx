@@ -9,6 +9,7 @@ import { PlatformUsageTrends } from "@/src/components/dashboard/dashboard-chart"
 import { ClientDistributionChart } from "@/src/components/dashboard/dashboard-clientdistribution"
 import { useSelector } from "react-redux"
 import { RootState } from "@/src/store/store"
+import { DashboardHeader } from "@/src/components/layout/dashboard-header"
 
 export default function DashboardPage() {
   const token = useSelector((state: RootState) => state.authSlice.token)
@@ -26,6 +27,11 @@ export default function DashboardPage() {
   return (
    
       <div className="flex-1 space-y-4">
+        <DashboardHeader
+          title="Dashboard Overview"
+        description="Here’s a summary of your recent activity"
+        buttonText="Add New"
+        />
         <CardSection/>
           <div className="grid grid-cols-1 md:grid-cols-2  gap-4">
         <PlatformUsageTrends/>

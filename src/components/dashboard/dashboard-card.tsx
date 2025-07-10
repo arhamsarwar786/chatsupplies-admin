@@ -52,7 +52,8 @@ const StatCard: FC<StatCardProps> = ({
 };
 
 export function CardSection() {
-  const { data, isLoading, error } = useGetSummaryQuery();
+  const { data, isLoading, error } = useGetSummaryQuery({});
+  console.log("CardSection data:", data);
 
   if (isLoading) {
     return <div>Loading summary...</div>;
@@ -65,32 +66,32 @@ export function CardSection() {
   const stats: StatCardProps[] = [
     {
       title: "Total Clients",
-      value: data?.totalUsers ?? 0,
-      change: "+12%",
+      value: data?.total_clients.count ?? 0,
+      change: data?.total_clients.percentage_change ?? 0,
       note: "this month",
       iconType: "building",
       iconBg: "bg-blue-100 text-blue-600",
     },
     {
-      title: "Active Chatbots",
-      value: data?.activeClients ?? 0,
-      change: "+8%",
+      title: "Active Clients",
+      value: data?.active_clients.count ?? 0,
+      change: data?.active_clients.percentage_changes ?? 0,
       note: "this month",
       iconType: "bot",
       iconBg: "bg-green-100 text-green-600",
     },
     {
       title: "Daily Interactions",
-      value: data?.interactions ?? 0,
-      change: "+15%",
+      value: data?.daily_interactions.count ?? 0,
+      change: data?.daily_interactions.percentage_changes ?? 0,
       note: "today",
       iconType: "message",
       iconBg: "bg-purple-100 text-purple-600",
     },
     {
       title: "Success Rate",
-      value: "94.8%",
-      change: "+2.1%",
+      value: data?.success_rate.percentage  ?? 0,
+      change: data?.success_rate.percentage_changes ?? 0,
       note: "this week",
       iconType: "check",
       iconBg: "bg-orange-100 text-orange-600",
