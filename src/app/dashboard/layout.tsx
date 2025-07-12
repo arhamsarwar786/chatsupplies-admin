@@ -11,7 +11,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <SidebarProvider>
       <AppSidebar />
       <main className="flex-1 flex flex-col min-h-screen ">
-      <div className="md:p-5 p-4">{children}</div>
+      <div>{children}</div>
       </main>
     </SidebarProvider>
   );

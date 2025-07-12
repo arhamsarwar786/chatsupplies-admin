@@ -4,22 +4,25 @@ import { authSlice } from '@/src/slice/authSlice';
 import { auth } from '@/src/hooks/UseAuth';
 import { dashboard } from '../hooks/useDashboard';
 import { client } from '../hooks/useClients';
+import { chatbot } from '../hooks/useChatbot';
 
 
 export const makeStore = () => {
   return configureStore({
    reducer: {
   authSlice: authSlice.reducer,
-  [auth.reducerPath]: auth.reducer, // <-- required
+  [auth.reducerPath]: auth.reducer, 
 [dashboard.reducerPath]: dashboard.reducer, 
-[client.reducerPath]: client.reducer, // <-- required
+[client.reducerPath]: client.reducer, 
+[chatbot.reducerPath]: chatbot.reducer,
 
 },
 middleware: (getDefaultMiddleware) =>
   getDefaultMiddleware().concat(
     auth.middleware,
      dashboard.middleware,
-      client.middleware, 
+      client.middleware,
+      chatbot.middleware,
     ),
   });
 };

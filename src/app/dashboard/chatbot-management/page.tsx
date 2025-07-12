@@ -11,7 +11,7 @@ const page = () => {
             description="Create, manage and monitor your chatbots"
             buttonText="Create Chatbot"
             />
-     <div className='flex flex-col gap-8'>
+     <div className='flex md:p-5 p-4 flex-col gap-8'>
         <ChatbotTable/>
         <ChatbotCards/>
     </div>
