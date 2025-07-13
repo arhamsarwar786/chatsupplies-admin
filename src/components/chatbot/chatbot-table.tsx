@@ -10,15 +10,21 @@ import {
 } from "@/src/components/ui/table";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/src/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/src/components/ui/dropdown-menu";
 import { Eye, Edit, List, MoreHorizontal } from "lucide-react";
-import Image from "next/image";
-import { useGetChatbotQuery } from "@/src//hooks/useChatbot"; // <-- Import the hook
+import { useGetChatbotQuery, useCreateChatbotMutation } from "@/src/hooks/useChatbot";
+import { toast } from "sonner";
 
 interface Chatbot {
   name: string;
   description: string;
-  createdAt: string;
+  client_name: string;
+  created_at: string;
   personality_tone: string;
   bot_avatar: string;
   industry: string;
@@ -29,23 +35,44 @@ interface Chatbot {
   updated_at: string;
   id: number;
   user_id: number;
-
+  total_interactions: number;
+  interaction_change_percent: number;
 }
 
 export default function ChatbotTable() {
-  const { data = [], isLoading, error } = useGetChatbotQuery({});
+  const { data = [], isLoading, error, refetch } = useGetChatbotQuery();
   console.log("ChatbotTable data:", data);
+  const [createChatbot, { isLoading: isCreating }] = useCreateChatbotMutation();
+
+  // Example handler for creating a chatbot
+  const handleAddChatbot = async () => {
+    try {
+      const newBot = {
+        name: "New Chatbot",
+        description: "Auto-created bot",
+        // ...other required fields
+      };
+      await createChatbot(newBot).unwrap();
+      toast.success("Chatbot created!");
+      refetch(); // Refresh the list
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to create chatbot");
+    }
+  };
 
   return (
     <div className="space-y-4">
       {/* Top Controls */}
-      <div className="flex flex-wrap  items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <Input placeholder="Search chatbots..." className="w-64" />
         <div className="flex gap-2">
           <Button variant="outline">All Status</Button>
           <Button variant="outline">All Clients</Button>
           <Button variant="outline">Filter</Button>
           <Button>Export</Button>
+          <Button onClick={handleAddChatbot} disabled={isCreating}>
+            {isCreating ? "Adding..." : "Add Chatbot"}
+          </Button>
         </div>
       </div>
 
@@ -69,7 +96,9 @@ export default function ChatbotTable() {
           )}
           {error && (
             <TableRow>
-              <TableCell colSpan={6} className="text-red-500">Failed to load chatbots.</TableCell>
+              <TableCell colSpan={6} className="text-red-500">
+                Failed to load chatbots.
+              </TableCell>
             </TableRow>
           )}
           {!isLoading && !error && data.length === 0 && (
@@ -82,7 +111,9 @@ export default function ChatbotTable() {
               <TableCell>
                 <div className="flex flex-col">
                   <span className="font-medium">{bot.name}</span>
-                  <span className="text-muted-foreground text-sm">{bot.description}</span>
+                  <span className="text-muted-foreground text-sm">
+                    {bot.description}
+                  </span>
                 </div>
               </TableCell>
               <TableCell>
@@ -94,7 +125,7 @@ export default function ChatbotTable() {
                     height={32}
                     className="rounded-full"
                   /> */}
-                  <span>{bot.updated_at}</span>
+                  <span>{bot.client_name}</span>
                 </div>
               </TableCell>
               <TableCell>
@@ -110,11 +141,17 @@ export default function ChatbotTable() {
               </TableCell>
               <TableCell>
                 <div className="flex flex-col">
-                  <span className="font-medium">{bot.updated_at.toLocaleString()}</span>
-                  <span className="text-sm text-muted-foreground">{bot.updated_at}</span>
+                  <span className="font-medium">
+                    {bot.total_interactions ? new Date(bot.total_interactions).toLocaleString() : "N/A"}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {bot.updated_at}
+                  </span>
                 </div>
               </TableCell>
-              <TableCell>{bot.createdAt}</TableCell>
+              <TableCell>
+                {bot.created_at ? new Date(bot.created_at).toLocaleDateString() : "N/A"}
+              </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
                   <Eye className="h-4 w-4 text-blue-500 cursor-pointer" />
@@ -139,13 +176,26 @@ export default function ChatbotTable() {
 
       {/* Pagination */}
       <div className="flex justify-between text-sm text-muted-foreground pt-4">
-        <span>Showing {data.length > 0 ? `1 to ${data.length}` : "0"} of {data.length} results</span>
+        <span>
+          Showing{" "}
+          {data.length > 0 ? `1 to ${data.length}` : "0"} of {data.length} results
+        </span>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">Previous</Button>
-          <Button size="sm" className="bg-primary text-white">1</Button>
-          <Button variant="outline" size="sm">2</Button>
-          <Button variant="outline" size="sm">3</Button>
-          <Button variant="outline" size="sm">Next</Button>
+          <Button variant="outline" size="sm">
+            Previous
+          </Button>
+          <Button size="sm" className="bg-primary text-white">
+            1
+          </Button>
+          <Button variant="outline" size="sm">
+            2
+          </Button>
+          <Button variant="outline" size="sm">
+            3
+          </Button>
+          <Button variant="outline" size="sm">
+            Next
+          </Button>
         </div>
       </div>
     </div>

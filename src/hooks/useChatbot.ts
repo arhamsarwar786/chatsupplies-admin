@@ -4,7 +4,7 @@ import { BASE_URL } from "@/src/lib/constant";
 export const chatbot = createApi({
   reducerPath: "chatbot",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${BASE_URL}/`,
+    baseUrl: `${BASE_URL}/chatbots/`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       if (token) {
@@ -14,12 +14,20 @@ export const chatbot = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getChatbot: builder.query({
-      query: () => `chatbots`,
+    getChatbot: builder.query<any[], void>({
+      query: () => "",
+    }),
+    createChatbot: builder.mutation<any, any>({
+      query: (body) => ({
+        url: "",
+        method: "POST",
+        body,
+      }),
     }),
   }),
 });
 
 export const { 
-  useGetChatbotQuery
+  useGetChatbotQuery, 
+  useCreateChatbotMutation 
 } = chatbot;
