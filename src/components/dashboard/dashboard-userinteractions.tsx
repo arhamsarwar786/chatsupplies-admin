@@ -1,4 +1,5 @@
 import { FC } from "react";
+import Image from "next/image";
 
 interface UserInteraction {
   name: string;
@@ -51,7 +52,7 @@ export const UserInteractions: FC = () => {
             className="bg-gray-50 rounded-lg p-4 flex items-center justify-between"
           >
             <div className="flex items-start gap-4">
-              <img
+              <Image
                 src={user.avatar}
                 alt={user.name}
                 className="w-10 h-10 rounded-full object-cover"
