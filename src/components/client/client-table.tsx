@@ -1,7 +1,6 @@
 // @ts-nocheck
 'use client'
-
-
+import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -9,26 +8,30 @@ import {
   TableHead,
   TableHeader,
   TableRow
-} from "@/src/components/ui/table"
-import { Badge } from "@/src/components/ui/badge"
-import { Eye, Pencil, Pause, Play } from "lucide-react"
-import { useGetClientsQuery } from "@/src/hooks/useClients" 
-
-type Client = {
-  name: string
-  email: string
-  avatar: string
-  company: string
-  industry: string
-  status: "Active" | "Suspended"
-  chatbots: string
-  payment: "Verified" | "Unverified"
-  lastActivity: string
-}
+} from "@/src/components/ui/table";
+import { Badge } from "@/src/components/ui/badge";
+import { Eye, Pencil, Pause, Play } from "lucide-react";
+import { useGetClientsQuery } from "@/src/hooks/useClients";
 
 export default function ClientTable() {
-  const { data: clients = [], isLoading, error } = useGetClientsQuery({}) 
-  console.log("ClientTable clients:", clients)
+  const [currentPage, setCurrentPage] = useState(1);
+  const { data: clients = [], isLoading, error } = useGetClientsQuery({ page: currentPage });
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (clients.length === 10) {  // adjust according to API page size
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
 
   return (
     <div className="border rounded-xl shadow-sm">
@@ -49,59 +52,51 @@ export default function ClientTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clients.map((clients, index: number) => (
+              {clients.map((client, index) => (
                 <TableRow key={index}>
                   <TableCell className="flex items-center gap-3">
-                    {/* Uncomment if you want to show avatars and have valid image URLs */}
-                    {/* <Image
-                      src={client.avatar}
-                      alt={client.name}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    /> */}
                     <div>
-                      <p className="font-medium">{clients.first_name}</p>
-                      <p className="text-xs text-gray-500">{clients.email}</p>
+                      <p className="font-medium">{client.first_name}</p>
+                      <p className="text-xs text-gray-500">{client.email}</p>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <p>{clients.company}</p>
-                    <p className="text-xs text-gray-500">{clients.company_name}</p>
+                    <p>{client.company}</p>
+                    <p className="text-xs text-gray-500">{client.company_name}</p>
                   </TableCell>
                   <TableCell>
                     <Badge
                       variant="outline"
                       className={`text-xs px-2 ${
-                        clients.payment_status === "paid"
+                        client.payment_status === "paid"
                           ? "bg-green-100 text-green-700"
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {clients.payment_status}
+                      {client.payment_status}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm bg-blue-10 text-black px-2 py-1 rounded">
-                      {clients.max_chatbots}
+                      {client.max_chatbots}
                     </span>
                   </TableCell>
                   <TableCell>
                     <Badge
                       className={`text-xs px-2 ${
-                        clients.payment_status === "paid"
+                        client.payment_status === "paid"
                           ? "bg-emerald-100 text-emerald-700"
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {clients.payment_status === "paid" ? "✓ Verified" : "✗ Unverified"}
+                      {client.payment_status === "paid" ? "✓ Verified" : "✗ Unverified"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{clients.lastActivity}</TableCell>
+                  <TableCell>{client.lastActivity}</TableCell>
                   <TableCell className="flex items-center justify-center gap-2">
                     <Eye className="w-4 h-4 text-blue-500 cursor-pointer" />
                     <Pencil className="w-4 h-4 text-green-600 cursor-pointer" />
-                    {clients.status === "Active" ? (
+                    {client.status === "Active" ? (
                       <Pause className="w-4 h-4 text-orange-500 cursor-pointer" />
                     ) : (
                       <Play className="w-4 h-4 text-green-500 cursor-pointer" />
@@ -111,18 +106,40 @@ export default function ClientTable() {
               ))}
             </TableBody>
           </Table>
+
+          {/* Pagination */}
           <div className="p-4 text-sm text-gray-600">
             Showing {clients.length > 0 ? `1 to ${clients.length}` : "0"} of {clients.length} results
             <div className="flex justify-end mt-2 gap-2">
-              <button className="px-2 py-1 text-gray-500">Previous</button>
-              <button className="px-3 py-1 bg-purple-600 text-white rounded">1</button>
-              <button className="px-2 py-1 text-gray-500">2</button>
-              <button className="px-2 py-1 text-gray-500">3</button>
-              <button className="px-2 py-1 text-gray-500">Next</button>
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className={`px-2 py-1 rounded ${
+                  currentPage === 1
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700"
+                }`}
+              >
+                Previous
+              </button>
+              <button className="px-3 py-1 bg-purple-600 text-white rounded">
+                {currentPage}
+              </button>
+              <button
+                onClick={handleNextPage}
+                disabled={clients.length < 10}
+                className={`px-2 py-1 rounded ${
+                  clients.length < 10
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700"
+                }`}
+              >
+                Next
+              </button>
             </div>
           </div>
         </>
       )}
     </div>
-  )
+  );
 }

@@ -27,11 +27,11 @@ const items = [
     url: "/dashboard/chatbot-management",
     icon: Bot,
   },
-  {
-    title: "Analytics",
-    url: "/dashboard/analytics",
-    icon: ChartNoAxesCombined,
-  },
+  // {
+  //   title: "Analytics",
+  //   url: "/dashboard/analytics",
+  //   icon: ChartNoAxesCombined,
+  // },
   {
     title: "Client Management",
     url: "/dashboard/client-management",

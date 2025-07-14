@@ -14,8 +14,8 @@ export const chatbot = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getChatbot: builder.query<any[], void>({
-      query: () => "",
+    getChatbot: builder.query<any, { page: number }>({
+      query: ({ page}) => `?page=${page}`,
     }),
     createChatbot: builder.mutation<any, any>({
       query: (body) => ({

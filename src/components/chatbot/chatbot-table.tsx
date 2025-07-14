@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -40,29 +41,41 @@ interface Chatbot {
 }
 
 export default function ChatbotTable() {
-  const { data = [], isLoading, error, refetch } = useGetChatbotQuery();
-  console.log("ChatbotTable data:", data);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const { data = [], isLoading, error, refetch } = useGetChatbotQuery({ page: currentPage });
+
   const [createChatbot, { isLoading: isCreating }] = useCreateChatbotMutation();
 
-  // Example handler for creating a chatbot
   const handleAddChatbot = async () => {
     try {
       const newBot = {
         name: "New Chatbot",
         description: "Auto-created bot",
-        // ...other required fields
       };
       await createChatbot(newBot).unwrap();
       toast.success("Chatbot created!");
-      refetch(); // Refresh the list
+      refetch();
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to create chatbot");
     }
   };
 
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    if (data.length < 10) return; // adjust this limit as per your backend pagination
+    setCurrentPage((prev) => prev + 1);
+  };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
+
   return (
     <div className="space-y-4">
-      {/* Top Controls */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <Input placeholder="Search chatbots..." className="w-64" />
         <div className="flex gap-2">
@@ -76,7 +89,6 @@ export default function ChatbotTable() {
         </div>
       </div>
 
-      {/* Table */}
       <Table>
         <TableHeader>
           <TableRow>
@@ -118,13 +130,6 @@ export default function ChatbotTable() {
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  {/* <Image
-                    src={bot.clientAvatar}
-                    alt="avatar"
-                    width={32}
-                    height={32}
-                    className="rounded-full"
-                  /> */}
                   <span>{bot.client_name}</span>
                 </div>
               </TableCell>
@@ -142,7 +147,7 @@ export default function ChatbotTable() {
               <TableCell>
                 <div className="flex flex-col">
                   <span className="font-medium">
-                    {bot.total_interactions ? new Date(bot.total_interactions).toLocaleString() : "N/A"}
+                    {bot.total_interactions ?? "N/A"}
                   </span>
                   <span className="text-sm text-muted-foreground">
                     {bot.updated_at}
@@ -150,7 +155,9 @@ export default function ChatbotTable() {
                 </div>
               </TableCell>
               <TableCell>
-                {bot.created_at ? new Date(bot.created_at).toLocaleDateString() : "N/A"}
+                {bot.created_at
+                  ? new Date(bot.created_at).toLocaleDateString()
+                  : "N/A"}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
@@ -174,26 +181,27 @@ export default function ChatbotTable() {
         </TableBody>
       </Table>
 
-      {/* Pagination */}
       <div className="flex justify-between text-sm text-muted-foreground pt-4">
         <span>
-          Showing{" "}
-          {data.length > 0 ? `1 to ${data.length}` : "0"} of {data.length} results
+          Showing {data.length > 0 ? `1 to ${data.length}` : "0"} results on
+          page {currentPage}
         </span>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+          >
             Previous
           </Button>
-          <Button size="sm" className="bg-primary text-white">
-            1
-          </Button>
-          <Button variant="outline" size="sm">
-            2
-          </Button>
-          <Button variant="outline" size="sm">
-            3
-          </Button>
-          <Button variant="outline" size="sm">
+          <span className="px-2">{currentPage}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNextPage}
+            disabled={data.length < 10} // Disable Next if data count is less than expected page size
+          >
             Next
           </Button>
         </div>

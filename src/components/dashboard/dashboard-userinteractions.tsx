@@ -52,7 +52,7 @@ export const UserInteractions: FC = () => {
             className="bg-gray-50 rounded-lg p-4 flex items-center justify-between"
           >
             <div className="flex items-start gap-4">
-              <Image
+              <img
                 src={user.avatar}
                 alt={user.name}
                 className="w-10 h-10 rounded-full object-cover"

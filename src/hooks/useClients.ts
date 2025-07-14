@@ -5,7 +5,7 @@ import { use } from "react";
 export const client = createApi({
   reducerPath: "client",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${BASE_URL}/`,
+    baseUrl: `${BASE_URL}/clients/`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       if (token) {
@@ -15,11 +15,11 @@ export const client = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getClients: builder.query({
-      query: () => `clients`,
+    getClients: builder.query<any, { page: number }>({
+      query: ({ page}) => `?page=${page}`,
     }),
  getDashboardSummary: builder.query({
-      query: () => `clients/dashboard/summary`,
+      query: () => `dashboard/summary`,
     }),
     createClient: builder.mutation({
       query: (product) => ({
