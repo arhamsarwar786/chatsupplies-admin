@@ -17,6 +17,12 @@ export const dashboard = createApi({
     getSummary: builder.query({
       query: () => "summary",
     }),
+    getRecentUserInteraction: builder.query({
+      query: ({ limit }) => `recent-interactions?limit=${limit}`,
+    }),
+    getTopPerformingClients: builder.query({
+      query: ({ limit }) => `top-performing-clients?limit=${limit}`,
+    }),
 
     platform: builder.query({
       query: () => "platform-usage",
@@ -24,7 +30,9 @@ export const dashboard = createApi({
   }),
 });
 
-export const { 
-  useGetSummaryQuery, 
-  usePlatformQuery
+export const {
+  useGetSummaryQuery,
+  usePlatformQuery,
+  useGetRecentUserInteractionQuery,
+  useGetTopPerformingClientsQuery,
 } = dashboard;

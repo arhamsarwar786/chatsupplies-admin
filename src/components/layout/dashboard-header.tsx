@@ -1,4 +1,3 @@
-
 "use client"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -73,8 +72,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>{getInitials(userName)}</AvatarFallback>
+                <Avatar>
+                  <AvatarFallback>
+                    <User className="h-10 w-10 text-gray-700" />
+                    {getInitials(userName)}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>

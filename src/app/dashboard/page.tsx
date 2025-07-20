@@ -30,9 +30,9 @@ export default function DashboardPage() {
         <DashboardHeader
           title="Dashboard Overview"
         description="Here’s a summary of your recent activity"
-        buttonText="Add New"
+        // buttonText="Add New"
         />
-        <div className="flex-1 space-y-4">
+        <div className="flex-1 space-y-4 p-4">
         <CardSection/>
           <div className="grid grid-cols-1 md:grid-cols-2  gap-4">
         <PlatformUsageTrends/>

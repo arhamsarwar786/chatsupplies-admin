@@ -19,12 +19,12 @@ import { useCreateClientMutation } from "@/src/hooks/useClients"
 import { toast } from "sonner"
 
 export default function AddNewClientForm() {
-  const [form, setForm] = useState({
+  const initialFormState = {
     first_name: "",
     last_name: "",
     email: "",
-    password: "",
-    phone_number_number: "",
+    // password: "",
+    phone_number: "",
     company_name: "",
     industry: "",
     access_level: "",
@@ -32,7 +32,9 @@ export default function AddNewClientForm() {
     notes: "",
     send_welcome_email: false,
     auto_activate_account: false,
-  })
+  };
+
+  const [form, setForm] = useState(initialFormState);
 
   const [createClient, { isLoading }] = useCreateClientMutation();
   console.log("AddNewClientForm form state:", form);
@@ -52,9 +54,9 @@ export default function AddNewClientForm() {
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     try {
-      const result = await createClient(form).unwrap();
+      await createClient(form).unwrap();
       toast.success("Client created successfully!");
-      // Optionally reset form or redirect
+      setForm(initialFormState); // <-- Clear all fields after success
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to create client.");
     }
@@ -76,32 +78,32 @@ export default function AddNewClientForm() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>First Name</Label>
-                  <Input name="first_name" value={form.first_name} onChange={handleChange} placeholder="John" />
+                  <Input name="first_name" value={form.first_name} onChange={handleChange} placeholder="Enter First Name" />
                 </div>
                 <div>
                   <Label>Last Name</Label>
-                  <Input name="last_name" value={form.last_name} onChange={handleChange} placeholder="Doe" />
+                  <Input name="last_name" value={form.last_name} onChange={handleChange} placeholder="Enter Last Name" />
                 </div>
               </div>
 
               <div>
                 <Label>Email Address</Label>
-                <Input name="email" type="email" value={form.email} onChange={handleChange} placeholder="john@company.com" />
+                <Input name="email" type="email" value={form.email} onChange={handleChange} placeholder="Enter Email Address" />
               </div>
 
               <div>
-                <Label>phone Number</Label>
-                <Input name="phone_number" value={form.phone_number} onChange={handleChange} placeholder="+1 (555) 123-4567" />
+                <Label>Phone Number</Label>
+                <Input name="phone_number" value={form.phone_number} onChange={handleChange} placeholder="Enter Phone Number" />
               </div>
 
-                 <div>
+                 {/* <div>
                 <Label>Password</Label>
-                <Input name="password" value={form.password} onChange={handleChange} placeholder="••••••••" />
-              </div>
+                <Input name="password" value={form.password} onChange={handleChange} placeholder="•••••" />
+              </div> */}
 
               <div>
                 <Label>Company Name</Label>
-                <Input name="company_name" value={form.company_name} onChange={handleChange} placeholder="TechCorp Inc." />
+                <Input name="company_name" value={form.company_name} onChange={handleChange} placeholder="Enter Company Name" />
               </div>
 
               <div>

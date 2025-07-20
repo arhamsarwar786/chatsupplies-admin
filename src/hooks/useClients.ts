@@ -23,7 +23,7 @@ export const client = createApi({
     }),
     createClient: builder.mutation({
       query: (product) => ({
-        url: "clients",
+        url: "",
         method: "POST",
         body: product,
       }),

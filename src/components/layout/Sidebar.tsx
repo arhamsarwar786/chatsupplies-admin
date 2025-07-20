@@ -1,13 +1,14 @@
 "use client"
 
-import { Home, Shield, Bot, ChartNoAxesCombined, User, Settings } from "lucide-react"
+import { Home, Bot, User, Settings } from "lucide-react"
 import { usePathname } from "next/navigation"
+import { useSelector } from "react-redux"
+import { RootState } from "@/src/store/store"
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -15,37 +16,40 @@ import {
   SidebarFooter,
 } from "@/src/components/ui/sidebar"
 
-// Menu items.
-const items = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: Home,
-  },
-  {
-    title: "Chatbot Management",
-    url: "/dashboard/chatbot-management",
-    icon: Bot,
-  },
-  // {
-  //   title: "Analytics",
-  //   url: "/dashboard/analytics",
-  //   icon: ChartNoAxesCombined,
-  // },
-  {
-    title: "Client Management",
-    url: "/dashboard/client-management",
-    icon: User,
-  },
-  {
-    title: "Settings",
-    url: "/dashboard/settings",
-    icon: Settings,
-  }
-]
-
 export function AppSidebar() {
   const pathname = usePathname()
+  // Get active user role from auth slice (correct type)
+  const role = useSelector((state: RootState) => state.authSlice.role)
+  console.log("Current user role:", role)
+
+  // Menu items.
+  const items = [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: Home,
+    },
+    {
+      title: "Chatbot Management",
+      url: "/dashboard/chatbot-management",
+      icon: Bot,
+    },
+    // Only show Client Management if role is super_admin
+    ...(role === "super_admin"
+      ? [
+          {
+            title: "Client Management",
+            url: "/dashboard/client-management",
+            icon: User,
+          },
+        ]
+      : []),
+    {
+      title: "Settings",
+      url: "/dashboard/settings",
+      icon: Settings,
+    },
+  ]
 
   return (
     <Sidebar>
@@ -66,14 +70,15 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
-                const isActive = pathname === item.url || 
-                                 (item.url !== "/dashboard" && pathname.startsWith(item.url))
+                const isActive =
+                  pathname === item.url ||
+                  (item.url !== "/dashboard" && pathname.startsWith(item.url))
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
+                    <SidebarMenuButton
                       asChild
                       className={`hover:bg-[#5146e5b5] hover:text-white ${
-                        isActive ? 'bg-[#5046E5] text-white' : 'text-muted-foreground'
+                        isActive ? "bg-[#5046E5] text-white" : "text-muted-foreground"
                       }`}
                     >
                       <a href={item.url}>

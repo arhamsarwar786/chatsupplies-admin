@@ -5,6 +5,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 interface User {
   id: string;
   email: string;
+  role?: string; 
 }
 
 interface UserProfile {
@@ -19,12 +20,14 @@ interface UserProfile {
 interface AuthState {
   token: string | null;
   user: User | null;
+  role?: string; // Optional role field
   isLoggedIn: boolean;
   userProfile: UserProfile | null; // Initialize user profile state
 }
 
 // Function to get token from local storage
 const getTokenFromLocalStorage = (): AuthState => {
+  
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
     if (token) {
@@ -32,7 +35,7 @@ const getTokenFromLocalStorage = (): AuthState => {
       if (decoded) {
         return {
           token,
-          user: { id: decoded.id, email: decoded.email },
+          user: { id: decoded.id, email: decoded.email, role: decoded.role },
           isLoggedIn: true,
           userProfile: null, // Initialize user profile state
         };
@@ -50,8 +53,9 @@ export const authSlice = createSlice({
   name: 'authSlice',
   initialState,
   reducers: {
-    setLogin: (state, action: PayloadAction<{ token: string }>) => {
+    setLogin: (state, action: PayloadAction<{ token: string, role?: string }>) => {
       state.token = action.payload.token;
+      state.role = action.payload.role; // <-- This must match your dispatch
       localStorage.setItem('token', action.payload.token);
       const decoded = decodeToken(action.payload.token);
 
@@ -59,6 +63,7 @@ export const authSlice = createSlice({
         state.user = {
           id: decoded.id,
           email: decoded.email,
+          role: decoded.role, // Store the role from the decoded token
         };
         state.isLoggedIn = true;
       } else {

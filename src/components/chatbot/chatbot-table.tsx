@@ -17,9 +17,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/src/components/ui/dropdown-menu";
-import { Eye, Edit, List, MoreHorizontal } from "lucide-react";
+import { ClipboardCopy, MoreHorizontal } from "lucide-react";
 import { useGetChatbotQuery, useCreateChatbotMutation } from "@/src/hooks/useChatbot";
 import { toast } from "sonner";
+import UploadPDF from "./upload-pdf";
+import UploadURL from "./upload-url";
+import ActionsDropdown from "./uploaded-files";
 
 interface Chatbot {
   name: string;
@@ -35,17 +38,40 @@ interface Chatbot {
   business_hours_end: string;
   updated_at: string;
   id: number;
+  is_active: boolean;
+  progress_status: string;
   user_id: number;
   total_interactions: number;
   interaction_change_percent: number;
 }
+const getStatusStyle = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "pending":
+      return "bg-yellow-100 text-yellow-800";
+       case "just_created":
+      return "bg-red-100 text-red-800";
+    case "knowledge_base_ready":
+      return "bg-green-100 text-green-800";
+    case "scrapping":
+      return "bg-orange-100 text-orange-800";
+    case "building_knowledge_base":
+      return "bg-blue-100 text-blue-800";
+    case "training":
+      return "bg-purple-100 text-purple-800";
+    case "ready":
+      return "bg-green-100 text-green-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
 
 export default function ChatbotTable() {
   const [currentPage, setCurrentPage] = useState(1);
-
+  const [uploadedFilesDialogOpen, setUploadedFilesDialogOpen] = useState(false);
   const { data = [], isLoading, error, refetch } = useGetChatbotQuery({ page: currentPage });
-
   const [createChatbot, { isLoading: isCreating }] = useCreateChatbotMutation();
+  console.log("Chatbots data:", data);
 
   const handleAddChatbot = async () => {
     try {
@@ -134,23 +160,19 @@ export default function ChatbotTable() {
                 </div>
               </TableCell>
               <TableCell>
-                <span
-                  className={`text-sm font-medium px-2 py-1 rounded-full ${
-                    bot.updated_at === "active"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}
-                >
-                  {bot.updated_at === "active" ? "● Active" : "● Inactive"}
-                </span>
+                <TableCell>
+                  <span
+                    className={`text-xs font-semibold uppercase px-2 py-1 rounded-full ${getStatusStyle(bot.progress_status)}`}
+                  >
+                    {bot.progress_status.replace(/_/g, " ")}
+                  </span>
+                </TableCell>
+
               </TableCell>
               <TableCell>
                 <div className="flex flex-col">
                   <span className="font-medium">
                     {bot.total_interactions ?? "N/A"}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {bot.updated_at}
                   </span>
                 </div>
               </TableCell>
@@ -161,19 +183,15 @@ export default function ChatbotTable() {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  <Eye className="h-4 w-4 text-blue-500 cursor-pointer" />
-                  <Edit className="h-4 w-4 text-green-600 cursor-pointer" />
-                  <List className="h-4 w-4 text-orange-500 cursor-pointer" />
-                  <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <MoreHorizontal className="h-4 w-4 cursor-pointer" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem>View</DropdownMenuItem>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem>Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <UploadURL chatbotId={bot.id} />
+                  <UploadPDF chatbotId={bot.id} />
+                  <ClipboardCopy className="h-4 w-4 text-green-900 cursor-pointer"
+                    onClick={() => {
+                      navigator.clipboard.writeText(bot.id.toString())
+                      toast.success("Chatbot Script copied to clipboard")
+                    }}
+                  />
+                  <ActionsDropdown chatbotId={bot.id} />
                 </div>
               </TableCell>
             </TableRow>

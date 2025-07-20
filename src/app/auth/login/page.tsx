@@ -41,9 +41,11 @@ export default function LoginPage() {
 
       const result = await login({ username, password }).unwrap()
       console.log("Login API result:", result)
+      const user = result.user
+      console.log(user)
       const token = result.token || result.access_token;
-      if (token) {
-        dispatch(setLogin({ token }))
+      if (token && user?.role) {
+        dispatch(setLogin({ token, role: user.role }))
         localStorage.setItem("token", token)
         toast.success("Login successful!")
         setTimeout(() => {
@@ -115,13 +117,6 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
-            <div className="text-sm text-center text-gray-600">
-              {"Don't have an account? "}
-              <Link href="/auth/signup" className="text-blue-600 hover:underline">
-                Sign up here
-              </Link>
-            </div>
-            <div className="text-xs text-center text-gray-500">Demo credentials: admin / password</div>
           </CardFooter>
         </form>
       </Card>
