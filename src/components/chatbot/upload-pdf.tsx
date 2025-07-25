@@ -14,7 +14,7 @@ import { Input } from "@/src/components/ui/input";
 import { useUploadRequirementMutation } from "@/src/hooks/useTraining";
 import { toast } from "sonner";
 
-const UploadPDF = ({ chatbotId }: { chatbotId: number }) => {
+const UploadPDF = ({ chatbotId, status }: { chatbotId: number , status: string }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [uploadRequirement, { isLoading }] = useUploadRequirementMutation();
 

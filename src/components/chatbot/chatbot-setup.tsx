@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { RadioGroup } from "@headlessui/react";
 import { useCreateChatbotMutation } from "@/src/hooks/useChatbot";
 import { toast } from "sonner";
+import { CheckCircle, Loader2, Send, BotIcon, ImageIcon } from "lucide-react";
 
 const tones = [
   { name: "Professional", value: "professional" },
@@ -10,43 +11,117 @@ const tones = [
   { name: "Casual", value: "casual" },
 ];
 
+interface UploadedFile {
+  name: string;
+  status: "uploaded" | "processing";
+}
+
 const ChatbotSetup = () => {
   const [createChatbot, { isLoading }] = useCreateChatbotMutation();
+  const [progress] = useState(65);
+ const [message, setMessage] = useState("")
 
-  // Form state
+  const handleSend = () => {
+    if (!message.trim()) return
+    // You could add message to a chat history array here
+    setMessage("")
+  }
+  // File Upload Refs and States
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string>("");
+
+const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const validTypes = ["png", "jpeg"];
+  if (!validTypes.includes(file.type)) {
+    alert("Only PNG and JPEG images are allowed.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    setLogoPreview(reader.result as string);
+  };
+  reader.readAsDataURL(file);
+};
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPdfFile(file);
+      setUploadedFiles([
+        ...uploadedFiles,
+        { name: file.name, status: "uploaded" },
+      ]);
+    }
+  };
+
+  // Form State
+  const [windowBgColor, setWindowBgColor] = useState("#ffffff");
+  const [userBubbleColor, setUserBubbleColor] = useState("#e2e8f0");
+  const [botBubbleColor, setBotBubbleColor] = useState("#1e40af");
+  const [primaryColor, setPrimaryColor] = useState("#133242");
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [industry, setIndustry] = useState("string");
+  const [industry, setIndustry] = useState("");
   const [language, setLanguage] = useState("English");
   const [tone, setTone] = useState("Friendly");
-  const [botAvatar, setBotAvatar] = useState("string");
-  const [welcomeMessage, setWelcomeMessage] = useState("Hi! I'm here to help you with any questions...");
-  const [businessHoursStart, setBusinessHoursStart] = useState("string");
-  const [businessHoursEnd, setBusinessHoursEnd] = useState("string");
+  const [botAvatar, setBotAvatar] = useState("");
+  const [welcomeMessage, setWelcomeMessage] = useState(
+    "Hi! I'm here to help you with any questions..."
+  );
+  const [businessHoursStart, setBusinessHoursStart] = useState("");
+  const [businessHoursEnd, setBusinessHoursEnd] = useState("");
   const [isActive, setIsActive] = useState(true);
 
-  // Avatar selection handler (for demo, just set string value)
   const handleAvatarSelect = (avatar: string) => setBotAvatar(avatar);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!pdfFile) {
+      toast.error("Please select a PDF.");
+      return;
+    }
+
+    const chatbotForm = {
+      name,
+      description,
+      personality_tone: tone,
+      bot_avatar: botAvatar,
+      industry,
+      language,
+      welcome_message: welcomeMessage,
+      business_hours_start: businessHoursStart,
+      business_hours_end: businessHoursEnd,
+      is_active: isActive,
+      color_scheme: JSON.stringify({ primary: primaryColor }),
+      theme: "default",
+      logo_url: logoUrl || "",
+      user_bubble_color: userBubbleColor,
+      bot_bubble_color: botBubbleColor,
+      window_background_color: windowBgColor,
+    };
+
+    const formData = new FormData();
+    formData.append("chatbot_form", JSON.stringify(chatbotForm));
+    formData.append("files", pdfFile);
+
     try {
-      await createChatbot({
-        name,
-        description,
-        personality_tone: tone,
-        bot_avatar: botAvatar,
-        industry,
-        language,
-        welcome_message: welcomeMessage,
-        business_hours_start: businessHoursStart,
-        business_hours_end: businessHoursEnd,
-        is_active: isActive,
-      }).unwrap();
-      toast.success("Chatbot created successfully!");
-      // Optionally reset form fields here
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to create chatbot.");
+      const result = await createChatbot(formData).unwrap();
+      toast.success("Chatbot created successfully");
+      console.log(result);
+    } catch (error: any) {
+      toast.error("Error creating chatbot");
+      console.error(error);
     }
   };
 
@@ -58,31 +133,9 @@ const ChatbotSetup = () => {
           <h2 className="text-2xl font-semibold text-gray-900">Chatbot Creation Process</h2>
           <p className="text-gray-500 text-sm">Follow these steps to create your chatbot from start to finish</p>
         </div>
-           {/* Step Indicator */}
-      {/* <div className="flex items-center space-x-8 mb-8">
-        <div className="flex flex-col items-center text-indigo-600 font-medium">
-          <div className="w-8 h-8 flex items-center justify-center rounded-full bg-indigo-600 text-white">1</div>
-          <span className="mt-1 text-xs">Setup</span>
-        </div>
-        <div className="w-8 h-1 bg-indigo-300 rounded" />
-        <div className="flex flex-col items-center text-gray-400">
-          <div className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300">2</div>
-          <span className="mt-1 text-xs">Training</span>
-        </div>
-        <div className="w-8 h-1 bg-gray-200 rounded" />
-        <div className="flex flex-col items-center text-gray-400">
-          <div className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300">3</div>
-          <span className="mt-1 text-xs">Testing</span>
-        </div>
-        <div className="w-8 h-1 bg-gray-200 rounded" />
-        <div className="flex flex-col items-center text-gray-400">
-          <div className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300">4</div>
-          <span className="mt-1 text-xs">Deploy</span>
-        </div>
-      </div> */}
       </div>
       {/* Form Section */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Left Side Form */}
         <div className="md:col-span-2 space-y-4">
           <h3 className="text-lg font-semibold text-gray-900">Basic Setup & Configuration</h3>
@@ -175,40 +228,43 @@ const ChatbotSetup = () => {
             />
             <label htmlFor="isActive" className="text-sm text-gray-700">Active</label>
           </div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-md font-semibold hover:bg-indigo-700 transition"
-          >
-            {isLoading ? "Creating..." : "Create Chatbot"}
-          </button>
         </div>
         {/* Right Side Avatar & Personality */}
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-gray-700">Bot Avatar & Personality</h3>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              className={`w-14 h-14 bg-indigo-100 rounded-lg flex items-center justify-center border-2 ${botAvatar === "🤖" ? "border-indigo-500" : "border-transparent"}`}
-              onClick={() => handleAvatarSelect("🤖")}
-            >
-              🤖
-            </button>
-            <button
-              type="button"
-              className={`w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center border-2 ${botAvatar === "🧑‍💼" ? "border-green-500" : "border-transparent"}`}
-              onClick={() => handleAvatarSelect("🧑‍💼")}
-            >
-              🧑‍💼
-            </button>
-            <button
-              type="button"
-              className={`w-14 h-14 bg-purple-100 rounded-lg flex items-center justify-center border-2 ${botAvatar === "😊" ? "border-purple-500" : "border-transparent"}`}
-              onClick={() => handleAvatarSelect("😊")}
-            >
-              😊
-            </button>
+
+          {/* <h3 className="text-sm font-semibold text-gray-700">Bot Avatar & Personality</h3> */}
+          <div>
+   <div className="mb-6">
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        Upload Logo
+      </label>
+
+      <div
+        className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary transition-all cursor-pointer bg-white shadow-sm"
+        onClick={() => fileInputRef.current?.click()}
+      >
+        {logoPreview ? (
+          <img
+            src={logoPreview}
+            alt="Logo Preview"
+            className="h-20 w-20 object-contain rounded-full shadow-md"
+          />
+        ) : (
+          <div className="flex flex-col items-center text-gray-400">
+            <ImageIcon className="w-8 h-8 mb-2" />
+            <p className="text-sm">Click to upload PNG or JPEG image</p>
           </div>
+        )}
+      </div>
+
+   <input
+  type="image"
+  accept="png, jpg, jpeg"
+  onChange={handleLogoChange}
+  ref={fileInputRef}
+  className="hidden"
+/>
+    </div>
           <RadioGroup value={tone} onChange={setTone}>
             <RadioGroup.Label className="text-sm font-medium text-gray-700">Personality Tone</RadioGroup.Label>
             <div className="mt-2 space-y-1">
@@ -231,6 +287,221 @@ const ChatbotSetup = () => {
           </RadioGroup>
         </div>
       </div>
+      </div>
+      {/* upload pdf */}
+       <div className="w-full mb-8">
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Left - Training Data Source */}
+        <div className="md:col-span-2 space-y-6">
+          <h3 className="text-lg font-semibold text-gray-900">Training & Knowledge Base</h3>
+
+       
+
+          {/* Upload Box */}
+          <div
+            className="mt-6 border border-dashed border-gray-300 rounded-md p-6 text-center text-gray-500 text-sm cursor-pointer hover:border-blue-400"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept=".pdf,.doc,.docx,.txt"
+              onChange={handleFileSelect}
+            />
+            <div className="flex flex-col items-center space-y-2">
+              <div className="text-3xl">☁️</div>
+              <p className="font-medium">Drag & drop files or click to browse</p>
+              <p>Supports PDF, DOC, TXT (Max 10MB)</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right - Progress & Files */}
+        <div className="space-y-6">
+          {/* Progress */}
+          {progress > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+              <p className="text-sm font-medium text-blue-800 mb-2">Training Progress</p>
+              <p className="text-xs text-blue-700 mb-1">Processing document...</p>
+              <div className="w-full h-3 bg-blue-100 rounded-full">
+                <div
+                  className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-right text-xs text-blue-700 mt-1">{progress}%</p>
+            </div>
+          )}
+
+          {/* Processed Files */}
+          {uploadedFiles.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">Processed Files</p>
+              <ul className="space-y-3">
+                {uploadedFiles.map((file, index) => (
+                  <li
+                    key={index}
+                    className="flex items-center justify-between text-sm"
+                  >
+                    <div className="flex items-center space-x-2 font-medium text-blue-600">
+                      <span>📄</span>
+                      <span>{file.name}</span>
+                    </div>
+                    {file.status === "uploaded" ? (
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+    {/* colors */}
+    <div className="grid md:grid-cols-2 grid-cols-1 w-full  bg-white border border-gray-200 rounded-xl shadow-sm p-6 gap-6">
+  <div className="w-full space-y-4">
+  <h3 className="text-lg font-semibold text-gray-900">Testing & Preview</h3>
+
+  <div
+    className="border rounded-xl overflow-hidden shadow"
+    style={{ backgroundColor: windowBgColor }}
+  >
+    {/* Chat Header */}
+    <div
+      className="text-white p-4 flex items-center space-x-3"
+      style={{ backgroundColor: primaryColor }}
+    >
+      <div className="bg-white/20 p-1.5 rounded-full">
+        <BotIcon className="w-5 h-5 text-white" />
+      </div>
+      <div>
+        <p className="font-medium">Customer Support Bot</p>
+        <p className="text-xs text-white/80">Online</p>
+      </div>
+    </div>
+
+    {/* Chat Messages */}
+    <div className="p-4 space-y-4 h-64 overflow-y-auto text-sm">
+      {/* Bot Message */}
+      <div className="flex items-start space-x-2">
+        <BotIcon className="w-4 h-4 mt-0.5" style={{ color: primaryColor }} />
+        <div
+          className="border rounded-md px-3 py-2 max-w-md"
+          style={{ backgroundColor: botBubbleColor, borderColor: "#e5e7eb" }}
+        >
+          Hello! How can I help you today?
+        </div>
+      </div>
+
+      {/* User Message */}
+      <div className="flex justify-end">
+        <div
+          className="text-white rounded-md px-3 py-2 max-w-md"
+          style={{ backgroundColor: userBubbleColor }}
+        >
+          What are your business hours?
+        </div>
+      </div>
+
+      {/* Bot Response */}
+      <div className="flex items-start space-x-2">
+        <BotIcon className="w-4 h-4 mt-0.5" style={{ color: primaryColor }} />
+        <div
+          className="border rounded-md px-3 py-2 max-w-md"
+          style={{ backgroundColor: botBubbleColor, borderColor: "#e5e7eb" }}
+        >
+          We&apos;re open Monday to Friday, 9 AM to 6 PM EST. Is there anything specific I can help you with?
+        </div>
+      </div>
+    </div>
+
+    {/* Chat Input */}
+    <div className="flex items-center p-3 border-t bg-white">
+      <input
+        type="text"
+        placeholder="Type your message..."
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2"
+      />
+      <button
+        onClick={handleSend}
+        className="text-white px-4 py-2 rounded-r-md flex items-center justify-center"
+        style={{ backgroundColor: primaryColor }}
+      >
+        <Send className="w-4 h-4" />
+      </button>
+    </div>
+  </div>
+</div>
+
+           <div className="grid grid-cols-1 gap-6 bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-xl">
+  {[
+    {
+      label: "Window Background Color",
+      description: "Sets the background color of your chatbot window.",
+      value: windowBgColor,
+      setter: setWindowBgColor,
+    },
+    {
+      label: "Primary Theme Color",
+      description: "Highlights buttons and important elements.",
+      value: primaryColor,
+      setter: setPrimaryColor,
+    },
+    {
+      label: "User Bubble Color",
+      description: "Color of messages sent by the user.",
+      value: userBubbleColor,
+      setter: setUserBubbleColor,
+    },
+    {
+      label: "Bot Bubble Color",
+      description: "Color of messages sent by the bot.",
+      value: botBubbleColor,
+      setter: setBotBubbleColor,
+    },
+  ].map(({ label, description, value, setter }) => (
+    <div
+      key={label}
+      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 transition hover:shadow-md"
+    >
+      <div className="flex-1">
+        <label className="block text-sm font-semibold text-gray-800 dark:text-white">
+          {label}
+        </label>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
+      </div>
+
+      <div className="flex items-center gap-3 mt-2 sm:mt-0">
+        <div
+          className="w-8 h-8 rounded-full border border-gray-300 shadow-inner"
+          style={{ backgroundColor: value }}
+        ></div>
+        <input
+          type="color"
+          value={value}
+          onChange={e => setter(e.target.value)}
+          className="w-14 h-10 cursor-pointer rounded-md border border-gray-300 dark:border-gray-600 shadow-sm transition-all hover:scale-105 focus:ring-2 focus:ring-primary focus:outline-none"
+        />
+      </div>
+    </div>
+  ))}
+</div>
+          <div>
+           <button
+            type="submit"
+            disabled={isLoading}
+            className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-md font-semibold hover:bg-indigo-700 transition"
+          >
+            {isLoading ? "Creating..." : "Create Chatbot"}
+          </button>
+       </div>
+    </div>
     </form>
   );
 };

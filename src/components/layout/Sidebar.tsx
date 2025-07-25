@@ -1,102 +1,146 @@
-"use client"
-
-import { Home, Bot, User, Settings } from "lucide-react"
-import { usePathname } from "next/navigation"
-import { useSelector } from "react-redux"
-import { RootState } from "@/src/store/store"
+"use client";
+import React, { useState, useEffect } from "react";
 import {
-  Sidebar,
+  Home,
+  Box,
+  SquareRoundCorner,
+  ChartColumnDecreasing,
+  Star,
+  Layers,
+  PlusCircle,
+  ChevronDown,
+  ChevronUp,
+  Package,
+} from "lucide-react";
+import {
+  Sidebar as UiSidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarHeader,
-  SidebarFooter,
-} from "@/src/components/ui/sidebar"
+} from "@/src/components/ui/sidebar";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from 'next/navigation';
 
-export function AppSidebar() {
-  const pathname = usePathname()
-  // Get active user role from auth slice (correct type)
-  const role = useSelector((state: RootState) => state.authSlice.role)
-  console.log("Current user role:", role)
+// Sidebar items array with collapsible support
+const items = [
+  { title: "Home", url: "/seller", icon: Home },
+  {
+    title: "Product Management",
+    url: "/seller/product-management", // Add URL for the main page
+    icon: Box,
+    subItems: [{ title: "Products", url: "/seller/product-management/products", icon: Package },
+      { title: "Add Product", url: "/seller/product-management/add-product", icon: PlusCircle }
+    ],
+  },
+  { title: "Orders", url: "/seller/orders", icon: SquareRoundCorner },
+  { title: "Reviews", url: "/seller/reviews", icon: Star },
+  { title: "Analytics & Reports", url: "/seller/analytics-&-reports", icon: ChartColumnDecreasing },
+  // { title: "Stock Management", url: "/seller/stock-management", icon: Layers },
+];
 
-  // Menu items.
-  const items = [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: Home,
-    },
-    {
-      title: "Chatbot Management",
-      url: "/dashboard/chatbot-management",
-      icon: Bot,
-    },
-    // Only show Client Management if role is super_admin
-    ...(role === "super_admin"
-      ? [
-          {
-            title: "Client Management",
-            url: "/dashboard/client-management",
-            icon: User,
-          },
-        ]
-      : []),
-    {
-      title: "Settings",
-      url: "/dashboard/settings",
-      icon: Settings,
-    },
-  ]
+const SellerSidebar = () => {
+  const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({});
+  const pathname = usePathname();
+  const [activeUrl, setActiveUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    setActiveUrl(pathname);
+  }, [pathname]);
+
+  // Toggle collapsible menu items
+  const toggleMenu = (title: string) => {
+    setOpenMenus((prev) => ({ ...prev, [title]: !prev[title] }));
+  };
 
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-2 px-4 py-2">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-[#5046E5] text-sidebar-primary-foreground">
-            <Bot className="size-4" />
-          </div>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate text-xl font-bold">ChatBot Admin</span>
-            <span className="truncate text-xs">Management Panel</span>
-          </div>
-        </div>
-      </SidebarHeader>
-
+    <UiSidebar className="md:w-65">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupContent>
+          {/* Logo */}
+          <SidebarGroupLabel className="w-full flex justify-center pt-8 pb-6">
+            <div className="max-w-52 xl:w-64 2xl:w-72">
+              <Link href="/seller">
+                <Image src="/logo.svg" alt="Umazing-official" width={100} height={40} className="w-[98px]" />
+              </Link>
+            </div>
+          </SidebarGroupLabel>
+
+          {/* Menu Items */}
+          <SidebarGroupContent className="pt-5">
             <SidebarMenu>
-              {items.map((item) => {
-                const isActive =
-                  pathname === item.url ||
-                  (item.url !== "/dashboard" && pathname.startsWith(item.url))
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      className={`hover:bg-[#5146e5b5] hover:text-white ${
-                        isActive ? "bg-[#5046E5] text-white" : "text-muted-foreground"
-                      }`}
-                    >
-                      <a href={item.url}>
-                        <item.icon className="size-4" />
+              {items.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  {/* Check if item has subItems (Collapsible Menu) */}
+                  {item.subItems ? (
+                    <>
+                      <div className="flex items-center justify-between w-full">
+                        {/* Link to the main page */}
+                        <Link
+                          href={item.url}
+                          className={`flex items-center gap-2 px-3 py-2 hover:bg-primary-light flex-1 ${
+                            activeUrl === item.url ? "text-primary" : ""
+                          }`}
+                        >
+                          <item.icon size={18} />
+                          <span>{item.title}</span>
+                        </Link>
+
+                        {/* Dropdown toggle button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent event bubbling
+                            toggleMenu(item.title);
+                          }}
+                          className="p-2 hover:bg-primary-light"
+                        >
+                          {openMenus[item.title] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </button>
+                      </div>
+
+                      {/* Collapsible Submenu */}
+                      {openMenus[item.title] && (
+                        <div className="ml-8 flex flex-col">
+                          {item.subItems.map((subItem) => (
+                            <Link
+                              key={subItem.title}
+                              href={subItem.url}
+                              className={`flex items-center gap-2 px-3 py-2 hover:bg-gray-200 rounded-md ${
+                                activeUrl === subItem.url ? "text-primary" : ""
+                              }`}
+                            >
+                              <subItem.icon size={16} />
+                              <span>{subItem.title}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <SidebarMenuButton asChild className="hover:bg-primary-light">
+                      <Link
+                        href={item.url}
+                        className={`flex items-center gap-2 px-3 py-2 ${
+                          activeUrl === item.url ? "text-primary" : ""
+                        }`}
+                      >
+                        <item.icon size={18} />
                         <span>{item.title}</span>
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
+                  )}
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+    </UiSidebar>
+  );
+};
 
-      <SidebarFooter className="border-t border-sidebar-border">
-        <div className="p-4 text-xs text-muted-foreground">© 2024 Admin Dashboard</div>
-      </SidebarFooter>
-    </Sidebar>
-  )
-}
+export default SellerSidebar;

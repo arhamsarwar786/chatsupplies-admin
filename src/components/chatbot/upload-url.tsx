@@ -14,7 +14,7 @@ import { Checkbox } from "@/src/components/ui/checkbox";
 import { useUploadUrlMutation } from "@/src/hooks/useTraining";
 import { toast } from "sonner";
 
-const UploadURL = ({ chatbotId }: { chatbotId: number }) => {
+const UploadURL = ({ chatbotId,  status }: { chatbotId: number , status: string }) => {
   const [url, setUrl] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [crawlingStarted, setCrawlingStarted] = useState(false);
@@ -48,15 +48,7 @@ const UploadURL = ({ chatbotId }: { chatbotId: number }) => {
 
   return (
     <Dialog>
-     {crawlingStarted ? (
-  <button
-    type="button"
-    disabled
-    className="p-1 rounded cursor-not-allowed"
-  >
-    <Loader className="h-4 w-4 animate-spin" />
-  </button>
-) : (
+     {(status == "ready" || status == "just_created" || status == "knowledge_base_ready" ) ? (
   <DialogTrigger asChild>
     <button
       type="button"
@@ -65,7 +57,15 @@ const UploadURL = ({ chatbotId }: { chatbotId: number }) => {
       <Play className="h-4 w-4 text-green-600" />
     </button>
   </DialogTrigger>
-)}
+) : (
+  <button
+    type="button"
+    disabled
+    className="p-1 rounded cursor-not-allowed"
+  >
+    <Loader className="h-4 w-4 animate-spin" />
+  </button>
+) }
 
       <DialogContent>
         <DialogHeader>

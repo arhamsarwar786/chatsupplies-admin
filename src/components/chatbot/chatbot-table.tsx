@@ -17,12 +17,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/src/components/ui/dropdown-menu";
-import { ClipboardCopy, MoreHorizontal } from "lucide-react";
 import { useGetChatbotQuery, useCreateChatbotMutation } from "@/src/hooks/useChatbot";
 import { toast } from "sonner";
 import UploadPDF from "./upload-pdf";
 import UploadURL from "./upload-url";
 import ActionsDropdown from "./uploaded-files";
+import CopyScript from "./copy-script";
 
 interface Chatbot {
   name: string;
@@ -48,7 +48,7 @@ const getStatusStyle = (status: string) => {
   switch (status.toLowerCase()) {
     case "pending":
       return "bg-yellow-100 text-yellow-800";
-       case "just_created":
+    case "just_created":
       return "bg-red-100 text-red-800";
     case "knowledge_base_ready":
       return "bg-green-100 text-green-800";
@@ -183,15 +183,23 @@ export default function ChatbotTable() {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  <UploadURL chatbotId={bot.id} />
-                  <UploadPDF chatbotId={bot.id} />
-                  <ClipboardCopy className="h-4 w-4 text-green-900 cursor-pointer"
-                    onClick={() => {
-                      navigator.clipboard.writeText(bot.id.toString())
-                      toast.success("Chatbot Script copied to clipboard")
-                    }}
-                  />
-                  <ActionsDropdown chatbotId={bot.id} />
+                  <UploadURL chatbotId={bot.id} status={bot.progress_status} />
+                  {
+                    (bot.progress_status == "ready" || bot.progress_status == "just_created" || bot.progress_status == "ready" ) ? (
+                      <>
+                        <UploadPDF chatbotId={bot.id} status={bot.progress_status} />
+                        {
+                          bot.progress_status === "ready" && (
+                        <CopyScript chatbotId={bot.id} status={bot.progress_status}/>
+                          )
+                        }
+
+                        <ActionsDropdown chatbotId={bot.id} />
+                      </>
+                    ) : (
+                      <div></div>
+                    )
+                  }
                 </div>
               </TableCell>
             </TableRow>

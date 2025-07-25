@@ -6,6 +6,8 @@ import { dashboard } from '../hooks/useDashboard';
 import { client } from '../hooks/useClients';
 import { chatbot } from '../hooks/useChatbot';
 import { training } from '../hooks/useTraining';
+import { chat } from '../hooks/useChat';
+
 
 
 export const makeStore = () => {
@@ -17,6 +19,8 @@ export const makeStore = () => {
 [client.reducerPath]: client.reducer, 
 [chatbot.reducerPath]: chatbot.reducer,
 [training.reducerPath]: training.reducer,
+[chat.reducerPath]: chat.reducer,
+
 },
 middleware: (getDefaultMiddleware) =>
   getDefaultMiddleware().concat(
@@ -24,6 +28,7 @@ middleware: (getDefaultMiddleware) =>
      dashboard.middleware,
       client.middleware,
       chatbot.middleware,
+      chat.middleware,
       training.middleware, // Add training middleware
     ),
   });

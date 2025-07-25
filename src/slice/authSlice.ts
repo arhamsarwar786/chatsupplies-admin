@@ -30,19 +30,21 @@ const getTokenFromLocalStorage = (): AuthState => {
   
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
+    const savedRole = localStorage.getItem('role');
     if (token) {
       const decoded = decodeToken(token);
       if (decoded) {
         return {
           token,
           user: { id: decoded.id, email: decoded.email, role: decoded.role },
+             role: decoded.role ?? savedRole ?? undefined,
           isLoggedIn: true,
           userProfile: null, // Initialize user profile state
         };
       }
     }
   }
-  return { token: null, user: null, isLoggedIn: false, userProfile: null };
+  return { token: null, user: null,  role: undefined, isLoggedIn: false, userProfile: null };
 };
 
 // Initial state based on local storage
@@ -57,6 +59,9 @@ export const authSlice = createSlice({
       state.token = action.payload.token;
       state.role = action.payload.role; // <-- This must match your dispatch
       localStorage.setItem('token', action.payload.token);
+        if (action.payload.role) {
+    localStorage.setItem('role', action.payload.role); // ✅ Persist role separately
+  }
       const decoded = decodeToken(action.payload.token);
 
       if (decoded) {
