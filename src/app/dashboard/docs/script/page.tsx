@@ -60,12 +60,12 @@ const ScriptManagementPage = () => {
   }
 
   return (
-    <div className="space-y-6 p-6">
+<>
       <DashboardHeader
         title="Script Management"
         description="Copy and manage script"
       />
-
+    <div className="space-y-6 p-4 md:p-5">
       {/* API Headers */}
       <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md space-y-4">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">API Headers</h2>
@@ -80,13 +80,18 @@ const ScriptManagementPage = () => {
 
       {/* Tabs Section */}
       <Tabs defaultValue={tabData[0].id} className="space-y-4">
-        <TabsList className="grid grid-cols-4 sm:grid-cols-7 w-full">
-          {tabData.map((tab) => (
-            <TabsTrigger key={tab.id} value={tab.id}>
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+       <TabsList className="grid grid-cols-4 sm:grid-cols-7 bg-secondary border border-black w-full">
+  {tabData.map((tab) => (
+    <TabsTrigger
+      key={tab.id}
+      value={tab.id}
+      className="data-[state=active]:bg-primary data-[state=active]:text-white"
+    >
+      {tab.label}
+    </TabsTrigger>
+  ))}
+</TabsList>
+
 
         {tabData.map((tab) => (
           <TabsContent key={tab.id} value={tab.id}>
@@ -113,6 +118,7 @@ const ScriptManagementPage = () => {
         ))}
       </Tabs>
     </div>
+    </>
   )
 }
 

@@ -1,5 +1,5 @@
 import { SidebarProvider } from "@/src/components/ui/sidebar";
-import { AppSidebar } from "@/src/components/layout/Sidebarcopy";
+import { AppSidebar } from "@/src/components/layout/Sidebar";
 import { DashboardHeader } from "@/src/components/layout/dashboard-header";
 
 interface DashboardLayoutProps {

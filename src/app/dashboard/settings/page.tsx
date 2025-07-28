@@ -12,7 +12,7 @@ const page = () => {
         description="Configure global settings for the platform"
         buttonText="Add Client"
       />
-      <div className='flex md:p-5 p-4 flex-col gap-8'>
+      <div className='flex p-4 md:p-5 flex-col gap-8'>
         <RoleManagement />
         <PermissionMatrix />
       </div>

@@ -96,11 +96,6 @@ export default function AddNewClientForm() {
                 <Input name="phone_number" value={form.phone_number} onChange={handleChange} placeholder="Enter Phone Number" />
               </div>
 
-                 {/* <div>
-                <Label>Password</Label>
-                <Input name="password" value={form.password} onChange={handleChange} placeholder="•••••" />
-              </div> */}
-
               <div>
                 <Label>Company Name</Label>
                 <Input name="company_name" value={form.company_name} onChange={handleChange} placeholder="Enter Company Name" />

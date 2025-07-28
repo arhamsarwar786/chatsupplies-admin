@@ -15,7 +15,7 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "ChatBot Admin Dashboard",
+  title: "Chat Supplies",
    
 };
 
@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>Umazing Official</title>
+        <title>Chat Supplies</title>
         <meta name="theme-color" content="#5046E5" />
     
       </head>

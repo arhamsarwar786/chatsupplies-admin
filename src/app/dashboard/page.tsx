@@ -32,7 +32,7 @@ export default function DashboardPage() {
         description="Here’s a summary of your recent activity"
         // buttonText="Add New"
         />
-        <div className="flex-1 space-y-4 p-4">
+        <div className="flex-1 space-y-4 p-4 md:p-5">
         <CardSection/>
           <div className="grid grid-cols-1 md:grid-cols-2  gap-4">
         <PlatformUsageTrends/>

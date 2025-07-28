@@ -3,6 +3,7 @@ import React, { useState, useRef } from "react";
 import { RadioGroup } from "@headlessui/react";
 import { useCreateChatbotMutation } from "@/src/hooks/useChatbot";
 import { toast } from "sonner";
+import axios from "axios";
 import { CheckCircle, Loader2, Send, BotIcon, ImageIcon } from "lucide-react";
 
 const tones = [
@@ -27,47 +28,54 @@ const ChatbotSetup = () => {
     setMessage("")
   }
   // File Upload Refs and States
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null); // for preview
+const [logoFile, setLogoFile] = useState<File | null>(null);         // for backend upload
+const [logoUrl, setLogoUrl] = useState<string>("");                  // URL to save or send to API
 
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [logoUrl, setLogoUrl] = useState<string>("");
 
 const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0];
-  if (!file) return;
-
-  const validTypes = ["png", "jpeg"];
-  if (!validTypes.includes(file.type)) {
-    alert("Only PNG and JPEG images are allowed.");
-    return;
+  if (file) {
+    // Check file type
+    const validTypes = ['image/png', 'image/jpg', 'image/jpeg'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Please upload a valid image (PNG, JPG, JPEG)');
+      return;
+    }
+    
+    const previewUrl = URL.createObjectURL(file);
+    setLogoPreview(previewUrl);
+    setLogoFile(file);
+    setLogoUrl(previewUrl);
   }
-
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    setLogoPreview(reader.result as string);
-  };
-  reader.readAsDataURL(file);
 };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setPdfFile(file);
-      setUploadedFiles([
-        ...uploadedFiles,
-        { name: file.name, status: "uploaded" },
-      ]);
+const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    // Check if file is PDF
+    if (file.type !== 'application/pdf') {
+      toast.error('Please upload a PDF file only');
+      return;
     }
-  };
+    
+    setPdfFile(file);
+    setUploadedFiles([
+      ...uploadedFiles,
+      { name: file.name, status: "uploaded" },
+    ]);
+  }
+};
 
-  // Form State
-  const [windowBgColor, setWindowBgColor] = useState("#ffffff");
-  const [userBubbleColor, setUserBubbleColor] = useState("#e2e8f0");
-  const [botBubbleColor, setBotBubbleColor] = useState("#1e40af");
-  const [primaryColor, setPrimaryColor] = useState("#133242");
+
+// Form State
+const [windowBgColor, setWindowBgColor] = useState("#ffffff");
+const [userBubbleColor, setUserBubbleColor] = useState("#e2e8f0");
+const [botBubbleColor, setBotBubbleColor] = useState("#1e40af");
+const [primaryColor, setPrimaryColor] = useState("#133242");
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -111,10 +119,12 @@ const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       window_background_color: windowBgColor,
     };
 
-    const formData = new FormData();
-    formData.append("chatbot_form", JSON.stringify(chatbotForm));
-    formData.append("files", pdfFile);
-
+   const formData = new FormData();
+formData.append("chatbot_form", JSON.stringify(chatbotForm));
+formData.append("files", pdfFile);
+if (logoFile) {
+  formData.append("logo", logoFile);
+}
     try {
       const result = await createChatbot(formData).unwrap();
       toast.success("Chatbot created successfully");
@@ -235,36 +245,35 @@ const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           {/* <h3 className="text-sm font-semibold text-gray-700">Bot Avatar & Personality</h3> */}
           <div>
    <div className="mb-6">
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
-        Upload Logo
-      </label>
-
-      <div
-        className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary transition-all cursor-pointer bg-white shadow-sm"
-        onClick={() => fileInputRef.current?.click()}
-      >
-        {logoPreview ? (
-          <img
-            src={logoPreview}
-            alt="Logo Preview"
-            className="h-20 w-20 object-contain rounded-full shadow-md"
-          />
-        ) : (
-          <div className="flex flex-col items-center text-gray-400">
-            <ImageIcon className="w-8 h-8 mb-2" />
-            <p className="text-sm">Click to upload PNG or JPEG image</p>
-          </div>
-        )}
+  <label className="block text-sm font-semibold text-gray-700 mb-2">
+    Upload Logo (PNG, JPG, JPEG)
+  </label>
+  <div
+    className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary transition-all cursor-pointer bg-white shadow-sm"
+    onClick={() => document.getElementById('logoInput')?.click()}
+  >
+    {logoPreview ? (
+      <img
+        src={logoPreview}
+        alt="Logo Preview"
+        className="h-20 w-20 object-contain rounded-full shadow-md"
+      />
+    ) : (
+      <div className="flex flex-col items-center text-gray-400">
+        <ImageIcon className="w-8 h-8 mb-2" />
+        <p className="text-sm">Click to upload image</p>
+        <p className="text-xs mt-1">PNG, JPG, JPEG only</p>
       </div>
-
-   <input
-  type="image"
-  accept="png, jpg, jpeg"
-  onChange={handleLogoChange}
-  ref={fileInputRef}
-  className="hidden"
-/>
-    </div>
+    )}
+  </div>
+  <input
+    id="logoInput"
+    type="file"
+    accept=".png,.jpg,.jpeg"
+    onChange={handleLogoChange}
+    className="hidden"
+  />
+</div>
           <RadioGroup value={tone} onChange={setTone}>
             <RadioGroup.Label className="text-sm font-medium text-gray-700">Personality Tone</RadioGroup.Label>
             <div className="mt-2 space-y-1">
@@ -298,23 +307,22 @@ const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
        
 
           {/* Upload Box */}
-          <div
-            className="mt-6 border border-dashed border-gray-300 rounded-md p-6 text-center text-gray-500 text-sm cursor-pointer hover:border-blue-400"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept=".pdf,.doc,.docx,.txt"
-              onChange={handleFileSelect}
-            />
-            <div className="flex flex-col items-center space-y-2">
-              <div className="text-3xl">☁️</div>
-              <p className="font-medium">Drag & drop files or click to browse</p>
-              <p>Supports PDF, DOC, TXT (Max 10MB)</p>
-            </div>
-          </div>
+          <div className="mt-6 border border-dashed border-gray-300 rounded-md p-6 text-center text-gray-500 text-sm cursor-pointer hover:border-blue-400"
+  onClick={() => document.getElementById('pdfInput')?.click()}
+>
+  <input
+    id="pdfInput"
+    type="file"
+    className="hidden"
+    accept=".pdf"
+    onChange={handleFileSelect}
+  />
+  <div className="flex flex-col items-center space-y-2">
+    <div className="text-3xl">📄</div>
+    <p className="font-medium">Drag & drop PDF or click to browse</p>
+    <p>Supports PDF only (Max 10MB)</p>
+  </div>
+</div>
         </div>
 
         {/* Right - Progress & Files */}
