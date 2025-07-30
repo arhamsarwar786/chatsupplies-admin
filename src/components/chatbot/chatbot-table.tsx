@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import dynamic from 'next/dynamic';
+// import dynamic from "next/dynamic";
 import {
   Table,
   TableBody,
@@ -18,18 +18,21 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/src/components/ui/dropdown-menu";
-import { useGetChatbotQuery, useCreateChatbotMutation } from "@/src/hooks/useChatbot";
+import {
+  useGetChatbotQuery,
+  useCreateChatbotMutation,
+} from "@/src/hooks/useChatbot";
 import { toast } from "sonner";
 import UploadPDF from "./upload-pdf";
 import UploadURL from "./upload-url";
 import ActionsDropdown from "./uploaded-files";
 import CopyScript from "./copy-script";
-import NoDataFoundAnimation from "@/public/lottie/No Data found.json";
 
-const Player = dynamic(() =>
-  import('@lottiefiles/react-lottie-player').then(mod => mod.Player),
-  { ssr: false }
-);
+
+// const Player = dynamic(
+//   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
+//   { ssr: false }
+// );
 interface Chatbot {
   name: string;
   description: string;
@@ -71,11 +74,15 @@ const getStatusStyle = (status: string) => {
   }
 };
 
-
 export default function ChatbotTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [uploadedFilesDialogOpen, setUploadedFilesDialogOpen] = useState(false);
-  const { data = [], isLoading, error, refetch } = useGetChatbotQuery({ page: currentPage });
+  const {
+    data = [],
+    isLoading,
+    error,
+    refetch,
+  } = useGetChatbotQuery({ page: currentPage });
   const [createChatbot, { isLoading: isCreating }] = useCreateChatbotMutation();
   // console.log("Chatbots data:", data);
 
@@ -145,21 +152,19 @@ export default function ChatbotTable() {
               </TableCell>
             </TableRow>
           )}
-             { data.length === 0 ? (
-             <div className="flex items-center mx-auto justify-center w-full">
-                 <div className=" flex flex-col items-center ">
+          {/* {data.length === 0 ? (
+            <div className="w-full flex justify-center">
+              <div className="flex flex-col items-center">
                 <Player
-                    autoplay
-                    loop
-                    src={NoDataFoundAnimation}
-                    style={{ height: "200px", width: "200px" }}
+                  autoplay
+                  loop
+                  src={NoDataFoundAnimation}
+                  style={{ height: "200px", width: "200px" }}
                 />
-                <p className="mt-4 text-muted-foreground">
-                    No chatbot found.
-                </p>
-                </div>
-             </div>
-            ) : null}
+                <p className="mt-4 text-muted-foreground">No chatbot found.</p>
+              </div>
+            </div>
+          ) : null} */}
           {data.map((bot: Chatbot, idx: number) => (
             <TableRow key={idx}>
               <TableCell>
@@ -178,12 +183,13 @@ export default function ChatbotTable() {
               <TableCell>
                 <TableCell>
                   <span
-                    className={`text-xs font-semibold uppercase px-2 py-1 rounded-full ${getStatusStyle(bot.progress_status)}`}
+                    className={`text-xs font-semibold uppercase px-2 py-1 rounded-full ${getStatusStyle(
+                      bot.progress_status
+                    )}`}
                   >
                     {bot.progress_status.replace(/_/g, " ")}
                   </span>
                 </TableCell>
-
               </TableCell>
               <TableCell>
                 <div className="flex flex-col">
@@ -200,22 +206,26 @@ export default function ChatbotTable() {
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
                   <UploadURL chatbotId={bot.id} status={bot.progress_status} />
-                  {
-                    (bot.progress_status == "ready" || bot.progress_status == "just_created" || bot.progress_status == "ready" ) ? (
-                      <>
-                        <UploadPDF chatbotId={bot.id} status={bot.progress_status} />
-                        {
-                          bot.progress_status === "ready" && (
-                        <CopyScript chatbotId={bot.id} status={bot.progress_status}/>
-                          )
-                        }
+                  {bot.progress_status == "ready" ||
+                  bot.progress_status == "just_created" ||
+                  bot.progress_status == "ready" ? (
+                    <>
+                      <UploadPDF
+                        chatbotId={bot.id}
+                        status={bot.progress_status}
+                      />
+                      {bot.progress_status === "ready" && (
+                        <CopyScript
+                          chatbotId={bot.id}
+                          status={bot.progress_status}
+                        />
+                      )}
 
-                        <ActionsDropdown chatbotId={bot.id} />
-                      </>
-                    ) : (
-                      <div></div>
-                    )
-                  }
+                      <ActionsDropdown chatbotId={bot.id} />
+                    </>
+                  ) : (
+                    <div></div>
+                  )}
                 </div>
               </TableCell>
             </TableRow>
