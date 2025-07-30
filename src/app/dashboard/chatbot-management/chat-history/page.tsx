@@ -127,7 +127,7 @@ const chatList = chatData?.results ?? [];
         </div>
       ) :
       data.length === 0 ? (
-                <div className="text-center h-screen flex flex-col items-center justify-center">
+                <div className="text-center h-[80vh] flex flex-col items-center justify-center">
                 <Player
                     autoplay
                     loop
