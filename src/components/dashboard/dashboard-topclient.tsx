@@ -15,12 +15,12 @@ interface top_clients {
 export const TopClients: FC = () => {
   const { data, isLoading, error } = useGetTopPerformingClientsQuery({ limit: 1 });
 
-  console.log("API Data:", data);
+  // console.log("API Data:", data);
 
   const topclients: top_clients[] = Array.isArray(data?.top_clients)
     ? data.top_clients
     : [];
-  console.log("Top Clients Data:", topclients);
+  // console.log("Top Clients Data:", topclients);
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-6">

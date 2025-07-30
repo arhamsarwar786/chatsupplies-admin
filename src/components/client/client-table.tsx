@@ -16,7 +16,7 @@ import { useGetClientsQuery } from "@/src/hooks/useClients";
 export default function ClientTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const { data: clients = [], isLoading, error } = useGetClientsQuery({ page: currentPage });
-  console.log("Client Data:", clients);
+  // console.log("Client Data:", clients);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {

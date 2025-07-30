@@ -1,11 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Player } from "@lottiefiles/react-lottie-player";
+import dynamic from 'next/dynamic';
 import { useGetChatbotQuery } from "@/src/hooks/useChatbot";
 import { DashboardHeader } from "@/src/components/layout/dashboard-header";
 import { Card, CardContent } from "@/src/components/ui/card";
 import { Button } from "@/src/components/ui/button";
+
+const Player = dynamic(() =>
+  import('@lottiefiles/react-lottie-player').then(mod => mod.Player),
+  { ssr: false }
+);
+
 import { skipToken } from "@reduxjs/toolkit/query";
 import { MessageCircle } from "lucide-react";
 import NoResultsAnimation from "@/public/lottie/no-result-found.json";
@@ -67,7 +73,6 @@ const ChatHistoryPage = () => {
   } = useGetChatbotQuery({ page: currentPage });
 
 
-
   const selectedBot = data?.find((bot: Chatbot) => bot.id === selectedBotId);
   const CHAT_PAGE_LIMIT = 2;
 const languageMap: Record<string, string> = {
@@ -89,7 +94,7 @@ const {
 );
 
 const chatList = chatData?.results ?? [];
-console.log("All Chats:", chatList);
+// console.log("All Chats:", chatList);
 
   const handlePreviousPage = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));

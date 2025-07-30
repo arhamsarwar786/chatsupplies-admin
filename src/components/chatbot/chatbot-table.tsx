@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Player } from "@lottiefiles/react-lottie-player";
+import dynamic from 'next/dynamic';
 import {
   Table,
   TableBody,
@@ -26,7 +26,10 @@ import ActionsDropdown from "./uploaded-files";
 import CopyScript from "./copy-script";
 import NoDataFoundAnimation from "@/public/lottie/No Data found.json";
 
-
+const Player = dynamic(() =>
+  import('@lottiefiles/react-lottie-player').then(mod => mod.Player),
+  { ssr: false }
+);
 interface Chatbot {
   name: string;
   description: string;
@@ -74,7 +77,7 @@ export default function ChatbotTable() {
   const [uploadedFilesDialogOpen, setUploadedFilesDialogOpen] = useState(false);
   const { data = [], isLoading, error, refetch } = useGetChatbotQuery({ page: currentPage });
   const [createChatbot, { isLoading: isCreating }] = useCreateChatbotMutation();
-  console.log("Chatbots data:", data);
+  // console.log("Chatbots data:", data);
 
   const handleAddChatbot = async () => {
     try {

@@ -128,10 +128,10 @@ if (logoFile) {
     try {
       const result = await createChatbot(formData).unwrap();
       toast.success("Chatbot created successfully");
-      console.log(result);
+      // console.log(result);
     } catch (error: any) {
       toast.error("Error creating chatbot");
-      console.error(error);
+      // console.error(error);
     }
   };
 

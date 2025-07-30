@@ -57,13 +57,13 @@ export default function LinkChatbotForm() {
   }
 
   const handleSubmit = () => {
-    console.log({
-      selectedBots,
-      botName,
-      welcomeMsg,
-      businessHours,
-      selectedLanguages,
-    })
+    // console.log({
+    //   selectedBots,
+    //   botName,
+    //   welcomeMsg,
+    //   businessHours,
+    //   selectedLanguages,
+    // })
   }
 
   return (

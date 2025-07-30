@@ -37,7 +37,7 @@ export default function AddNewClientForm() {
   const [form, setForm] = useState(initialFormState);
 
   const [createClient, { isLoading }] = useCreateClientMutation();
-  console.log("AddNewClientForm form state:", form);
+  // console.log("AddNewClientForm form state:", form);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked } = e.target

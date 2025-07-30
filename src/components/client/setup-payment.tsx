@@ -22,13 +22,13 @@ export default function SetupPaymentForm() {
   const [sendInvoice, setSendInvoice] = useState(true)
 
   const handleSubmit = () => {
-    console.log({
-      paymentType,
-      cardNumber,
-      billingCycle,
-      autoRenew,
-      sendInvoice,
-    })
+    // console.log({
+    //   paymentType,
+    //   cardNumber,
+    //   billingCycle,
+    //   autoRenew,
+    //   sendInvoice,
+    // })
   }
 
   return (

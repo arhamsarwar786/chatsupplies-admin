@@ -42,7 +42,7 @@ const UploadURL = ({ chatbotId,  status }: { chatbotId: number , status: string 
 
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to start crawling.");
-      console.error("Upload URL error:", err);
+      // console.error("Upload URL error:", err);
     }
   };
 

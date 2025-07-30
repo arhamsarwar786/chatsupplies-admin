@@ -13,7 +13,7 @@ interface UserInteraction {
 
 export const UserInteractions: FC = () => {
   const { data, isLoading, error } = useGetRecentUserInteractionQuery({ limit: 4 });
-  console.log("User Interactions API Data:", data);
+  // console.log("User Interactions API Data:", data);
 
   const users: UserInteraction[] = Array.isArray(data?.recent_interactions)
     ? data.recent_interactions

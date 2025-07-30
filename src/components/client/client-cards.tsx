@@ -6,7 +6,7 @@ import { useGetDashboardSummaryQuery } from "@/src/hooks/useClients"
 
 export default function ClientCards() {
   const { data, isLoading, error } = useGetDashboardSummaryQuery({});
-  console.log("ClientCards data:", data)
+  // console.log("ClientCards data:", data)
 
   // You may need to adjust these keys to match your API response
   const stats = [
