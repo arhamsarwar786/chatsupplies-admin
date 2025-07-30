@@ -26,7 +26,7 @@ export default function SignupPage() {
   const router = useRouter()
 
   const [signup] = useSignupMutation() // <-- Use the mutation hook
-  console.log("Signup mutation:", signup)
+  // console.log("Signup mutation:", signup)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({

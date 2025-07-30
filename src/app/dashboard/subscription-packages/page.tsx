@@ -8,7 +8,7 @@ import { useGetPackagesQuery } from "@/src/hooks/usePackages";
 
 const Page = () => {
   const { data, isLoading, error } = useGetPackagesQuery();
-  console.log("Packages Data:", data);
+  // console.log("Packages Data:", data);
 
   return (
     <>
