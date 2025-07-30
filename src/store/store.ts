@@ -7,6 +7,7 @@ import { client } from '../hooks/useClients';
 import { chatbot } from '../hooks/useChatbot';
 import { training } from '../hooks/useTraining';
 import { chat } from '../hooks/useChat';
+import { packages } from '../hooks/usePackages';
 
 
 
@@ -20,6 +21,7 @@ export const makeStore = () => {
 [chatbot.reducerPath]: chatbot.reducer,
 [training.reducerPath]: training.reducer,
 [chat.reducerPath]: chat.reducer,
+[packages.reducerPath]: packages.reducer
 
 },
 middleware: (getDefaultMiddleware) =>
@@ -29,7 +31,8 @@ middleware: (getDefaultMiddleware) =>
       client.middleware,
       chatbot.middleware,
       chat.middleware,
-      training.middleware, // Add training middleware
+      training.middleware, 
+      packages.middleware
     ),
   });
 };

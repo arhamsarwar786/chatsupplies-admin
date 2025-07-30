@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Home, Bot, User, Settings, ChevronDown, ChevronUp, Book, MessageCircleReply } from "lucide-react"
+import { Home, Bot, User, Settings, ChevronDown, ChevronUp, Book, MessageCircleReply, PackagePlus, Package } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useSelector } from "react-redux"
 import { RootState } from "@/src/store/store"
@@ -64,6 +64,8 @@ export function AppSidebar() {
     },
     { title: "Settings", url: "/dashboard/settings", icon: Settings },
     { title: "Feedback", url: "/dashboard/feedback", icon: MessageCircleReply },
+    { title: "Subscription Packages", url: "/dashboard/subscription-packages", icon: Package }
+
   ]
 
   const clientManagementItem =
@@ -73,7 +75,16 @@ export function AppSidebar() {
             title: "Client Management",
             url: "/dashboard/client-management",
             icon: User,
+             subItems: [
+        {
+          title: "Create Client",
+          url: "/dashboard/client-management/create-client",
+          icon: Home,
+        },
+      ],
           },
+    { title: "Add Package", url: "/dashboard/add-packages", icon: PackagePlus }
+
         ]
       : []
 
@@ -104,8 +115,8 @@ export function AppSidebar() {
                       <div className="flex items-center justify-between w-full">
                         <Link
                           href={item.url}
-                          className={`flex items-center gap-2 px-3 py-2 hover:bg-primary-light flex-1 ${
-                            activeUrl === item.url ? "text-primary" : ""
+                          className={`flex items-center gap-2 px-3 py-2 rounded-md flex-1 ${
+                            activeUrl === item.url ? "bg-primary text-white" : "bg-transparent text-gray-700"
                           }`}
                         >
                           <item.icon size={18} />
@@ -128,8 +139,8 @@ export function AppSidebar() {
                             <Link
                               key={subItem.title}
                               href={subItem.url}
-                              className={`flex items-center gap-2 px-3 py-2 hover:bg-gray-200 rounded-md ${
-                                activeUrl === subItem.url ? "text-primary" : ""
+                              className={`flex items-center gap-2 px-3 py-2 rounded-md ${
+                                activeUrl === subItem.url ? "bg-primary text-white" : "bg-transparent text-gray-700"
                               }`}
                             >
                               <subItem.icon size={16} />
@@ -144,7 +155,7 @@ export function AppSidebar() {
                       <Link
                         href={item.url}
                         className={`flex items-center gap-2 px-3 py-2 ${
-                          activeUrl === item.url ? "text-primary" : ""
+                          activeUrl === item.url ? "bg-primary text-white" : "bg-transparent text-gray-700"
                         }`}
                       >
                         <item.icon size={18} />

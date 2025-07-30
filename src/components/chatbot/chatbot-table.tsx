@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Player } from "@lottiefiles/react-lottie-player";
 import {
   Table,
   TableBody,
@@ -23,6 +24,8 @@ import UploadPDF from "./upload-pdf";
 import UploadURL from "./upload-url";
 import ActionsDropdown from "./uploaded-files";
 import CopyScript from "./copy-script";
+import NoDataFoundAnimation from "@/public/lottie/No Data found.json";
+
 
 interface Chatbot {
   name: string;
@@ -139,11 +142,21 @@ export default function ChatbotTable() {
               </TableCell>
             </TableRow>
           )}
-          {!isLoading && !error && data.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={6}>No chatbots found.</TableCell>
-            </TableRow>
-          )}
+             { data.length === 0 ? (
+             <div className="flex items-center mx-auto justify-center w-full">
+                 <div className=" flex flex-col items-center ">
+                <Player
+                    autoplay
+                    loop
+                    src={NoDataFoundAnimation}
+                    style={{ height: "200px", width: "200px" }}
+                />
+                <p className="mt-4 text-muted-foreground">
+                    No chatbot found.
+                </p>
+                </div>
+             </div>
+            ) : null}
           {data.map((bot: Chatbot, idx: number) => (
             <TableRow key={idx}>
               <TableCell>
