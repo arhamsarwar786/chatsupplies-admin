@@ -76,6 +76,8 @@ const [windowBgColor, setWindowBgColor] = useState("#ffffff");
 const [userBubbleColor, setUserBubbleColor] = useState("#e2e8f0");
 const [botBubbleColor, setBotBubbleColor] = useState("#1e40af");
 const [primaryColor, setPrimaryColor] = useState("#133242");
+const [botTextColor, setBotTextColor] = useState("#ffffff");
+const [userTextColor, setUserTextColor] = useState("#000000");
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -111,7 +113,7 @@ const [primaryColor, setPrimaryColor] = useState("#133242");
       business_hours_start: businessHoursStart,
       business_hours_end: businessHoursEnd,
       is_active: isActive,
-      color_scheme: JSON.stringify({ primary: primaryColor }),
+      color_scheme: JSON.stringify({ primary: primaryColor, botTextColor: botTextColor, userTextColor: userTextColor }),
       theme: "default",
       logo_url: logoUrl || "",
       user_bubble_color: userBubbleColor,
@@ -128,7 +130,7 @@ if (logoFile) {
     try {
       const result = await createChatbot(formData).unwrap();
       toast.success("Chatbot created successfully");
-      // console.log(result);
+      console.log(result);
     } catch (error: any) {
       toast.error("Error creating chatbot");
       // console.error(error);
@@ -399,7 +401,7 @@ if (logoFile) {
         <BotIcon className="w-4 h-4 mt-0.5" style={{ color: primaryColor }} />
         <div
           className="border rounded-md px-3 py-2 max-w-md"
-          style={{ backgroundColor: botBubbleColor, borderColor: "#e5e7eb" }}
+          style={{ backgroundColor: botBubbleColor, borderColor: "#e5e7eb", color: botTextColor }}
         >
           Hello! How can I help you today?
         </div>
@@ -409,7 +411,7 @@ if (logoFile) {
       <div className="flex justify-end">
         <div
           className="text-white rounded-md px-3 py-2 max-w-md"
-          style={{ backgroundColor: userBubbleColor }}
+          style={{ backgroundColor: userBubbleColor, color: userTextColor, borderColor: "#e5e7eb" }}
         >
           What are your business hours?
         </div>
@@ -420,7 +422,7 @@ if (logoFile) {
         <BotIcon className="w-4 h-4 mt-0.5" style={{ color: primaryColor }} />
         <div
           className="border rounded-md px-3 py-2 max-w-md"
-          style={{ backgroundColor: botBubbleColor, borderColor: "#e5e7eb" }}
+          style={{ backgroundColor: botBubbleColor, borderColor: "#e5e7eb", color: botTextColor }}
         >
           We&apos;re open Monday to Friday, 9 AM to 6 PM EST. Is there anything specific I can help you with?
         </div>
@@ -472,6 +474,18 @@ if (logoFile) {
       description: "Color of messages sent by the bot.",
       value: botBubbleColor,
       setter: setBotBubbleColor,
+    },
+      {
+      label: "Bot Text Color",
+      description: "Color of messages text sent by the bot.",
+      value: botTextColor,
+      setter: setBotTextColor,
+    },
+      {
+      label: "User Text Color",
+      description: "Color of messages text sent by the user.",
+      value: userTextColor,
+      setter: setUserTextColor,
     },
   ].map(({ label, description, value, setter }) => (
     <div

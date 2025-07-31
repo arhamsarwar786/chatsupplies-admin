@@ -15,7 +15,7 @@ export const packages = createApi({
   }),
   endpoints: (builder) => ({
     getPackages: builder.query<any, void>({
-      query: () => '',
+      query: () => "",
     }),
     createPackages: builder.mutation<any, any>({
       query: (body) => ({
@@ -24,10 +24,32 @@ export const packages = createApi({
         body,
       }),
     }),
+    deletePackagesById: builder.mutation({
+      query: (id) => ({
+        url: `${id}`,
+        method: "DELETE",
+      }),
+    }),
+    updatePackagesById: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `${id}`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+    purchasePackage: builder.mutation<{ url: string }, { packageId: number }>({
+      query: ({ packageId }) => ({
+        url: `purchase?package_id=${packageId}`,
+        method: "POST",
+      }),
+    }),
   }),
 });
 
-export const { 
+export const {
   useGetPackagesQuery,
-  useCreatePackagesMutation
+  useCreatePackagesMutation,
+  useDeletePackagesByIdMutation,
+  useUpdatePackagesByIdMutation,
+  usePurchasePackageMutation,
 } = packages;

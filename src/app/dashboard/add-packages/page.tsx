@@ -26,15 +26,17 @@ import { toast } from "sonner";
 import { Loader2, PlusCircle, DollarSign, Calendar, RefreshCw } from "lucide-react";
 
 const Page = () => {
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    price: 0,
-    currency: "usd",
-    duration_days: 0,
-    is_recurring: false,
-    billing_cycle: "",
-  });
+const [form, setForm] = useState({
+  name: "",
+  description: [] as string[], // updated to array of strings
+  price: 0,
+  currency: "usd",
+  duration_days: 0,
+  is_recurring: false,
+  billing_cycle: "",
+});
+
+const [newDesc, setNewDesc] = useState({ title: "", value: "" });
 
   const [createPackage, { isLoading }] = useCreatePackagesMutation();
 
@@ -43,31 +45,42 @@ const Page = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const response = await createPackage(form).unwrap();
-      toast.success("Package created successfully!", {
-        description: `${form.name} is now available for subscription.`,
-      });
-      console.log("Created Package:", response);
-      // Reset form after successful submission
-      setForm({
-        name: "",
-        description: "",
-        price: 0,
-        currency: "usd",
-        duration_days: 0,
-        is_recurring: false,
-        billing_cycle: "",
-      });
-    } catch (err) {
-      console.error("Error creating package:", err);
-      toast.error("Failed to create package", {
-        description: "Please check the form and try again.",
-      });
-    }
-  };
+  // Prepare payload
+  // const payload = {
+  //   ...form,
+  //   description: form.description
+
+  //     .map((item) => item.trim()) // trim whitespace
+  //     .filter((item) => item.length > 0), // remove empty lines
+  // };
+    const payload = { ...form };
+
+  try {
+    const response = await createPackage(payload).unwrap();
+    toast.success("Package created successfully!", {
+      description: `${form.name} is now available for subscription.`,
+    });
+    console.log("Created Package:", response);
+
+    // Reset form after successful submission
+    setForm({
+      name: "",
+      description: [] as string[],
+      price: 0,
+      currency: "usd",
+      duration_days: 0,
+      is_recurring: false,
+      billing_cycle: "",
+    });
+  } catch (err) {
+    console.error("Error creating package:", err);
+    toast.error("Failed to create package", {
+      description: "Please check the form and try again.",
+    });
+  }
+};
 
   return (
     <>
@@ -228,21 +241,61 @@ const Page = () => {
               </div>
 
               {/* Description */}
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={form.description}
-                  onChange={(e) => handleChange("description", e.target.value)}
-                  placeholder="Describe what features and benefits this package includes..."
-                  className="min-h-[120px]"
-                  required
-                />
-                <p className="text-sm text-muted-foreground">
-                  This will be displayed to customers when selecting a plan.
-                </p>
-              </div>
+             {/* === Description Input Section === */}
+<div className="space-y-4">
+  <Label htmlFor="description">Package Description</Label>
 
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {/* Value Field */}
+    <Input
+      placeholder="Enter feature"
+      value={newDesc.value}
+      onChange={(e) =>
+        setNewDesc((prev) => ({ ...prev, value: e.target.value }))
+      }
+    />
+  </div>
+
+  {/* Add Button */}
+  <Button
+    type="button"
+    className="h-10"
+    disabled={ !newDesc.value}
+    onClick={() => {
+      setForm((prevForm) => ({
+        ...prevForm,
+        description: [
+          ...prevForm.description,
+          `${newDesc.value}`,
+        ],
+      }));
+      setNewDesc({ title: "", value: "" });
+    }}
+  >
+    Add Feature
+  </Button>
+
+  {/* Show Added Descriptions */}
+  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+    {form.description.map((desc, index) => (
+      <li key={index} className="flex justify-between items-center">
+        {desc}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            const updated = [...form.description];
+            updated.splice(index, 1);
+            setForm((prevForm) => ({ ...prevForm, description: updated }));
+          }}
+        >
+          Remove
+        </Button>
+      </li>
+    ))}
+  </ul>
+</div>
               {/* Submit Button */}
               <div className="pt-4">
                 <Button

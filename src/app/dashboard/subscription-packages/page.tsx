@@ -1,14 +1,60 @@
 // ts-nocheck
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { DashboardHeader } from "@/src/components/layout/dashboard-header";
-import { Loader2, Check, Zap, Star, Gem } from "lucide-react";
-import { useGetPackagesQuery } from "@/src/hooks/usePackages";
+import { Loader2, Check, Zap, Star, Gem, Trash2, Pencil } from "lucide-react";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/src/components/ui/dialog";
+import { toast } from "sonner";
+import { Button } from "@/src/components/ui/button";
+import {
+  useGetPackagesQuery,
+  useDeletePackagesByIdMutation,
+  usePurchasePackageMutation,
+} from "@/src/hooks/usePackages";
+import EditPackages from "@/src/components/packages/update-packages";
+
+interface Package {
+  id: number;
+  name: string;
+  description: string[]; // array of feature strings
+  price: number;
+  currency: string;
+  is_active: boolean;
+  duration_days: number;
+  is_recurring: boolean;
+  billing_cycle: string;
+  created_at: string;
+  isPopular?: boolean;
+
+  perUser?: boolean;
+}
 
 const Page = () => {
+  const [openDialogId, setOpenDialogId] = React.useState<number | null>(null);
+  const [purchasePackage] = usePurchasePackageMutation({});
+  const [open, setOpen] = useState(false);
   const { data, isLoading, error } = useGetPackagesQuery();
-  // console.log("Packages Data:", data);
+  console.log("Packages Data:", data);
+  const [deletePackage] = useDeletePackagesByIdMutation({});
+  const handleDelete = async (id: number) => {
+    try {
+      // call delete mutation or API
+      await deletePackage(id).unwrap(); // adjust based on your hook
+      toast.success("Package deleted");
+    } catch (error) {
+      toast.error("Failed to delete package");
+      console.error(error);
+    }
+  };
 
   return (
     <>
@@ -48,7 +94,7 @@ const Page = () => {
 
           {/* === Package List === */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {data?.map((pkg: any) => (
+            {data?.map((pkg: Package) => (
               <div
                 key={pkg.id}
                 className={`relative p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${
@@ -63,12 +109,59 @@ const Page = () => {
                     MOST POPULAR
                   </div>
                 )}
-                
+
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-bold text-gray-900">{pkg.name}</h3>
-                  {pkg.isPopular && <Zap className="w-5 h-5 text-yellow-500" />}
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {pkg.name}
+                  </h3>
+                  <div className="flex items-center space-x-2">
+                    {/* edit packages */}
+                    <EditPackages id={pkg.id} pkg={pkg} />
+
+                    {/* Delete Button */}
+                    <Dialog
+                      open={openDialogId === pkg.id}
+                      onOpenChange={(open) => !open && setOpenDialogId(null)}
+                    >
+                      <DialogTrigger asChild>
+                        <button
+                          className="text-sm text-red-500 hover:underline"
+                          onClick={() => setOpenDialogId(pkg.id)}
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Delete Package</DialogTitle>
+                          <DialogDescription>
+                            Are you sure you want to delete{" "}
+                            <strong>{pkg.name}</strong>? This action cannot be
+                            undone.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                          <Button
+                            variant="ghost"
+                            onClick={() => setOpenDialogId(null)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={() => {
+                              handleDelete(pkg.id);
+                              setOpenDialogId(null);
+                            }}
+                          >
+                            Confirm Delete
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
-                
+
                 <div className="mb-6">
                   <div className="flex items-end">
                     <span className="text-4xl font-bold text-gray-900">
@@ -78,42 +171,52 @@ const Page = () => {
                       /{pkg.billing_cycle}
                     </span>
                   </div>
-                  {pkg.originalPrice && (
+                  {/* {pkg.originalPrice && (
                     <span className="text-sm text-gray-500 line-through">
                       ${pkg.originalPrice}
                     </span>
-                  )}
-                  {pkg.perUser && (
-                    <span className="text-sm text-gray-500 block mt-1">
-                      per user
-                    </span>
-                  )}
+                  )} */}
+                  <span className="text-sm text-gray-500">
+                    {pkg.duration_days} days
+                  </span>
                 </div>
 
-                <button
-                  className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 mb-6 ${
-                    pkg.isPopular
-                      ? "bg-primary text-white hover:bg-primary shadow-md"
-                      : "bg-primary text-white hover:bg-gray-800"
-                  }`}
-                >
-                  Start Free Trial
-                </button>
+            <Button
+  onClick={async () => {
+    try {
+      const res = await purchasePackage({ packageId: pkg.id }).unwrap();
+
+      if (res?.url) {
+        window.location.href = res.url;
+      } else {
+        toast.error("Purchase URL not returned.");
+      }
+    } catch (error: any) {
+      console.error("Purchase error:", error);
+      toast.error("Failed to purchase package.");
+    }
+  }}
+  className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 mb-6 ${
+    pkg.isPopular
+      ? "bg-primary text-white hover:bg-primary shadow-md"
+      : "bg-primary text-white hover:bg-gray-800"
+  }`}
+>
+  Purchase Package
+</Button>
+
 
                 <div className="border-t border-gray-200 pt-4">
                   <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
                     Features
                   </h4>
                   <ul className="space-y-3">
-                    {pkg.description
-                      ?.split("\n")
-                      .filter((line: any) => line.trim() !== "")
-                      .map((line: string, index: number) => (
-                        <li key={index} className="flex items-start">
-                          <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" />
-                          <span className="text-gray-700">{line.trim()}</span>
-                        </li>
-                      ))}
+                    {pkg.description?.map((line, index) => (
+                      <li key={index} className="flex items-start">
+                        <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" />
+                        <span className="text-gray-700">{line.trim()}</span>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </div>
