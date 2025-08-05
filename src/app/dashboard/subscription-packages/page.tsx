@@ -60,8 +60,12 @@ const Page = () => {
   const [openDialogId, setOpenDialogId] = React.useState<number | null>(null);
   const role = useSelector((state: RootState) => state.authSlice.role);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-const [selectedPackageId, setSelectedPackageId] = useState<number | null>(null);
-const [stripePaymentIntent, setStripePaymentIntent] = useState<string | null>(null);
+  const [selectedPackageId, setSelectedPackageId] = useState<number | null>(
+    null
+  );
+  const [stripePaymentIntent, setStripePaymentIntent] = useState<string | null>(
+    null
+  );
   const [purchasePackage] = usePurchasePackageMutation({});
   const [open, setOpen] = useState(false);
   const { data, isLoading, error } = useGetPackagesQuery();
@@ -77,7 +81,10 @@ const [stripePaymentIntent, setStripePaymentIntent] = useState<string | null>(nu
       console.error(error);
     }
   };
-  const handlePurchase = async (packageId: number, stripe_payment_intent: string) => {
+  const handlePurchase = async (
+    packageId: number,
+    stripe_payment_intent: string
+  ) => {
     try {
       const res = await purchasePackage({ packageId }).unwrap();
 
@@ -223,6 +230,7 @@ const [stripePaymentIntent, setStripePaymentIntent] = useState<string | null>(nu
 
                 <div>
                   <Button
+                  className="bg-secondary hover:bg-primary w-full"
                     onClick={async () => {
                       try {
                         const res = await purchasePackage({

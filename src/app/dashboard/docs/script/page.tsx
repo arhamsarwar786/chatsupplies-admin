@@ -388,12 +388,12 @@ const ScriptManagementPage = () => {
         {/* Tabs Section */}
      {selectedBotId !== null && data.length > 0 && (
           <Tabs defaultValue={tabData[0].id} className="space-y-4">
-            <TabsList className="grid grid-cols-4 sm:grid-cols-7 bg-secondary/30 border border-black w-full">
+            <TabsList className="grid grid-cols-4 sm:grid-cols-7 bg-primary border border-black w-full">
               {tabData.map((tab) => (
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
-                  className="data-[state=active]:bg-primary data-[state=active]:text-white"
+                  className="data-[state=active]:bg-secondary text-white data-[state=active]:text-white"
                 >
                   {tab.label}
                 </TabsTrigger>
@@ -430,10 +430,10 @@ const ScriptManagementPage = () => {
 
                             {/* Step description */}
                             <div className="pl-7">
-                              <p className="text-lg font-semibold text-black mb-2">
+                              <p className="text-lg font-semibold text-primary mb-2">
                                 {step.title}
                               </p>
-                              <p className="text-base text-muted-foreground">
+                              <p className="text-base text-secondary ">
                                 {step.description}
                               </p>
                             </div>

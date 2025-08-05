@@ -36,15 +36,23 @@ type PackageType = {
 };
 
 const EditPackages = ({ pkg, id }: { pkg: PackageType, id: number }) => {
-  const [form, setForm] = useState<PackageType>({ ...pkg });
+ const [form, setForm] = useState<PackageType>({
+  ...pkg,
+  description: pkg.description || [],
+});
+
   const [newDesc, setNewDesc] = useState("");
   const [open, setOpen] = useState(false);
 
   const [updatePackage, { isLoading }] = useUpdatePackagesByIdMutation();
 
-  useEffect(() => {
-    setForm({ ...pkg });
-  }, [pkg]);
+useEffect(() => {
+  setForm({
+    ...pkg,
+    description: pkg.description || [],
+  });
+}, [pkg]);
+
 
   const handleChange = (key: string, value: any) => {
     setForm((prev) => ({ ...prev, [key]: value }));

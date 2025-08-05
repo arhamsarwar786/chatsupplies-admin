@@ -300,7 +300,7 @@ const [newDesc, setNewDesc] = useState({ title: "", value: "" });
               <div className="pt-4">
                 <Button
                   type="submit"
-                  className="w-full h-11 text-lg font-medium"
+                  className="w-full h-11 text-lg font-medium bg-secondary hover:bg-primary"
                   disabled={isLoading}
                 >
                   {isLoading ? (

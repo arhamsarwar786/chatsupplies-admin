@@ -54,7 +54,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   }
 
   return (
-    <header className="flex items-center justify-between border-b bg-primary/5 px-6 py-4 shadow-sm">
+    <header className="flex items-center justify-between border-b bg-gray-100  px-6 py-4 shadow-sm">
       <div className="flex items-center gap-4">
         <SidebarTrigger className="-ml-1" />
         <div>
@@ -67,16 +67,16 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         {buttonText && (
           <Button
             onClick={onButtonClick}
-            className="flex gap-2 bg-primary text-white hover:bg-primary/90"
+            className="flex gap-2  text-white bg-secondary hover:bg-primary"
           >
             <Plus className="w-4 h-4" /> {buttonText}
           </Button>
         )}
 
         {/* Notification Icon (Optional) */}
-        <Button variant="ghost" className="relative p-2">
+        <Button variant="ghost" className="relative p-2 ">
           <Bell className="w-5 h-5 text-muted-foreground" />
-          <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-secondary"></span>
+          <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-secondary hover:bg-primary"></span>
         </Button>
 
         {/* Avatar Dropdown */}

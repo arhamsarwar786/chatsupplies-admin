@@ -92,26 +92,26 @@ export function AppSidebar() {
   const items = [...baseItems, ...clientManagementItem]
 
   return (
-    <Sidebar className="bg-[#F9FAFB] text-sm text-muted-foreground shadow-md">
-      <SidebarHeader className="border-b border-gray-200 h-[85px]">
+    <Sidebar className="bg-[#00000049] text-sm  shadow-md">
+      <SidebarHeader className="border-b bg-primary  h-[85px]">
       <div className="flex items-center h-full mx-auto w-full justify-center gap-3 hover:scale-105 transition-transform duration-300">
                <Image
-                 src="/logo.svg"
+                 src="/Frame.svg"
                  alt="Logo"
                  width={50}
                  height={50}
                  className="rounded-md shadow-sm"
                />
                <h1 className="text-[18px] sm:text-xl flex flex-col font-bold tracking-tight text-gray-900 ">
-                 <span className="bg-gradient-to-r from-[#2648EF] to-[#303447] bg-clip-text text-transparent">
+                 <span className="text-white">
                    Chat Supplies
                  </span>
-                  <span className="text-xs text-gray-500">Management Panel</span>
+                  <span className="text-xs font-light text-gray-400">Management Panel</span>
                </h1>
              </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="bg-primary">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="px-2 py-3 space-y-1">
@@ -122,8 +122,8 @@ export function AppSidebar() {
                       <div className="flex items-center justify-between w-full">
                         <Link
                           href={item.url}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-md flex-1 ${
-                            activeUrl === item.url ? "bg-primary text-white" : "bg-transparent text-gray-700"
+                          className={`flex items-center gap-2 px-3 py-2 hover:bg-white hover:text-black rounded-md flex-1 ${
+                            activeUrl === item.url ? "bg-secondary text-white" : "bg-transparent text-white"
                           }`}
                         >
                           <item.icon size={18} />
@@ -134,9 +134,9 @@ export function AppSidebar() {
                             e.stopPropagation()
                             toggleMenu(item.title)
                           }}
-                          className="p-2 hover:bg-primary-light"
+                          className="p-2"
                         >
-                          {openMenus[item.title] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          {openMenus[item.title] ? <ChevronUp size={16} color="white" /> : <ChevronDown size={16} color="white" />}
                         </button>
                       </div>
 
@@ -146,8 +146,8 @@ export function AppSidebar() {
                             <Link
                               key={subItem.title}
                               href={subItem.url}
-                              className={`flex items-center gap-2 px-3 py-2 rounded-md ${
-                                activeUrl === subItem.url ? "bg-primary text-white" : "bg-transparent text-gray-700"
+                              className={`flex items-center gap-2 px-3 py-2 hover:bg-white hover:text-black rounded-md ${
+                                activeUrl === subItem.url ? "bg-secondary text-white" : "bg-transparent text-white"
                               }`}
                             >
                               <subItem.icon size={16} />
@@ -158,11 +158,11 @@ export function AppSidebar() {
                       )}
                     </>
                   ) : (
-                    <SidebarMenuButton asChild className="hover:bg-primary-light">
+                    <SidebarMenuButton asChild className="">
                       <Link
                         href={item.url}
                         className={`flex items-center gap-2 px-3 py-2 ${
-                          activeUrl === item.url ? "bg-primary text-white" : "bg-transparent text-gray-700"
+                          activeUrl === item.url ? "bg-secondary text-white" : "bg-transparent text-white"
                         }`}
                       >
                         <item.icon size={18} />
@@ -177,7 +177,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-gray-200">
+      <SidebarFooter className=" bg-primary">
         <div className="p-4 text-xs text-gray-400">© 2024 Admin Dashboard</div>
       </SidebarFooter>
     </Sidebar>
