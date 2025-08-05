@@ -1,4 +1,5 @@
 "use client"
+
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { SidebarTrigger } from "@/src/components/ui/sidebar"
@@ -53,63 +54,71 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   }
 
   return (
-    <header className="flex shrink-0 items-center gap-2 border-b px-4 py-4 bg-white">
-      <SidebarTrigger className="-ml-1" />
-
-      <div className="flex flex-1 items-center justify-between">
-        <div className="flex flex-col items-start">
-          <h1 className="text-2xl font-bold">{title}</h1>
-          <p className="text-md text-muted-foreground">{description}</p>
+    <header className="flex items-center justify-between border-b bg-primary/5 px-6 py-4 shadow-sm">
+      <div className="flex items-center gap-4">
+        <SidebarTrigger className="-ml-1" />
+        <div>
+          <h1 className="text-2xl font-bold text-primary">{title}</h1>
+          <p className="text-sm text-muted-foreground">{description}</p>
         </div>
+      </div>
 
-        <div className="flex items-center gap-2">
-          {buttonText && (
-            <Button onClick={onButtonClick} className="flex gap-2">
-              <Plus className="w-4 h-4" /> {buttonText}
+      <div className="flex items-center gap-4">
+        {buttonText && (
+          <Button
+            onClick={onButtonClick}
+            className="flex gap-2 bg-primary text-white hover:bg-primary/90"
+          >
+            <Plus className="w-4 h-4" /> {buttonText}
+          </Button>
+        )}
+
+        {/* Notification Icon (Optional) */}
+        <Button variant="ghost" className="relative p-2">
+          <Bell className="w-5 h-5 text-muted-foreground" />
+          <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-secondary"></span>
+        </Button>
+
+        {/* Avatar Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-9 w-9 p-0 rounded-full">
+              <Avatar>
+                <AvatarFallback className="bg-secondary text-primary font-bold">
+                  {getInitials(userName)}
+                </AvatarFallback>
+              </Avatar>
             </Button>
-          )}
+          </DropdownMenuTrigger>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar>
-                  <AvatarFallback>
-                    <User className="h-10 w-10 text-gray-700" />
-                    {getInitials(userName)}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-semibold">{userName}</p>
+                <p className="text-xs text-muted-foreground">{userEmail}</p>
+              </div>
+            </DropdownMenuLabel>
 
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{userName}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
-                </div>
-              </DropdownMenuLabel>
+            <DropdownMenuSeparator />
 
-              <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <User className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </DropdownMenuItem>
 
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
 
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
+            <DropdownMenuSeparator />
 
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4 text-red-500" />
+              <span className="text-red-500">Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )

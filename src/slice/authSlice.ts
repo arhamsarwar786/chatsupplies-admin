@@ -23,6 +23,7 @@ interface AuthState {
   role?: string; // Optional role field
   isLoggedIn: boolean;
   userProfile: UserProfile | null; // Initialize user profile state
+  api_key: string | null; // Initialize API key state
 }
 
 // Function to get token from local storage
@@ -31,11 +32,13 @@ const getTokenFromLocalStorage = (): AuthState => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
     const savedRole = localStorage.getItem('role');
+    const apiKey = localStorage.getItem('api_key');
     if (token) {
-      const decoded = decodeToken(token);
+      const decoded = decodeToken(token, apiKey || '');
       if (decoded) {
         return {
           token,
+          api_key: apiKey || null, // Initialize API key state
           user: { id: decoded.id, email: decoded.email, role: decoded.role },
              role: decoded.role ?? savedRole ?? undefined,
           isLoggedIn: true,
@@ -44,7 +47,7 @@ const getTokenFromLocalStorage = (): AuthState => {
       }
     }
   }
-  return { token: null, user: null,  role: undefined, isLoggedIn: false, userProfile: null };
+  return { token: null, user: null,  role: undefined, isLoggedIn: false, userProfile: null, api_key: null }; // Initialize state with null values
 };
 
 // Initial state based on local storage
@@ -55,14 +58,16 @@ export const authSlice = createSlice({
   name: 'authSlice',
   initialState,
   reducers: {
-    setLogin: (state, action: PayloadAction<{ token: string, role?: string }>) => {
+    setLogin: (state, action: PayloadAction<{ token: string, api_key: string, role?: string }>) => {
       state.token = action.payload.token;
+      state.api_key = action.payload.api_key; // <-- This must match your dispatch  
       state.role = action.payload.role; // <-- This must match your dispatch
-      localStorage.setItem('token', action.payload.token);
+      localStorage.setItem('api_key', action.payload.api_key); // ✅ persist API key
+        localStorage.setItem('token', action.payload.token);
         if (action.payload.role) {
     localStorage.setItem('role', action.payload.role); // ✅ Persist role separately
   }
-      const decoded = decodeToken(action.payload.token);
+      const decoded = decodeToken(action.payload.token, action.payload.api_key);
 
       if (decoded) {
         state.user = {
@@ -82,6 +87,7 @@ export const authSlice = createSlice({
       state.isLoggedIn = false;
       state.userProfile = null; // Reset profile data on logout
       localStorage.removeItem('token');
+      localStorage.removeItem('api_key');
     },
     setUserProfile: (state, action: PayloadAction<UserProfile | null>) => {
       state.userProfile = action.payload; // Store the user profile data in state

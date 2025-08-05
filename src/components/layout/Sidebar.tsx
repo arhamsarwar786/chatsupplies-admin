@@ -6,6 +6,7 @@ import { Home, Bot, User, Settings, ChevronDown, ChevronUp, Book, MessageCircleR
 import { usePathname } from "next/navigation"
 import { useSelector } from "react-redux"
 import { RootState } from "@/src/store/store"
+import Image from "next/image"
 import Link from "next/link"
 import {
   Sidebar,
@@ -63,7 +64,7 @@ export function AppSidebar() {
       ],
     },
     { title: "Settings", url: "/dashboard/settings", icon: Settings },
-    { title: "Feedback", url: "/dashboard/feedback", icon: MessageCircleReply },
+    // { title: "Feedback", url: "/dashboard/feedback", icon: MessageCircleReply },
     { title: "Subscription Packages", url: "/dashboard/subscription-packages", icon: Package }
 
   ]
@@ -92,16 +93,22 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="bg-[#F9FAFB] text-sm text-muted-foreground shadow-md">
-      <SidebarHeader className="border-b border-gray-200">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#5046E5] text-white">
-            <Bot className="h-5 w-5" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-lg font-semibold text-gray-800">   Chat Supplies</span>
-            <span className="text-xs text-gray-500">Management Panel</span>
-          </div>
-        </div>
+      <SidebarHeader className="border-b border-gray-200 h-[85px]">
+      <div className="flex items-center h-full mx-auto w-full justify-center gap-3 hover:scale-105 transition-transform duration-300">
+               <Image
+                 src="/logo.svg"
+                 alt="Logo"
+                 width={50}
+                 height={50}
+                 className="rounded-md shadow-sm"
+               />
+               <h1 className="text-[18px] sm:text-xl flex flex-col font-bold tracking-tight text-gray-900 ">
+                 <span className="bg-gradient-to-r from-[#2648EF] to-[#303447] bg-clip-text text-transparent">
+                   Chat Supplies
+                 </span>
+                  <span className="text-xs text-gray-500">Management Panel</span>
+               </h1>
+             </div>
       </SidebarHeader>
 
       <SidebarContent>

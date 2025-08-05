@@ -4,6 +4,9 @@
 import React, { useState } from "react";
 import { DashboardHeader } from "@/src/components/layout/dashboard-header";
 import { Loader2, Check, Zap, Star, Gem, Trash2, Pencil } from "lucide-react";
+import { useSelector } from "react-redux";
+import { stripePromise } from "@/src/lib/stripe";
+import { RootState } from "@/src/store/store";
 import {
   Dialog,
   DialogTrigger,
@@ -21,6 +24,8 @@ import {
   usePurchasePackageMutation,
 } from "@/src/hooks/usePackages";
 import EditPackages from "@/src/components/packages/update-packages";
+import { CheckoutForm } from "@/src/components/stripe/CheckoutForm";
+import { Elements } from "@stripe/react-stripe-js";
 
 interface Package {
   id: number;
@@ -37,9 +42,26 @@ interface Package {
 
   perUser?: boolean;
 }
+type PurchasePackageResponse = {
+  clientSecret: string;
+  payment: {
+    id: number;
+    user_id: number;
+    package_id: number;
+    amount: number;
+    currency: string;
+    stripe_payment_intent: string;
+    status: string;
+    created_at: string;
+  };
+};
 
 const Page = () => {
   const [openDialogId, setOpenDialogId] = React.useState<number | null>(null);
+  const role = useSelector((state: RootState) => state.authSlice.role);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+const [selectedPackageId, setSelectedPackageId] = useState<number | null>(null);
+const [stripePaymentIntent, setStripePaymentIntent] = useState<string | null>(null);
   const [purchasePackage] = usePurchasePackageMutation({});
   const [open, setOpen] = useState(false);
   const { data, isLoading, error } = useGetPackagesQuery();
@@ -53,6 +75,20 @@ const Page = () => {
     } catch (error) {
       toast.error("Failed to delete package");
       console.error(error);
+    }
+  };
+  const handlePurchase = async (packageId: number, stripe_payment_intent: string) => {
+    try {
+      const res = await purchasePackage({ packageId }).unwrap();
+
+      if (res?.clientSecret) {
+        setClientSecret(res.clientSecret); // Set Stripe client secret
+        toast.success("Ready to complete payment");
+      } else {
+        toast.error("No client secret received.");
+      }
+    } catch (error) {
+      toast.error("Purchase failed.");
     }
   };
 
@@ -116,49 +152,53 @@ const Page = () => {
                   </h3>
                   <div className="flex items-center space-x-2">
                     {/* edit packages */}
-                    <EditPackages id={pkg.id} pkg={pkg} />
+                    {role === "super_admin" && (
+                      <EditPackages id={pkg.id} pkg={pkg} />
+                    )}
 
                     {/* Delete Button */}
-                    <Dialog
-                      open={openDialogId === pkg.id}
-                      onOpenChange={(open) => !open && setOpenDialogId(null)}
-                    >
-                      <DialogTrigger asChild>
-                        <button
-                          className="text-sm text-red-500 hover:underline"
-                          onClick={() => setOpenDialogId(pkg.id)}
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Delete Package</DialogTitle>
-                          <DialogDescription>
-                            Are you sure you want to delete{" "}
-                            <strong>{pkg.name}</strong>? This action cannot be
-                            undone.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                          <Button
-                            variant="ghost"
-                            onClick={() => setOpenDialogId(null)}
+                    {role === "super_admin" && (
+                      <Dialog
+                        open={openDialogId === pkg.id}
+                        onOpenChange={(open) => !open && setOpenDialogId(null)}
+                      >
+                        <DialogTrigger asChild>
+                          <button
+                            className="text-sm text-red-500 hover:underline"
+                            onClick={() => setOpenDialogId(pkg.id)}
                           >
-                            Cancel
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            onClick={() => {
-                              handleDelete(pkg.id);
-                              setOpenDialogId(null);
-                            }}
-                          >
-                            Confirm Delete
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Delete Package</DialogTitle>
+                            <DialogDescription>
+                              Are you sure you want to delete{" "}
+                              <strong>{pkg.name}</strong>? This action cannot be
+                              undone.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <DialogFooter>
+                            <Button
+                              variant="ghost"
+                              onClick={() => setOpenDialogId(null)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              onClick={() => {
+                                handleDelete(pkg.id);
+                                setOpenDialogId(null);
+                              }}
+                            >
+                              Confirm Delete
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    )}
                   </div>
                 </div>
 
@@ -181,30 +221,30 @@ const Page = () => {
                   </span>
                 </div>
 
-            <Button
-  onClick={async () => {
-    try {
-      const res = await purchasePackage({ packageId: pkg.id }).unwrap();
-
-      if (res?.url) {
-        window.location.href = res.url;
-      } else {
-        toast.error("Purchase URL not returned.");
-      }
-    } catch (error: any) {
-      console.error("Purchase error:", error);
-      toast.error("Failed to purchase package.");
-    }
-  }}
-  className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 mb-6 ${
-    pkg.isPopular
-      ? "bg-primary text-white hover:bg-primary shadow-md"
-      : "bg-primary text-white hover:bg-gray-800"
-  }`}
->
-  Purchase Package
-</Button>
-
+                <div>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const res = await purchasePackage({
+                          packageId: pkg.id,
+                        }).unwrap();
+                        if (res?.clientSecret) {
+                          setClientSecret(res.clientSecret);
+                          toast.success(
+                            "Client secret received. Proceed with payment."
+                          );
+                        } else {
+                          toast.error("Client secret not returned.");
+                        }
+                      } catch (error: any) {
+                        console.error("Payment error:", error);
+                        toast.error("Failed to initiate payment.");
+                      }
+                    }}
+                  >
+                    Purchase Package
+                  </Button>
+                </div>
 
                 <div className="border-t border-gray-200 pt-4">
                   <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
@@ -222,7 +262,11 @@ const Page = () => {
               </div>
             ))}
           </div>
-
+          {/* {clientSecret && (
+            <Elements options={{ clientSecret }} stripe={stripePromise}>
+              <CheckoutForm />
+            </Elements>
+          )} */}
           {/* Additional Information */}
           <div className="mt-12 bg-gray-50 rounded-xl p-8 text-center">
             <div className="max-w-2xl mx-auto">

@@ -37,12 +37,28 @@ export const packages = createApi({
         body: data,
       }),
     }),
-    purchasePackage: builder.mutation<{ url: string }, { packageId: number }>({
-      query: ({ packageId }) => ({
-        url: `purchase?package_id=${packageId}`,
-        method: "POST",
-      }),
-    }),
+   purchasePackage: builder.mutation<
+  {
+    clientSecret: string;
+    payment: {
+      id: number;
+      user_id: number;
+      package_id: number;
+      amount: number;
+      currency: string;
+      stripe_payment_intent: string;
+      status: string;
+      created_at: string;
+    };
+  },
+  { packageId: number }
+>({
+  query: ({ packageId }) => ({
+    url: `purchase?package_id=${packageId}`,
+    method: "POST",
+  }),
+}),
+
   }),
 });
 

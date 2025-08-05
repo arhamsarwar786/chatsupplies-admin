@@ -6,11 +6,16 @@ import { DecodedToken } from "./types";
 
 
 
-export const decodeToken = (token: string): DecodedToken | null => {
+export const decodeToken = (token: string, api_key: string): DecodedToken | null => {
   try {
     // Decode the token
     
     const decoded = jwtDecode<DecodedToken>(token);
+    const apiKey = localStorage.getItem("api_key");
+    if (apiKey !== api_key) {
+      console.error("API key does not match the one in local storage.");
+      return null;
+    }
 
     // Check token expiration
     // if (isTokenExpired(decoded)) {

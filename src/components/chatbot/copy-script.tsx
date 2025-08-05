@@ -12,15 +12,15 @@ import {
 } from "@/src/components/ui/alert-dialog"
 import { toast } from "sonner";
 
-import { ClipboardCopy, MoreHorizontal } from "lucide-react";
+import { ClipboardCopy } from "lucide-react";
 
 
 
 const CopyScript = ({ chatbotId, status }: { chatbotId: number; status: string }) => {
-    const tokenStore = localStorage.getItem("token")
-  const token = tokenStore;
+    const apikeyStore = localStorage.getItem("apikey")
+  const ApiKey = apikeyStore;
 
-  const scriptTag = `<script type="module" src="index.js" id="chatbot" data-admin-id="${chatbotId}" data-token="${token}"></script>`;
+  const scriptTag = `<script type="module" src="index.js" id="chatbot" data-admin-id="${chatbotId}"  api-key="${ApiKey}"></script>`;
 
   return (
     <AlertDialog>

@@ -1,22 +1,19 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
+import { Ubuntu } from "next/font/google";
 import { Bot } from "lucide-react";
 import Provider from "./Provider";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-
-
-const roboto = Roboto({
+const ubuntu = Ubuntu({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-roboto",
-  weight: ["100", "300", "400", "500", "700", "900"], // available Roboto weights
+  variable: "--font-ubuntu",
+  weight: ["300", "400", "500", "700"], // Available Ubuntu weights
 });
 
 export const metadata: Metadata = {
   title: "Chat Supplies",
-   
 };
 
 export default function RootLayout({
@@ -29,12 +26,9 @@ export default function RootLayout({
       <head>
         <title>Chat Supplies</title>
         <meta name="theme-color" content="#5046E5" />
-    
       </head>
-      <body
-       className={`${roboto.className} w-screen min-h-screen`}
-      >
-         <Provider>
+      <body className={`${ubuntu.className} w-screen min-h-screen`}>
+        <Provider>
           <Toaster />
           {children}
         </Provider>
