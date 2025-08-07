@@ -92,7 +92,7 @@ export function AppSidebar() {
   const items = [...baseItems, ...clientManagementItem]
 
   return (
-    <Sidebar className="bg-[#00000049] text-sm  shadow-md">
+    <Sidebar className="bg-gradient-to-br from-primary to-secondary text-sm  shadow-md">
       <SidebarHeader className="border-b bg-primary  h-[85px]">
       <div className="flex items-center h-full mx-auto w-full justify-center gap-3 hover:scale-105 transition-transform duration-300">
                <Image
@@ -111,7 +111,7 @@ export function AppSidebar() {
              </div>
       </SidebarHeader>
 
-      <SidebarContent className="bg-primary">
+      <SidebarContent className="bg-gradient-to-b from-primary to-secondary">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="px-2 py-3 space-y-1">
@@ -177,7 +177,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className=" bg-primary">
+      <SidebarFooter className=" bg-secondary">
         <div className="p-4 text-xs text-gray-400">© 2024 Admin Dashboard</div>
       </SidebarFooter>
     </Sidebar>

@@ -74,7 +74,7 @@ export default function LoginPage() {
         alt="Logo"
         width={40}
         height={40}
-        className="rounded-md shadow-sm"
+        className=" rounded-md shadow-md shadow-primary"
       />
       <h1 className="text-[22px] sm:text-2xl font-bold tracking-tight text-gray-900">
         <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -133,7 +133,7 @@ export default function LoginPage() {
         className="w-full rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white"
         disabled={isLoading}
       >
-        {isLoading ? "Logging in..." : "Login Now"}
+        {isLoading ? "Logging in..." : "Login "}
       </Button>
     </form>
 
@@ -151,7 +151,7 @@ export default function LoginPage() {
   <div className="absolute inset-0 flex items-center justify-center">
     <div className="rounded-3xl overflow-hidden p-8 bg-white/10 backdrop-blur-lg shadow-2xl border border-white/20">
       <Image
-        src="/Chatbot-image.png"
+        src="/Bot.png"
         alt="Login Illustration"
         width={500}
         height={500}
