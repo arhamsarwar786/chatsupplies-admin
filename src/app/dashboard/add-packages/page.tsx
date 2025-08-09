@@ -127,7 +127,7 @@ const [newDesc, setNewDesc] = useState({ title: "", value: "" });
                   <Label htmlFor="currency">Currency</Label>
                   <Select
                     value={form.currency}
-                    onValueChange={(value) => handleChange("currency", value)}
+                    onValueChange={(value:any) => handleChange("currency", value)}
                   >
                     <SelectTrigger className="h-11">
                       <SelectValue placeholder="Select currency" />
@@ -210,7 +210,7 @@ const [newDesc, setNewDesc] = useState({ title: "", value: "" });
                     <Switch
                       id="is_recurring"
                       checked={form.is_recurring}
-                      onCheckedChange={(value) =>
+                      onCheckedChange={(value:any) =>
                         handleChange("is_recurring", value)
                       }
                     />
@@ -223,7 +223,7 @@ const [newDesc, setNewDesc] = useState({ title: "", value: "" });
                     <Label htmlFor="billing_cycle">Billing Cycle</Label>
                     <Select
                       value={form.billing_cycle}
-                      onValueChange={(value) =>
+                      onValueChange={(value:any) =>
                         handleChange("billing_cycle", value)
                       }
                     >
@@ -300,7 +300,7 @@ const [newDesc, setNewDesc] = useState({ title: "", value: "" });
               <div className="pt-4">
                 <Button
                   type="submit"
-                  className="w-full h-11 text-lg font-medium bg-secondary hover:bg-primary"
+                  className="w-full h-11 text-lg font-medium bg-primary hover:bg-primary/80"
                   disabled={isLoading}
                 >
                   {isLoading ? (

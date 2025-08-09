@@ -7,9 +7,15 @@ export const chatbot = createApi({
     baseUrl: `${BASE_URL}/chatbots/`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
+      const apikey = localStorage.getItem("apikey");
+      console.log("API Key:", apikey);
+      if (apikey) {
+        headers.set("api-key", apikey);
+      }
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
+       headers.set("Content-Type", "application/json");
       return headers;
     },
   }),
@@ -24,10 +30,24 @@ export const chatbot = createApi({
         body,
       }),
     }),
+    getChatbotById: builder.query<any, number>({
+  query: (chatbotId) => `${chatbotId}`,
+}),
+    updateChatbot: builder.mutation<any, { chatbotId: number; body: any }>({
+      query: ({ chatbotId, body }) => {
+        return {
+          url: `${chatbotId}`,
+          method: "PUT",
+          body,
+        };
+      },
+    }),
   }),
 });
 
 export const { 
   useGetChatbotQuery, 
-  useCreateChatbotMutation 
+  useCreateChatbotMutation,
+  useGetChatbotByIdQuery,
+  useUpdateChatbotMutation
 } = chatbot;

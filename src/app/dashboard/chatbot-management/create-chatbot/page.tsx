@@ -11,7 +11,6 @@ export default function ChatbotSetupForm() {
      <DashboardHeader
                   title="Chatbot Creation"
                 description="Create, manage and monitor your chatbots"
-                buttonText="Create Chatbot"
                 />
                 <div className="w-full flex md:p-5 p-4 flex-col gap-8">
     <ChatbotSetup/>

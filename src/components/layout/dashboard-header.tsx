@@ -58,7 +58,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       <div className="flex items-center gap-4">
         <SidebarTrigger className="-ml-1" />
         <div>
-          <h1 className="text-2xl font-bold text-primary">{title}</h1>
+          <h1 className="text-2xl font-bold text-black">{title}</h1>
           <p className="text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
@@ -67,7 +67,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         {buttonText && (
           <Button
             onClick={onButtonClick}
-            className="flex gap-2  text-white bg-secondary hover:bg-primary"
+            className="flex gap-2  text-white bg-primary hover:bg-primary/80"
           >
             <Plus className="w-4 h-4" /> {buttonText}
           </Button>
@@ -76,7 +76,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         {/* Notification Icon (Optional) */}
         <Button variant="ghost" className="relative p-2 ">
           <Bell className="w-5 h-5 text-muted-foreground" />
-          <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-secondary hover:bg-primary"></span>
+          <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary hover:bg-primary/80"></span>
         </Button>
 
         {/* Avatar Dropdown */}
@@ -84,7 +84,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 p-0 rounded-full">
               <Avatar>
-                <AvatarFallback className="bg-secondary text-primary font-bold">
+                <AvatarFallback className="bg-primary text-primary font-bold">
                   {getInitials(userName)}
                 </AvatarFallback>
               </Avatar>

@@ -325,7 +325,7 @@ const ScriptManagementPage = () => {
               Select Chatbot
             </h1>
 
-            <Select onValueChange={(value) => setSelectedBotId(Number(value))}>
+            <Select onValueChange={(value:any) => setSelectedBotId(Number(value))}>
               <SelectTrigger className="w-full border border-gray-300 dark:border-primary rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:border-primary dark:focus:ring-secondary dark:focus:border-secondary transition-colors">
                 <SelectValue
                   placeholder={
@@ -388,12 +388,12 @@ const ScriptManagementPage = () => {
         {/* Tabs Section */}
      {selectedBotId !== null && data.length > 0 && (
           <Tabs defaultValue={tabData[0].id} className="space-y-4">
-            <TabsList className="grid grid-cols-4 sm:grid-cols-7 bg-primary border border-black w-full">
+            <TabsList className="grid grid-cols-4 sm:grid-cols-7 bg-white text-primary border border-black w-full">
               {tabData.map((tab) => (
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
-                  className="data-[state=active]:bg-secondary text-white data-[state=active]:text-white"
+                  className="data-[state=active]:bg-primary  data-[state=active]:text-white"
                 >
                   {tab.label}
                 </TabsTrigger>
@@ -421,7 +421,7 @@ const ScriptManagementPage = () => {
                         {tab.steps.map((step, index) => (
                           <div
                             key={index}
-                            className="relative border-l-4 border-primary bg-secondary/30 p-6 rounded-lg shadow-sm"
+                            className="relative border-l-4 border-primary bg-gray-200 p-6 rounded-lg shadow-sm"
                           >
                             {/* Step Number Badge */}
                             <div className="absolute -left-4 top-6 w-8 h-8 rounded-full bg-primary text-white text-base font-semibold flex items-center justify-center shadow">
@@ -430,10 +430,10 @@ const ScriptManagementPage = () => {
 
                             {/* Step description */}
                             <div className="pl-7">
-                              <p className="text-lg font-semibold text-primary mb-2">
+                              <p className="text-lg font-semibold text-black mb-2">
                                 {step.title}
                               </p>
-                              <p className="text-base text-secondary ">
+                              <p className="text-base text-gray-600 ">
                                 {step.description}
                               </p>
                             </div>

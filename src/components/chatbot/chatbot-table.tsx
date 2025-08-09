@@ -22,12 +22,13 @@ import {
   useGetChatbotQuery,
   useCreateChatbotMutation,
 } from "@/src/hooks/useChatbot";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import UploadPDF from "./upload-pdf";
 import UploadURL from "./upload-url";
 import ActionsDropdown from "./uploaded-files";
 import CopyScript from "./copy-script";
-
+import { SquarePen } from "lucide-react";
 
 // const Player = dynamic(
 //   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
@@ -75,6 +76,7 @@ const getStatusStyle = (status: string) => {
 };
 
 export default function ChatbotTable() {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [uploadedFilesDialogOpen, setUploadedFilesDialogOpen] = useState(false);
   const {
@@ -135,6 +137,7 @@ export default function ChatbotTable() {
             <TableHead>Client</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Interactions</TableHead>
+            <TableHead>Edit Chatbot</TableHead>
             <TableHead>Created</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -197,6 +200,16 @@ export default function ChatbotTable() {
                     {bot.total_interactions ?? "N/A"}
                   </span>
                 </div>
+              </TableCell>
+              <TableCell>
+                <SquarePen
+                  onClick={() =>
+                    router.push(
+                      `/dashboard/chatbot-management/update-chatbot/${bot.id}`
+                    )
+                  }
+                  className="cursor-pointer text-primary hover:text-primary/80 transition-colors"
+                />
               </TableCell>
               <TableCell>
                 {bot.created_at

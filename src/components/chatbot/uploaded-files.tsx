@@ -156,7 +156,7 @@ const ActionsDropdown = ({ chatbotId }: { chatbotId: number }) => {
           <DropdownMenuItem onClick={() => setUploadedFilesDialogOpen(true)}>
             Uploaded Files
           </DropdownMenuItem>
-          <DropdownMenuItem>Edit</DropdownMenuItem>
+          {/* <DropdownMenuItem>Edit</DropdownMenuItem> */}
           <DropdownMenuItem>Delete</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -4,7 +4,7 @@ import { RadioGroup } from "@headlessui/react";
 import { useCreateChatbotMutation } from "@/src/hooks/useChatbot";
 import { toast } from "sonner";
 import axios from "axios";
-import { CheckCircle, Loader2, Send, BotIcon, ImageIcon } from "lucide-react";
+import { CheckCircle, Loader2, Send, BotIcon, ImageIcon, Check } from "lucide-react";
 
 const tones = [
   { name: "Professional", value: "professional" },
@@ -20,64 +20,67 @@ interface UploadedFile {
 const ChatbotSetup = () => {
   const [createChatbot, { isLoading }] = useCreateChatbotMutation();
   const [progress] = useState(65);
- const [message, setMessage] = useState("")
+  const [message, setMessage] = useState("");
 
   const handleSend = () => {
-    if (!message.trim()) return
-    // You could add message to a chat history array here
-    setMessage("")
-  }
+    if (!message.trim()) return;
+    setMessage("");
+  };
+
   // File Upload Refs and States
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null); // for preview
-const [logoFile, setLogoFile] = useState<File | null>(null);         // for backend upload
-const [logoUrl, setLogoUrl] = useState<string>("");                  // URL to save or send to API
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string>("");
 
 
-const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (file) {
-    // Check file type
-    const validTypes = ['image/png', 'image/jpg', 'image/jpeg'];
-    if (!validTypes.includes(file.type)) {
-      toast.error('Please upload a valid image (PNG, JPG, JPEG)');
-      return;
+  // 1. Add state for the new checkbox
+  const [includePdf, setIncludePdf] = useState(true);
+
+
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const validTypes = ['image/png', 'image/jpg', 'image/jpeg'];
+      if (!validTypes.includes(file.type)) {
+        toast.error('Please upload a valid image (PNG, JPG, JPEG)');
+        return;
+      }
+      
+      const previewUrl = URL.createObjectURL(file);
+      setLogoPreview(previewUrl);
+      setLogoFile(file);
+      setLogoUrl(previewUrl);
     }
-    
-    const previewUrl = URL.createObjectURL(file);
-    setLogoPreview(previewUrl);
-    setLogoFile(file);
-    setLogoUrl(previewUrl);
-  }
-};
+  };
 
-const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (file) {
-    // Check if file is PDF
-    if (file.type !== 'application/pdf') {
-      toast.error('Please upload a PDF file only');
-      return;
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        toast.error('Please upload a PDF file only');
+        return;
+      }
+      
+      setPdfFile(file);
+      setUploadedFiles([
+        ...uploadedFiles,
+        { name: file.name, status: "uploaded" },
+      ]);
     }
-    
-    setPdfFile(file);
-    setUploadedFiles([
-      ...uploadedFiles,
-      { name: file.name, status: "uploaded" },
-    ]);
-  }
-};
+  };
 
 
-// Form State
-const [windowBgColor, setWindowBgColor] = useState("#ffffff");
-const [userBubbleColor, setUserBubbleColor] = useState("#e2e8f0");
-const [botBubbleColor, setBotBubbleColor] = useState("#1e40af");
-const [primaryColor, setPrimaryColor] = useState("#133242");
-const [botTextColor, setBotTextColor] = useState("#ffffff");
-const [userTextColor, setUserTextColor] = useState("#000000");
+  // Form State
+  const [windowBgColor, setWindowBgColor] = useState("#ffffff");
+  const [userBubbleColor, setUserBubbleColor] = useState("#e2e8f0");
+  const [botBubbleColor, setBotBubbleColor] = useState("#1e40af");
+  const [primaryColor, setPrimaryColor] = useState("#133242");
+  const [botTextColor, setBotTextColor] = useState("#ffffff");
+  const [userTextColor, setUserTextColor] = useState("#000000");
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -92,15 +95,16 @@ const [userTextColor, setUserTextColor] = useState("#000000");
   const [businessHoursEnd, setBusinessHoursEnd] = useState("");
   const [isActive, setIsActive] = useState(true);
 
-  const handleAvatarSelect = (avatar: string) => setBotAvatar(avatar);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!pdfFile) {
-      toast.error("Please select a PDF.");
+    // --- MODIFICATION START ---
+    // 2. Only validate for a PDF if the checkbox is checked
+    if (includePdf && !pdfFile) {
+      toast.error("Please select a PDF to include in the knowledge base.");
       return;
     }
+  
 
     const chatbotForm = {
       name,
@@ -121,26 +125,34 @@ const [userTextColor, setUserTextColor] = useState("#000000");
       window_background_color: windowBgColor,
     };
 
-   const formData = new FormData();
-formData.append("chatbot_form", JSON.stringify(chatbotForm));
-formData.append("files", pdfFile);
-if (logoFile) {
-  formData.append("logo", logoFile);
-}
+    const formData = new FormData();
+    formData.append("chatbot_form", JSON.stringify(chatbotForm));
+
+  
+    // 3. Only append the file to FormData if the checkbox is checked and a file exists.
+    //    If unchecked, the 'files' field will simply not be sent to the backend.
+    if (includePdf && pdfFile) {
+      formData.append("files", pdfFile);
+    }
+  
+
+    if (logoFile) {
+      formData.append("logo", logoFile);
+    }
+
     try {
       const result = await createChatbot(formData).unwrap();
       toast.success("Chatbot created successfully");
       console.log(result);
     } catch (error: any) {
       toast.error("Error creating chatbot");
-      // console.error(error);
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* Progress Stepper */}
-      <div className="flex-col space-y-6 items-center w-full justify-between ">
+      {/* ... (First form section for Basic Setup remains the same) ... */}
+       <div className="flex-col space-y-6 items-center w-full justify-between ">
         <div className="mb-6">
           <h2 className="text-2xl font-semibold text-gray-900">Chatbot Creation Process</h2>
           <p className="text-gray-500 text-sm">Follow these steps to create your chatbot from start to finish</p>
@@ -305,47 +317,48 @@ if (logoFile) {
         {/* Left - Training Data Source */}
         <div className="md:col-span-2 space-y-6">
           <h3 className="text-lg font-semibold text-gray-900">Training & Knowledge Base</h3>
-
-       
-
-          {/* Upload Box */}
-          <div className="mt-6 border border-dashed border-gray-300 rounded-md p-6 text-center text-gray-500 text-sm cursor-pointer hover:border-blue-400"
-  onClick={() => document.getElementById('pdfInput')?.click()}
->
-  <input
-    id="pdfInput"
-    type="file"
-    className="hidden"
-    accept=".pdf"
-    onChange={handleFileSelect}
-  />
-  <div className="flex flex-col items-center space-y-2">
-    <div className="text-3xl">📄</div>
-    <p className="font-medium">Drag & drop PDF or click to browse</p>
-    <p>Supports PDF only (Max 10MB)</p>
-  </div>
-</div>
+          
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="includePdf"
+              checked={includePdf}
+              onChange={(e) => setIncludePdf(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <label htmlFor="includePdf" className="text-sm font-medium text-gray-700">
+              Add PDF to knowledge base
+            </label>
+          </div>
+     
+          <div
+            className={`mt-6 border border-dashed border-gray-300 rounded-md p-6 text-center text-sm transition-all ${
+              includePdf
+                ? "cursor-pointer hover:border-blue-400 bg-white"
+                : "cursor-not-allowed bg-gray-100 text-gray-400"
+            }`}
+            onClick={() => includePdf && document.getElementById('pdfInput')?.click()}
+          >
+            <input
+              id="pdfInput"
+              type="file"
+              className="hidden"
+              accept=".pdf"
+              onChange={handleFileSelect}
+              disabled={!includePdf}
+            />
+            <div className="flex flex-col items-center space-y-2">
+              <div className="text-3xl">📄</div>
+              <p className="font-medium">Drag & drop PDF or click to browse</p>
+              <p>Supports PDF only (Max 10MB)</p>
+            </div>
+          </div>
         </div>
 
         {/* Right - Progress & Files */}
         <div className="space-y-6">
-          {/* Progress */}
-          {progress > 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <p className="text-sm font-medium text-blue-800 mb-2">Training Progress</p>
-              <p className="text-xs text-blue-700 mb-1">Processing document...</p>
-              <div className="w-full h-3 bg-blue-100 rounded-full">
-                <div
-                  className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <p className="text-right text-xs text-blue-700 mt-1">{progress}%</p>
-            </div>
-          )}
-
           {/* Processed Files */}
-          {uploadedFiles.length > 0 && (
+          {uploadedFiles.length > 0 && includePdf && (
             <div>
               <p className="text-sm font-medium text-gray-700 mb-2">Processed Files</p>
               <ul className="space-y-3">
@@ -371,8 +384,7 @@ if (logoFile) {
         </div>
       </div>
     </div>
-    {/* colors */}
-    <div className="grid md:grid-cols-2 grid-cols-1 w-full  bg-white border border-gray-200 rounded-xl shadow-sm p-6 gap-6">
+         <div className="grid md:grid-cols-2 grid-cols-1 w-full  bg-white border border-gray-200 rounded-xl shadow-sm p-6 gap-6">
   <div className="w-full space-y-4">
   <h3 className="text-lg font-semibold text-gray-900">Testing & Preview</h3>
 
@@ -518,7 +530,7 @@ if (logoFile) {
            <button
             type="submit"
             disabled={isLoading}
-            className="mt-6 px-6 py-2 bg-secondary hover:bg-primary text-white rounded-md font-semibold transition"
+            className="mt-6 px-6 py-2 bg-primary hover:bg-primary/80 text-white rounded-md font-semibold transition"
           >
             {isLoading ? "Creating..." : "Create Chatbot"}
           </button>

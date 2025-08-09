@@ -2,22 +2,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Home, Bot, User, Settings, ChevronDown, ChevronUp, Book, MessageCircleReply, PackagePlus, Package } from "lucide-react"
+import {
+  Home, Bot, User, Settings, ChevronDown, ChevronUp,
+  Book, MessageCircleReply, PackagePlus, Package
+} from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useSelector } from "react-redux"
 import { RootState } from "@/src/store/store"
 import Image from "next/image"
 import Link from "next/link"
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
-  SidebarFooter,
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem,
+  SidebarHeader, SidebarFooter
 } from "@/src/components/ui/sidebar"
 
 export function AppSidebar() {
@@ -44,11 +41,8 @@ export function AppSidebar() {
       url: "/dashboard/chatbot-management",
       icon: Bot,
       subItems: [
-        {
-          title: "Chat History",
-          url: "/dashboard/chatbot-management/chat-history",
-          icon: Home,
-        },
+        { title: "Chat History", url: "/dashboard/chatbot-management/chat-history", icon: Home },
+        { title: "Chat Creation", url: "/dashboard/chatbot-management/create-chatbot", icon: Home },
       ],
     },
     {
@@ -56,17 +50,11 @@ export function AppSidebar() {
       url: "",
       icon: Book,
       subItems: [
-        {
-          title: "Script",
-          url: "/dashboard/docs/script",
-          icon: Home,
-        },
+        { title: "Script", url: "/dashboard/docs/script", icon: Home },
       ],
     },
     { title: "Settings", url: "/dashboard/settings", icon: Settings },
-    // { title: "Feedback", url: "/dashboard/feedback", icon: MessageCircleReply },
     { title: "Subscription Packages", url: "/dashboard/subscription-packages", icon: Package }
-
   ]
 
   const clientManagementItem =
@@ -76,42 +64,35 @@ export function AppSidebar() {
             title: "Client Management",
             url: "/dashboard/client-management",
             icon: User,
-             subItems: [
-        {
-          title: "Create Client",
-          url: "/dashboard/client-management/create-client",
-          icon: Home,
-        },
-      ],
+            subItems: [
+              { title: "Create Client", url: "/dashboard/client-management/create-client", icon: Home },
+            ],
           },
-    { title: "Add Package", url: "/dashboard/add-packages", icon: PackagePlus }
-
+          { title: "Add Package", url: "/dashboard/add-packages", icon: PackagePlus }
         ]
       : []
 
   const items = [...baseItems, ...clientManagementItem]
 
   return (
-    <Sidebar className="bg-gradient-to-br from-primary to-secondary text-sm  shadow-md">
-      <SidebarHeader className="border-b bg-primary  h-[85px]">
-      <div className="flex items-center h-full mx-auto w-full justify-center gap-3 hover:scale-105 transition-transform duration-300">
-               <Image
-                 src="/Frame.svg"
-                 alt="Logo"
-                 width={50}
-                 height={50}
-                 className="rounded-md shadow-sm"
-               />
-               <h1 className="text-[18px] sm:text-xl flex flex-col font-bold tracking-tight text-gray-900 ">
-                 <span className="text-white">
-                   Chat Supplies
-                 </span>
-                  <span className="text-xs font-light text-gray-400">Management Panel</span>
-               </h1>
-             </div>
+    <Sidebar className="bg-primary text-sm shadow-md text-white">
+      <SidebarHeader className="border-b bg-primary h-[85px]">
+        <div className="flex items-center h-full mx-auto w-full justify-center gap-3 hover:scale-105 transition-transform duration-300">
+          <Image
+            src="/Frame.svg"
+            alt="Logo"
+            width={50}
+            height={50}
+            className="rounded-md shadow-sm"
+          />
+          <h1 className="text-[18px] sm:text-xl flex flex-col font-bold tracking-tight">
+            <span className="text-white">Chat Supplies</span>
+            <span className="text-xs font-light text-secondary">Management Panel</span>
+          </h1>
+        </div>
       </SidebarHeader>
 
-      <SidebarContent className="bg-gradient-to-b from-primary to-secondary">
+      <SidebarContent className="bg-primary">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="px-2 py-3 space-y-1">
@@ -122,8 +103,10 @@ export function AppSidebar() {
                       <div className="flex items-center justify-between w-full">
                         <Link
                           href={item.url}
-                          className={`flex items-center gap-2 px-3 py-2 hover:bg-white hover:text-black rounded-md flex-1 ${
-                            activeUrl === item.url ? "bg-secondary text-white" : "bg-transparent text-white"
+                          className={`flex items-center gap-2 px-3 py-2 rounded-md flex-1 transition-all duration-200 ${
+                            activeUrl === item.url
+                              ? "bg-white text-primary font-semibold"
+                              : "hover:bg-secondary hover:text-black"
                           }`}
                         >
                           <item.icon size={18} />
@@ -136,18 +119,22 @@ export function AppSidebar() {
                           }}
                           className="p-2"
                         >
-                          {openMenus[item.title] ? <ChevronUp size={16} color="white" /> : <ChevronDown size={16} color="white" />}
+                          {openMenus[item.title]
+                            ? <ChevronUp size={16} color="white" />
+                            : <ChevronDown size={16} color="white" />}
                         </button>
                       </div>
 
                       {openMenus[item.title] && (
-                        <div className="ml-8 flex flex-col">
+                        <div className="ml-6 mt-1 flex flex-col space-y-1 transition-all duration-300">
                           {item.subItems.map((subItem) => (
                             <Link
                               key={subItem.title}
                               href={subItem.url}
-                              className={`flex items-center gap-2 px-3 py-2 hover:bg-white hover:text-black rounded-md ${
-                                activeUrl === subItem.url ? "bg-secondary text-white" : "bg-transparent text-white"
+                              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 ${
+                                activeUrl === subItem.url
+                                  ? "bg-white text-primary font-semibold"
+                                  : "hover:bg-secondary hover:text-black"
                               }`}
                             >
                               <subItem.icon size={16} />
@@ -158,11 +145,13 @@ export function AppSidebar() {
                       )}
                     </>
                   ) : (
-                    <SidebarMenuButton asChild className="">
+                    <SidebarMenuButton asChild>
                       <Link
                         href={item.url}
-                        className={`flex items-center gap-2 px-3 py-2 ${
-                          activeUrl === item.url ? "bg-secondary text-white" : "bg-transparent text-white"
+                        className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 ${
+                          activeUrl === item.url
+                            ? "bg-white text-primary font-semibold"
+                            : "hover:bg-secondary hover:text-black"
                         }`}
                       >
                         <item.icon size={18} />
@@ -177,8 +166,10 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className=" bg-secondary">
-        <div className="p-4 text-xs text-gray-400">© 2024 Admin Dashboard</div>
+      <SidebarFooter className="bg-primary border-t border-secondary">
+        <div className="p-4 text-xs text-secondary text-center">
+          © 2024 Admin Dashboard
+        </div>
       </SidebarFooter>
     </Sidebar>
   )

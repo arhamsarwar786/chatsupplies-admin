@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { CardSection } from "@/src/components/dashboard/dashboard-card"
 import { UserInteractions } from "@/src/components/dashboard/dashboard-userinteractions"
