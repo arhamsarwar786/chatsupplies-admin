@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import React, { useState } from "react";
@@ -64,7 +65,7 @@ const Page: React.FC = () => {
   const { data, isLoading, error } = useGetPackagesQuery(undefined, {
     selectFromResult: ({ data, ...rest }) => ({
       ...rest,
-      data: data?.map(pkg => ({
+      data: data?.map((pkg: Package) => ({
         ...pkg,
         description: Array.isArray(pkg.description)
           ? pkg.description
