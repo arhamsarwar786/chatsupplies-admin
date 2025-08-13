@@ -1,4 +1,4 @@
-export const BASE_URL = "http://api.chatsupplies.com";
+export const BASE_URL = "https://api.chatsupplies.com";
 
 
 
