@@ -3,19 +3,14 @@ import { BASE_URL } from "@/src/lib/constant";
 
 export const chatbot = createApi({
   reducerPath: "chatbot",
-  baseQuery: fetchBaseQuery({
+ baseQuery: fetchBaseQuery({
     baseUrl: `${BASE_URL}/chatbots/`,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("token");
       const apikey = localStorage.getItem("apikey");
-      console.log("API Key:", apikey);
-      if (apikey) {
-        headers.set("api-key", apikey);
-      }
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-       headers.set("Content-Type", "application/json");
+      if (apikey) headers.set("api-key", apikey);
+      if (token) headers.set("Authorization", `Bearer ${token}`);
+      // Remove Content-Type header - let fetchBaseQuery set it automatically
       return headers;
     },
   }),
@@ -23,11 +18,12 @@ export const chatbot = createApi({
     getChatbot: builder.query<any, { page: number }>({
       query: ({ page}) => `?page=${page}`,
     }),
-    createChatbot: builder.mutation<any, any>({
-      query: (body) => ({
+   createChatbot: builder.mutation<any, FormData>({
+      query: (formData) => ({
         url: "",
         method: "POST",
-        body,
+        body: formData,
+        // No Content-Type header - let the browser set it with the proper boundary
       }),
     }),
     getChatbotById: builder.query<any, number>({

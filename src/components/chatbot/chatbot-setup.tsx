@@ -95,59 +95,80 @@ const ChatbotSetup = () => {
   const [businessHoursEnd, setBusinessHoursEnd] = useState("");
   const [isActive, setIsActive] = useState(true);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const resetForm = () => {
+  setName("");
+  setDescription("");
+  setIndustry("");
+  setLanguage("English");
+  setTone("Friendly");
+  setBotAvatar("");
+  setWelcomeMessage("Hi! I'm here to help you with any questions...");
+  setBusinessHoursStart("");
+  setBusinessHoursEnd("");
+  setIsActive(true);
+  setWindowBgColor("#ffffff");
+  setUserBubbleColor("#e2e8f0");
+  setBotBubbleColor("#1e40af");
+  setPrimaryColor("#133242");
+  setBotTextColor("#ffffff");
+  setUserTextColor("#000000");
+  setLogoPreview(null);
+  setLogoFile(null);
+  setLogoUrl("");
+  setPdfFile(null);
+  setUploadedFiles([]);
+  setIncludePdf(true);
+  setMessage("");
+};
 
-    // --- MODIFICATION START ---
-    // 2. Only validate for a PDF if the checkbox is checked
-    if (includePdf && !pdfFile) {
-      toast.error("Please select a PDF to include in the knowledge base.");
-      return;
-    }
-  
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    const chatbotForm = {
-      name,
-      description,
-      personality_tone: tone,
-      bot_avatar: botAvatar,
-      industry,
-      language,
-      welcome_message: welcomeMessage,
-      business_hours_start: businessHoursStart,
-      business_hours_end: businessHoursEnd,
-      is_active: isActive,
-      color_scheme: JSON.stringify({ primary: primaryColor, botTextColor: botTextColor, userTextColor: userTextColor }),
-      theme: "default",
-      logo_url: logoUrl || "",
-      user_bubble_color: userBubbleColor,
-      bot_bubble_color: botBubbleColor,
-      window_background_color: windowBgColor,
-    };
-
-    const formData = new FormData();
-    formData.append("chatbot_form", JSON.stringify(chatbotForm));
-
-  
-    // 3. Only append the file to FormData if the checkbox is checked and a file exists.
-    //    If unchecked, the 'files' field will simply not be sent to the backend.
-    if (includePdf && pdfFile) {
-      formData.append("files", pdfFile);
-    }
-  
-
-    if (logoFile) {
-      formData.append("logo", logoFile);
-    }
-
-    try {
-      const result = await createChatbot(formData).unwrap();
-      toast.success("Chatbot created successfully");
-      console.log(result);
-    } catch (error: any) {
-      toast.error("Error creating chatbot");
-    }
+  const chatbotForm = {
+    name,
+    description,
+    personality_tone: tone,
+    bot_avatar: botAvatar,
+    industry,
+    language,
+    welcome_message: welcomeMessage,
+    business_hours_start: businessHoursStart,
+    business_hours_end: businessHoursEnd,
+    is_active: isActive,
+    color_scheme: JSON.stringify({ 
+      primary: primaryColor,
+      botTextColor,
+      userTextColor
+    }),
+    theme: "default",
+    logo_url: logoUrl || "",
+    user_bubble_color: userBubbleColor,
+    bot_bubble_color: botBubbleColor,
+    window_background_color: windowBgColor,
   };
+
+  const formData = new FormData();
+  formData.append("chatbot_form", JSON.stringify(chatbotForm));
+  
+
+  if (includePdf && pdfFile) {
+    formData.append("files", pdfFile);
+  }
+
+  if (logoFile) {
+    formData.append("logo", logoFile);
+  }
+
+  try {
+    const result = await createChatbot(formData).unwrap();
+    toast.success("Chatbot created successfully");
+    resetForm(); // clear all fields
+    console.log(result);
+  } catch (error: any) {
+    toast.error(error.data?.message || "Error creating chatbot");
+    console.error("Error creating chatbot:", error);
+  }
+};
 
   return (
     <form onSubmit={handleSubmit}>
@@ -530,9 +551,16 @@ const ChatbotSetup = () => {
            <button
             type="submit"
             disabled={isLoading}
-            className="mt-6 px-6 py-2 bg-primary hover:bg-primary/80 text-white rounded-md font-semibold transition"
+            className="mt-6 px-6 py-2 bg-primary hover:bg-primary/80 text-white rounded-md font-semibold transition flex items-center justify-center"
           >
-            {isLoading ? "Creating..." : "Create Chatbot"}
+            {isLoading ? (
+    <>
+      <Loader2 className="animate-spin w-5 h-5 mr-2" />
+      Creating...
+    </>
+  ) : (
+    "Create Chatbot"
+  )}
           </button>
        </div>
     </div>
