@@ -86,9 +86,10 @@ const handleSubmit = async (e?: React.FormEvent) => {
 const handlePhoneChange = (value: string | undefined) => {
   setForm((prev) => ({
     ...prev,
-    phone_number: value || "",
+    phone_number: value,
   }));
 };
+
 
 
 const isFormComplete = () => {
@@ -134,7 +135,7 @@ const isFormComplete = () => {
                   name="last_name" 
                   value={form.last_name} 
                   onChange={handleChange} 
-                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"s
+                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="Enter Last Name" />
                 </div>
               </div>
@@ -146,7 +147,7 @@ const isFormComplete = () => {
                 type="email" 
                 value={form.email} 
                 onChange={handleChange} 
-                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"s
+                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="Enter Email Address" />
               </div>
 
@@ -156,21 +157,21 @@ const isFormComplete = () => {
                 name="phone_number" 
                 value={form.phone_number}  
                 onChange={handlePhoneChange} 
-                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"s
+                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="Enter Phone Number" />
               </div>
 
               <div>
                 <Label className="mb-2 text-md">Company Name <span className="text-red-500">*</span></Label>
                 <Input name="company_name" value={form.company_name} onChange={handleChange} 
-                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"s
+                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="Enter Company Name" />
               </div>
 
               <div>
                 <Label className="mb-2 text-md">Industry <span className="text-red-500">*</span></Label>
                 <Select value={form.industry} onValueChange={(val) => handleSelectChange(val, "industry")}>
-                  <SelectTrigger className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"s>
+                  <SelectTrigger className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <SelectValue 
                     placeholder="Select Industry" />
                   </SelectTrigger>
@@ -216,7 +217,7 @@ const isFormComplete = () => {
               <div>
                 <Label className="mb-2 text-md">Notes <span className="text-red-500">*</span></Label>
                 <Textarea name="notes" value={form.notes} onChange={handleChange} 
-                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"s
+                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="Additional notes about the client..." />
               </div>
 

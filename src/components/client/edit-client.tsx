@@ -87,12 +87,13 @@ export default function EditClientForm() {
       toast.error("Error updating client");
     }
   };
-  const handlePhoneChange = (value: string | undefined) => {
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+ const handlePhoneChange = (value: string | undefined) => {
+  setForm((prev) => ({
+    ...prev,
+    phone_number: value,
+  }));
 };
+
 
   if (isFetching) {
     return (
@@ -104,7 +105,7 @@ export default function EditClientForm() {
   }
 
   return (
-    <div className="rounded-xl border shadow-sm overflow-hidden bg-white">
+    <div className="rounded-xl border shadow-sm overflow-hidden bg-[#e8e9ff]">
       <div className="bg-indigo-600 text-white px-6 py-4 flex items-center gap-2">
         <UserPlus className="w-5 h-5" />
         <h3 className="font-semibold text-lg">Edit Client</h3>
@@ -118,31 +119,43 @@ export default function EditClientForm() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="mb-2">First Name</Label>
-                  <Input name="first_name" value={form.first_name} onChange={handleChange} placeholder="Enter First Name" />
+                  <Input name="first_name" value={form.first_name} onChange={handleChange} 
+                    className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Enter First Name" />
                 </div>
                 <div>
                   <Label className="mb-2">Last Name</Label>
-                  <Input name="last_name" value={form.last_name} onChange={handleChange} placeholder="Enter Last Name" />
+                  <Input name="last_name" value={form.last_name} onChange={handleChange} 
+                    className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Enter Last Name" />
                 </div>
               </div>
               <div>
                 <Label className="mb-2">Email Address</Label>
-                <Input name="email" type="email" value={form.email} onChange={handleChange} placeholder="Enter Email Address" />
+                <Input name="email" type="email" value={form.email} onChange={handleChange} 
+                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Enter Email Address" />
               </div>
               <div>
                 <Label className="mb-2">Phone Number</Label>
-                <PhoneInput name="phone_number" value={form.phone_number}  onChange={handlePhoneChange} placeholder="Enter Phone Number"
-                 className="border border-gray-300 rounded-md p-2" />
+                <PhoneInput name="phone_number" value={form.phone_number}  onChange={handlePhoneChange} 
+                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Enter Phone Number"
+               />
               </div>
               <div>
                 <Label className="mb-2">Company Name</Label>
-                <Input name="company_name" value={form.company_name} onChange={handleChange} placeholder="Enter Company Name" />
+                <Input name="company_name" value={form.company_name} onChange={handleChange} 
+                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Enter Company Name" />
               </div>
               <div>
                 <Label className="mb-2">Industry</Label>
                 <Select className="w-full" value={form.industry} onValueChange={(val) => handleSelectChange(val, "industry")}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Industry" />
+                  <SelectTrigger   className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <SelectValue 
+                      className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Select Industry" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="tech">Technology</SelectItem>
@@ -161,7 +174,7 @@ export default function EditClientForm() {
               <div>
                 <Label className="mb-2">Access Level</Label>
                 <Select value={form.access_level} onValueChange={(val) => handleSelectChange(val, "access_level")}>
-                  <SelectTrigger>
+                  <SelectTrigger   className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -177,7 +190,9 @@ export default function EditClientForm() {
               </div>
               <div>
                 <Label className="mb-2">Notes</Label>
-                <Textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Additional notes about the client..." />
+                <Textarea name="notes" value={form.notes} onChange={handleChange} 
+                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Additional notes about the client..." />
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex items-center space-x-2">
