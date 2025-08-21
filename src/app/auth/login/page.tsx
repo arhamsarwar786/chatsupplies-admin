@@ -84,7 +84,7 @@ export default function LoginPage() {
     </div>
   </div>
 
-  <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in">
+  <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col  justify-center h-full animate-fade-in">
     <div className="flex flex-col items-center text-center">
       <h2 className="text-4xl font-bold text-gray-800 mb-2">Welcome Back</h2>
       <p className="text-sm text-gray-500 mb-4 max-w-md">
@@ -92,7 +92,7 @@ export default function LoginPage() {
       </p>
     </div>
 
-    <form onSubmit={handleLogin} className="space-y-6 w-full max-w-md mx-auto bg-white/40 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/30">
+    <form onSubmit={handleLogin} className="space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/30">
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -121,7 +121,7 @@ export default function LoginPage() {
           type="button"
           variant="ghost"
           size="sm"
-          className="absolute bg-gray-100 right-2 top-1/2 -translate-y-1/2"
+          className="absolute bg-gray-100 right-2 top-1/2  -translate-y-1/2"
           onClick={() => setShowPassword(!showPassword)}
         >
           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -130,7 +130,7 @@ export default function LoginPage() {
 
       <Button
         type="submit"
-        className="w-full rounded-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white"
+        className="w-full rounded-full bg-primary   from-primary to-secondary hover:opacity-90 text-white"
         disabled={isLoading}
       >
         {isLoading ? "Logging in..." : "Login "}

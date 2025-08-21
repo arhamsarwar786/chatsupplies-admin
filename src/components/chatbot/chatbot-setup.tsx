@@ -180,7 +180,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
       </div>
       {/* Form Section */}
-      <div className="bg-[#e8e9ff] border border-gray-200 rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="bg-card border border-gray-200 rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Left Side Form */}
         <div className="md:col-span-2 space-y-4">
           <h3 className="text-lg font-semibold text-gray-900">Basic Setup & Configuration</h3>
@@ -334,7 +334,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       </div>
       {/* upload pdf */}
       
-      <div className="bg-[#e8e9ff] mb-8 border border-gray-200 rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="bg-card mb-8 border border-gray-200 rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left - Training Data Source */}
         <div className="md:col-span-2 space-y-6">
           <h3 className="text-lg font-semibold text-gray-900">Training & Knowledge Base</h3>
@@ -405,7 +405,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
       </div>
 
-         <div className="grid bg-[#e8e9ff] md:grid-cols-2 grid-cols-1 w-full   border border-gray-200 rounded-xl shadow-sm p-6 gap-6">
+         <div className="grid bg-card md:grid-cols-2 grid-cols-1 w-full   border border-gray-200 rounded-xl shadow-sm p-6 gap-6">
   <div className="w-full space-y-4">
   <h3 className="text-lg font-semibold text-gray-900">Testing & Preview</h3>
 
