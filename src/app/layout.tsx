@@ -4,6 +4,7 @@ import { Bot } from "lucide-react";
 import Provider from "./Provider";
 import { Toaster } from "sonner";
 import "./globals.css";
+import Image from "next/image";
 
 const ubuntu = Ubuntu({
   subsets: ["latin"],
@@ -13,7 +14,7 @@ const ubuntu = Ubuntu({
 });
 
 export const metadata: Metadata = {
-  title: "Chat Supplies",
+  
 };
 
 export default function RootLayout({
@@ -23,10 +24,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <title>Chat Supplies</title>
-        <meta name="theme-color" content="#5046E5" />
-      </head>
+ <head>
+  <title>Chat Supplies</title>
+  <meta name="theme-color" content="#5046E5" />
+  <link rel="icon" href="/Frame.svg" type="image/svg+xml" />
+</head>
       <body className={`${ubuntu.className} w-screen min-h-screen`}>
         <Provider>
           <Toaster />

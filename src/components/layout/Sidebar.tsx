@@ -1,24 +1,18 @@
-// @ts-nocheck
 "use client"
 
 import { useState, useEffect } from "react"
 import {
-  Home, Bot, User, Settings, ChevronDown, ChevronUp,
-  Book, MessageCircleReply, PackagePlus, Package
+  Home, Bot, User, Settings as SettingsIcon, ChevronDown, ChevronUp,
+  Book, PackagePlus, Package
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useSelector } from "react-redux"
 import { RootState } from "@/src/store/store"
 import Image from "next/image"
 import Link from "next/link"
-import {
-  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
-  SidebarMenu, SidebarMenuButton, SidebarMenuItem,
-  SidebarHeader, SidebarFooter
-} from "@/src/components/ui/sidebar"
 
 export function AppSidebar() {
-  const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({})
+  const [openMenu, setOpenMenu] = useState<string | null>(null) // Only one open at a time
   const pathname = usePathname()
   const [activeUrl, setActiveUrl] = useState<string | null>(null)
   const role = useSelector((state: RootState) => state.authSlice.role)
@@ -27,12 +21,12 @@ export function AppSidebar() {
     setActiveUrl(pathname)
   }, [pathname])
 
-  const toggleMenu = (title: string) => {
-    setOpenMenus((prev) => ({ ...prev, [title]: !prev[title] }))
-  }
-
   const isActive = (url: string) =>
     pathname === url || (url !== "/dashboard" && pathname.startsWith(url))
+
+  const toggleMenu = (title: string) => {
+    setOpenMenu(prev => (prev === title ? null : title)) // Open only one menu
+  }
 
   const baseItems = [
     { title: "Dashboard", url: "/dashboard", icon: Home },
@@ -47,14 +41,14 @@ export function AppSidebar() {
     },
     {
       title: "Docs",
-      url: "",
+      url: "/dashboard/docs",
       icon: Book,
       subItems: [
         { title: "Script", url: "/dashboard/docs/script", icon: Home },
       ],
     },
-    { title: "Settings", url: "/dashboard/settings", icon: Settings },
-    { title: "Subscription Packages", url: "/dashboard/subscription-packages", icon: Package }
+    { title: "Settings", url: "/dashboard/settings", icon: SettingsIcon },
+    { title: "Subscription Packages", url: "/dashboard/subscription-packages", icon: Package },
   ]
 
   const clientManagementItem =
@@ -68,109 +62,76 @@ export function AppSidebar() {
               { title: "Create Client", url: "/dashboard/client-management/create-client", icon: Home },
             ],
           },
-          { title: "Add Package", url: "/dashboard/add-packages", icon: PackagePlus }
+          { title: "Add Package", url: "/dashboard/add-packages", icon: PackagePlus },
         ]
       : []
 
   const items = [...baseItems, ...clientManagementItem]
 
   return (
-    <Sidebar className="bg-primary text-sm shadow-md text-white">
-      <SidebarHeader className="border-b bg-primary h-[85px]">
-        <div className="flex items-center h-full mx-auto w-full justify-center gap-3 hover:scale-105 transition-transform duration-300">
-          <Image
-            src="/Frame.svg"
-            alt="Logo"
-            width={50}
-            height={50}
-            className="rounded-md shadow-sm"
-          />
-          <h1 className="text-[18px] sm:text-xl flex flex-col font-bold tracking-tight">
-            <span className="text-white">Chat Supplies</span>
-            <span className="text-xs font-light text-secondary">Management Panel</span>
-          </h1>
+    <aside className=" left-0 bottom-0 sticky top-0 h-screen relative w-[250px] bg-white border-r shadow-sm flex flex-col justify-between">
+      {/* Logo Header */}
+      <div className="p-4 h-[85px]  border-b flex items-center gap-3">
+        <Image src="/Frame.svg" alt="Logo" width={40} height={40} className="rounded-md" />
+        <div className="flex flex-col">
+          <span className="font-bold text-primary text-xl">Chat Supplies</span>
+          <span className="text-xs text-gray-500">Management Panel</span>
         </div>
-      </SidebarHeader>
+      </div>
 
-      <SidebarContent className="bg-primary">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="px-2 py-3 space-y-1">
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  {item.subItems ? (
-                    <>
-                      <div className="flex items-center justify-between w-full">
-                        <Link
-                          href={item.url}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-md flex-1 transition-all duration-200 ${
-                            activeUrl === item.url
-                              ? "bg-white text-primary font-semibold"
-                              : "hover:bg-secondary hover:text-black"
-                          }`}
-                        >
-                          <item.icon size={18} />
-                          <span>{item.title}</span>
-                        </Link>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            toggleMenu(item.title)
-                          }}
-                          className="p-2"
-                        >
-                          {openMenus[item.title]
-                            ? <ChevronUp size={16} color="white" />
-                            : <ChevronDown size={16} color="white" />}
-                        </button>
-                      </div>
+      {/* Sidebar Navigation */}
+      <div className="flex-1 overflow-y-auto">
+        <nav className="py-4 space-y-2">
+          {items.map((item) => {
+            const hasSubItems = item.subItems && item.subItems.length > 0
+            const isOpen = openMenu === item.title
 
-                      {openMenus[item.title] && (
-                        <div className="ml-6 mt-1 flex flex-col space-y-1 transition-all duration-300">
-                          {item.subItems.map((subItem) => (
-                            <Link
-                              key={subItem.title}
-                              href={subItem.url}
-                              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 ${
-                                activeUrl === subItem.url
-                                  ? "bg-white text-primary font-semibold"
-                                  : "hover:bg-secondary hover:text-black"
-                              }`}
-                            >
-                              <subItem.icon size={16} />
-                              <span>{subItem.title}</span>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <SidebarMenuButton asChild>
+            return (
+              <div key={item.title} className="px-4">
+                <button
+                  onClick={() => hasSubItems ? toggleMenu(item.title) : null}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                    isActive(item.url)
+                      ? "bg-primary text-white"
+                      : "hover:bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <item.icon size={18} />
+                    <Link href={item.url}>{item.title}</Link>
+                  </div>
+                  {hasSubItems && (isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+                </button>
+
+                {/* Submenu */}
+                {hasSubItems && isOpen && (
+                  <div className="ml-6 mt-2 space-y-1">
+                    {item.subItems.map((subItem) => (
                       <Link
-                        href={item.url}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 ${
-                          activeUrl === item.url
-                            ? "bg-white text-primary font-semibold"
-                            : "hover:bg-secondary hover:text-black"
+                        key={subItem.title}
+                        href={subItem.url}
+                        className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-all ${
+                          isActive(subItem.url)
+                            ? "bg-white border border-primary  text-primary"
+                            : "text-gray-600 hover:bg-gray-100"
                         }`}
                       >
-                        <item.icon size={18} />
-                        <span>{item.title}</span>
+                        <subItem.icon size={14} />
+                        <span>{subItem.title}</span>
                       </Link>
-                    </SidebarMenuButton>
-                  )}
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </nav>
+      </div>
 
-      <SidebarFooter className="bg-primary border-t border-secondary">
-        <div className="p-4 text-xs text-secondary text-center">
-          © 2024 Admin Dashboard
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+      {/* Footer */}
+      <div className="text-xs text-gray-400 text-center border-t py-3">
+        © 2024 Admin Dashboard
+      </div>
+    </aside>
   )
 }

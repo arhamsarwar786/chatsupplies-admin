@@ -176,7 +176,7 @@ const handleSubmit = async (e: React.FormEvent) => {
        <div className="flex-col space-y-6 items-center w-full justify-between ">
         <div className="mb-6">
           <h2 className="text-2xl font-semibold text-gray-900">Chatbot Creation Process</h2>
-          <p className="text-gray-500 text-sm">Follow these steps to create your chatbot from start to finish</p>
+          <p className="text-gray-500 text-md">Follow these steps to create your chatbot from start to finish</p>
         </div>
       </div>
       {/* Form Section */}
@@ -185,7 +185,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         <div className="md:col-span-2 space-y-4">
           <h3 className="text-lg font-semibold text-gray-900">Basic Setup & Configuration</h3>
           <div>
-            <label className="text-sm font-medium text-gray-700">Chatbot Name</label>
+            <label className="text-md font-medium text-gray-700">Chatbot Name<span className="text-red-500">*</span></label>
             <input
               type="text"
               value={name}
@@ -196,7 +196,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Description</label>
+            <label className="text-md font-medium text-gray-700">Description<span className="text-red-500">*</span></label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
@@ -207,7 +207,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Industry</label>
+              <label className="text-md font-medium text-gray-700">Industry<span className="text-red-500">*</span></label>
               <select
                 value={industry}
                 onChange={e => setIndustry(e.target.value)}
@@ -221,7 +221,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Language</label>
+              <label className="text-md font-medium text-gray-700">Language<span className="text-red-500">*</span></label>
               <select
                 value={language}
                 onChange={e => setLanguage(e.target.value)}
@@ -235,7 +235,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Welcome Message</label>
+            <label className="text-md font-medium text-gray-700">Welcome Message<span className="text-red-500">*</span></label>
             <input
               type="text"
               value={welcomeMessage}
@@ -245,7 +245,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Business Hours Start</label>
+              <label className="text-md font-medium text-gray-700">Business Hours Start<span className="text-red-500">*</span></label>
               <input
                 type="text"
                 value={businessHoursStart}
@@ -254,7 +254,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Business Hours End</label>
+              <label className="text-md font-medium text-gray-700">Business Hours End<span className="text-red-500">*</span></label>
               <input
                 type="text"
                 value={businessHoursEnd}
@@ -271,18 +271,18 @@ const handleSubmit = async (e: React.FormEvent) => {
               id="isActive"
               className="form-checkbox"
             />
-            <label htmlFor="isActive" className="text-sm text-gray-700">Active</label>
+            <label htmlFor="isActive" className="text-md text-gray-700">Active<span className="text-red-500">*</span></label>
           </div>
         </div>
         {/* Right Side Avatar & Personality */}
         <div className="space-y-4">
 
-          {/* <h3 className="text-sm font-semibold text-gray-700">Bot Avatar & Personality</h3> */}
+          {/* <h3 className="text-md font-semibold text-gray-700">Bot Avatar & Personality</h3> */}
           <div>
    <div className="mb-6">
-  <label className="block text-sm font-semibold text-gray-700 mb-2">
+  <label className="block text-md font-semibold text-gray-700 mb-2">
     Upload Logo (PNG, JPG, JPEG)
-  </label>
+  <span className="text-red-500">*</span></label>
   <div
     className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary transition-all cursor-pointer bg-white shadow-sm"
     onClick={() => document.getElementById('logoInput')?.click()}
@@ -296,7 +296,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     ) : (
       <div className="flex flex-col items-center text-gray-400">
         <ImageIcon className="w-8 h-8 mb-2" />
-        <p className="text-sm">Click to upload image</p>
+        <p className="text-md">Click to upload image</p>
         <p className="text-xs mt-1">PNG, JPG, JPEG only</p>
       </div>
     )}
@@ -310,7 +310,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   />
 </div>
           <RadioGroup value={tone} onChange={setTone}>
-            <RadioGroup.Label className="text-sm font-medium text-gray-700">Personality Tone</RadioGroup.Label>
+            <RadioGroup.Label className="text-md font-medium text-gray-700">Personality Tone</RadioGroup.Label>
             <div className="mt-2 space-y-1">
               {tones.map((item) => (
                 <RadioGroup.Option key={item.value} value={item.name}>
@@ -322,7 +322,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                         onChange={() => setTone(item.name)}
                         className="form-radio text-indigo-600"
                       />
-                      <span className="text-sm text-gray-800">{item.name}</span>
+                      <span className="text-md text-gray-800">{item.name}</span>
                     </div>
                   )}
                 </RadioGroup.Option>
@@ -347,13 +347,13 @@ const handleSubmit = async (e: React.FormEvent) => {
               onChange={(e) => setIncludePdf(e.target.checked)}
               className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
-            <label htmlFor="includePdf" className="text-sm font-medium text-gray-700">
+            <label htmlFor="includePdf" className="text-md font-medium text-gray-700">
               Add PDF to knowledge base
             </label>
           </div>
      
           <div
-            className={`mt-6 border border-dashed border-gray-300 rounded-md p-6 text-center text-sm transition-all ${
+            className={`mt-6 border border-dashed border-gray-300 rounded-md p-6 text-center text-md transition-all ${
               includePdf
                 ? "cursor-pointer hover:border-blue-400 bg-white"
                 : "cursor-not-allowed bg-gray-100 text-gray-400"
@@ -381,12 +381,12 @@ const handleSubmit = async (e: React.FormEvent) => {
           {/* Processed Files */}
           {uploadedFiles.length > 0 && includePdf && (
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Processed Files</p>
+              <p className="text-md font-medium text-gray-700 mb-2">Processed Files</p>
               <ul className="space-y-3">
                 {uploadedFiles.map((file, index) => (
                   <li
                     key={index}
-                    className="flex items-center justify-between text-sm"
+                    className="flex items-center justify-between text-md"
                   >
                     <div className="flex items-center space-x-2 font-medium text-blue-600">
                       <span>📄</span>
@@ -428,7 +428,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     </div>
 
     {/* Chat Messages */}
-    <div className="p-4 space-y-4 h-64 overflow-y-auto text-sm">
+    <div className="p-4 space-y-4 h-64 overflow-y-auto text-md">
       {/* Bot Message */}
       <div className="flex items-start space-x-2">
         <BotIcon className="w-4 h-4 mt-0.5" style={{ color: primaryColor }} />
@@ -526,7 +526,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 transition hover:shadow-md"
     >
       <div className="flex-1">
-        <label className="block text-sm font-semibold text-gray-800 dark:text-white">
+        <label className="block text-md font-semibold text-gray-800 dark:text-white">
           {label}
         </label>
         <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>

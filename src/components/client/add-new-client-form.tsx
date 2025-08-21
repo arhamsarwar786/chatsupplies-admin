@@ -106,32 +106,32 @@ const isFormComplete = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="mb-2">First Name</Label>
+                  <Label className="mb-2 text-md">First Name <span className="text-red-500">*</span></Label>
                   <Input name="first_name" value={form.first_name} onChange={handleChange} placeholder="Enter First Name" />
                 </div>
                 <div>
-                  <Label className="mb-2">Last Name</Label>
+                  <Label className="mb-2 text-md">Last Name <span className="text-red-500">*</span></Label>
                   <Input name="last_name" value={form.last_name} onChange={handleChange} placeholder="Enter Last Name" />
                 </div>
               </div>
 
               <div>
-                <Label className="mb-2">Email Address</Label>
+                <Label className="mb-2 text-md">Email Address <span className="text-red-500">*</span></Label>
                 <Input name="email" type="email" value={form.email} onChange={handleChange} placeholder="Enter Email Address" />
               </div>
 
               <div>
-                <Label className="mb-2">Phone Number</Label>
+                <Label className="mb-2 text-md">Phone Number <span className="text-red-500">*</span></Label>
                 <Input name="phone_number" value={form.phone_number} onChange={handleChange} placeholder="Enter Phone Number" />
               </div>
 
               <div>
-                <Label className="mb-2">Company Name</Label>
+                <Label className="mb-2 text-md">Company Name <span className="text-red-500">*</span></Label>
                 <Input name="company_name" value={form.company_name} onChange={handleChange} placeholder="Enter Company Name" />
               </div>
 
               <div>
-                <Label className="mb-2">Industry</Label>
+                <Label className="mb-2 text-md">Industry <span className="text-red-500">*</span></Label>
                 <Select className="w-full" value={form.industry} onValueChange={(val) => handleSelectChange(val, "industry")}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Industry" />
@@ -152,7 +152,7 @@ const isFormComplete = () => {
             <h4 className="font-medium mb-4">Account Settings</h4>
             <div className="space-y-4">
               <div>
-                <Label className="mb-2">Access Level</Label>
+                <Label className="mb-2 text-md">Access Level <span className="text-red-500">*</span></Label>
                 <Select value={form.access_level} onValueChange={(val) => handleSelectChange(val, "access_level")}>
                   <SelectTrigger>
                     <SelectValue />
@@ -166,23 +166,23 @@ const isFormComplete = () => {
               </div>
 
               <div>
-                <Label className="mb-2">Max Chatbots</Label>
+                <Label className="mb-2 text-md">Max Chatbots <span className="text-red-500">*</span></Label>
                 <Input name="max_chatbots" value={form.max_chatbots} onChange={handleChange} />
               </div>
 
               <div>
-                <Label className="mb-2">Notes</Label>
+                <Label className="mb-2 text-md">Notes <span className="text-red-500">*</span></Label>
                 <Textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Additional notes about the client..." />
               </div>
 
               <div className="space-y-2 mt-4">
                 <div className="flex items-center space-x-2">
                   <Checkbox id="welcome" checked={form.send_welcome_email} onCheckedChange={(val) => setForm(f => ({ ...f, send_welcome_email: !!val }))} />
-                  <Label htmlFor="welcome">Send welcome email</Label>
+                  <Label htmlFor="welcome" className="text-md">Send welcome email</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox id="auto" checked={form.auto_activateaccount} onCheckedChange={(val) => setForm(f => ({ ...f, auto_activate_account: !!val }))} />
-                  <Label htmlFor="auto">Auto-activate account</Label>
+                  <Label htmlFor="auto"className="text-md">Auto-activate account</Label>
                 </div>
               </div>
             </div>
