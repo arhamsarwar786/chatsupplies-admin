@@ -16,10 +16,10 @@ const page = () => {
                 buttonText="Start Flow"
             />
             <div className="md:p-5 p-4 flex flex-col gap-8">
-                <ClientSetupFlow />
+                {/* <ClientSetupFlow /> */}
                 <AddNewClientForm />
-                <LinkChatbotForm/>
-                <SetupPaymentForm/>
+                {/* <LinkChatbotForm/>
+                <SetupPaymentForm/> */}
             </div>
         </>
     )

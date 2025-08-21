@@ -121,7 +121,7 @@ export default function LoginPage() {
           type="button"
           variant="ghost"
           size="sm"
-          className="absolute right-2 top-1/2 -translate-y-1/2"
+          className="absolute bg-gray-100 right-2 top-1/2 -translate-y-1/2"
           onClick={() => setShowPassword(!showPassword)}
         >
           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}

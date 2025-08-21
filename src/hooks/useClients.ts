@@ -28,6 +28,24 @@ export const client = createApi({
         body: product,
       }),
     }),
+        deleteClientById: builder.mutation({
+      query: (id) => ({
+        url: `${id}`,
+        method: "DELETE",
+      }),
+    }),
+        getClientById: builder.query<any, number>({
+  query: (id) => `${id}`,
+}),
+      updateClientById: builder.mutation<any, { id: number; body: any }>({
+      query: ({ id, body }) => {
+        return {
+          url: `${id}`,
+          method: "PUT",
+          body,
+        };
+      },
+    }),
   }),
 });
 
@@ -35,4 +53,7 @@ export const {
   useGetClientsQuery,
   useGetDashboardSummaryQuery,
   useCreateClientMutation,
+  useGetClientByIdQuery,
+  useDeleteClientByIdMutation,
+  useUpdateClientByIdMutation
 } = client;

@@ -23,7 +23,6 @@ export default function AddNewClientForm() {
     first_name: "",
     last_name: "",
     email: "",
-    // password: "",
     phone_number: "",
     company_name: "",
     industry: "",
@@ -51,17 +50,47 @@ export default function AddNewClientForm() {
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    try {
-      await createClient(form).unwrap();
-      toast.success("Client created successfully!");
-      setForm(initialFormState); // <-- Clear all fields after success
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to create client.");
-    }
-  };
+const handleSubmit = async (e?: React.FormEvent) => {
+  if (e) e.preventDefault();
 
+  if (!isFormComplete()) {
+    toast.warning("Please fill in all required fields.");
+    return;
+  }
+
+  try {
+    const response = await createClient(form).unwrap();
+
+    // 🔍 Check if response has success: false
+    if (response?.success === false) {
+      toast.error(response?.detail || "An unknown error occurred.");
+      return;
+    }
+
+    // ✅ Success
+    toast.success(response?.detail || "Client created successfully!");
+    setForm(initialFormState); // Clear form
+  } catch (err: any) {
+    // 🔥 Catch server or network errors
+    const message =
+      err?.data?.detail || err?.data?.message || "Failed to create client.";
+    toast.error(message);
+  }
+};
+
+
+const isFormComplete = () => {
+  return (
+    form.first_name.trim() &&
+    form.last_name.trim() &&
+    form.email.trim() &&
+    form.phone_number.trim() &&
+    form.company_name.trim() &&
+    form.industry.trim() &&
+    form.access_level.trim() &&
+    form.max_chatbots.trim()
+  );
+};
   return (
     <div className="rounded-xl border shadow-sm overflow-hidden bg-white">
       <div className="bg-indigo-600 text-white px-6 py-4 flex items-center gap-2">
@@ -77,32 +106,32 @@ export default function AddNewClientForm() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>First Name</Label>
+                  <Label className="mb-2">First Name</Label>
                   <Input name="first_name" value={form.first_name} onChange={handleChange} placeholder="Enter First Name" />
                 </div>
                 <div>
-                  <Label>Last Name</Label>
+                  <Label className="mb-2">Last Name</Label>
                   <Input name="last_name" value={form.last_name} onChange={handleChange} placeholder="Enter Last Name" />
                 </div>
               </div>
 
               <div>
-                <Label>Email Address</Label>
+                <Label className="mb-2">Email Address</Label>
                 <Input name="email" type="email" value={form.email} onChange={handleChange} placeholder="Enter Email Address" />
               </div>
 
               <div>
-                <Label>Phone Number</Label>
+                <Label className="mb-2">Phone Number</Label>
                 <Input name="phone_number" value={form.phone_number} onChange={handleChange} placeholder="Enter Phone Number" />
               </div>
 
               <div>
-                <Label>Company Name</Label>
+                <Label className="mb-2">Company Name</Label>
                 <Input name="company_name" value={form.company_name} onChange={handleChange} placeholder="Enter Company Name" />
               </div>
 
               <div>
-                <Label>Industry</Label>
+                <Label className="mb-2">Industry</Label>
                 <Select className="w-full" value={form.industry} onValueChange={(val) => handleSelectChange(val, "industry")}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Industry" />
@@ -123,7 +152,7 @@ export default function AddNewClientForm() {
             <h4 className="font-medium mb-4">Account Settings</h4>
             <div className="space-y-4">
               <div>
-                <Label>Access Level</Label>
+                <Label className="mb-2">Access Level</Label>
                 <Select value={form.access_level} onValueChange={(val) => handleSelectChange(val, "access_level")}>
                   <SelectTrigger>
                     <SelectValue />
@@ -137,12 +166,12 @@ export default function AddNewClientForm() {
               </div>
 
               <div>
-                <Label>Max Chatbots</Label>
+                <Label className="mb-2">Max Chatbots</Label>
                 <Input name="max_chatbots" value={form.max_chatbots} onChange={handleChange} />
               </div>
 
               <div>
-                <Label>Notes</Label>
+                <Label className="mb-2">Notes</Label>
                 <Textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Additional notes about the client..." />
               </div>
 
@@ -161,10 +190,13 @@ export default function AddNewClientForm() {
         </div>
 
         {/* Buttons */}
-        <div className="flex justify-end gap-4 pt-4 border-t">
-          <Button variant="outline" type="button">Cancel</Button>
-          <Button onClick={handleSubmit} type="submit">Save & Continue</Button>
-        </div>
+<div className="flex justify-end gap-4 pt-4 border-t">
+  <Button variant="outline" type="button">Cancel</Button>
+  <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
+    {isLoading ? "Creating..." : "Create Client"}
+  </Button>
+</div>
+
       </form>
     </div>
   )

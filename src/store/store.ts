@@ -8,6 +8,7 @@ import { chatbot } from '../hooks/useChatbot';
 import { training } from '../hooks/useTraining';
 import { chat } from '../hooks/useChat';
 import { packages } from '../hooks/usePackages';
+import { superadmin } from '../hooks/useSuperadmin';
 
 
 
@@ -21,6 +22,7 @@ export const makeStore = () => {
 [chatbot.reducerPath]: chatbot.reducer,
 [training.reducerPath]: training.reducer,
 [chat.reducerPath]: chat.reducer,
+[superadmin.reducerPath]: superadmin.reducer,
 [packages.reducerPath]: packages.reducer
 
 },
@@ -32,6 +34,7 @@ middleware: (getDefaultMiddleware) =>
       chatbot.middleware,
       chat.middleware,
       training.middleware, 
+      superadmin.middleware,
       packages.middleware
     ),
   });
