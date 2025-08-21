@@ -17,6 +17,7 @@ import { UserPlus } from "lucide-react"
 import { useState } from "react"
 import { useCreateClientMutation } from "@/src/hooks/useClients"
 import { toast } from "sonner"
+import PhoneInput from "../PhoneInput"
 
 export default function AddNewClientForm() {
   const initialFormState = {
@@ -77,6 +78,12 @@ const handleSubmit = async (e?: React.FormEvent) => {
     toast.error(message);
   }
 };
+const handlePhoneChange = (value: string | undefined) => {
+  setForm((prev) => ({
+    ...prev,
+    phone_number: value || "",
+  }));
+};
 
 
 const isFormComplete = () => {
@@ -122,7 +129,7 @@ const isFormComplete = () => {
 
               <div>
                 <Label className="mb-2 text-md">Phone Number <span className="text-red-500">*</span></Label>
-                <Input name="phone_number" value={form.phone_number} onChange={handleChange} placeholder="Enter Phone Number" />
+                <PhoneInput name="phone_number" value={form.phone_number}  onChange={handlePhoneChange} placeholder="Enter Phone Number" className="border border-gray-300 rounded-md p-2" />
               </div>
 
               <div>

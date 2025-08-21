@@ -18,6 +18,7 @@ import { UserPlus } from "lucide-react"
 import { useUpdateClientByIdMutation, useGetClientByIdQuery } from "@/src/hooks/useClients"
 import { toast } from "sonner"
 import {Loader2} from "lucide-react"
+import PhoneInput from "../PhoneInput";
 export default function EditClientForm() {
   const params = useParams();
   const id = params?.id ? Number(params.id) : undefined;
@@ -50,7 +51,7 @@ export default function EditClientForm() {
         first_name: clientData.first_name || "",
         last_name: clientData.last_name || "",
         email: clientData.email || "",
-        phone_number: clientData.phone_number || "",
+        phone_number: clientData.phone_number || "dd",
         company_name: clientData.company_name || "",
         industry: clientData.industry || "",
         access_level: clientData.access_level || "",
@@ -86,6 +87,12 @@ export default function EditClientForm() {
       toast.error("Error updating client");
     }
   };
+  const handlePhoneChange = (value: string | undefined) => {
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+};
 
   if (isFetching) {
     return (
@@ -124,7 +131,7 @@ export default function EditClientForm() {
               </div>
               <div>
                 <Label className="mb-2">Phone Number</Label>
-                <Input name="phone_number" value={form.phone_number} onChange={handleChange} placeholder="Enter Phone Number" />
+                <PhoneInput name="phone_number" value={form.phone_number}  onChange={handlePhoneChange} placeholder="Enter Phone Number" className="border border-gray-300 rounded-md p-2" />
               </div>
               <div>
                 <Label className="mb-2">Company Name</Label>
