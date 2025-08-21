@@ -99,7 +99,7 @@ const isFormComplete = () => {
   );
 };
   return (
-    <div className="rounded-xl border shadow-sm overflow-hidden bg-white">
+    <div className="rounded-xl border shadow-sm overflow-hidden bg-[#e8e9ff]">
       <div className="bg-indigo-600 text-white px-6 py-4 flex items-center gap-2">
         <UserPlus className="w-5 h-5" />
         <h3 className="font-semibold text-lg">Step 1: Add New Client</h3>
