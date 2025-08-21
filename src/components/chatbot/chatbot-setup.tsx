@@ -191,7 +191,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Enter chatbot name"
-              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               required
             />
           </div>
@@ -201,7 +201,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder="Describe your chatbot's purpose"
-              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               required
             />
           </div>
@@ -211,7 +211,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <select
                 value={industry}
                 onChange={e => setIndustry(e.target.value)}
-                className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 required
               >
                 <option value="string">Select Industry</option>
@@ -225,7 +225,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <select
                 value={language}
                 onChange={e => setLanguage(e.target.value)}
-                className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 required
               >
                 <option value="English">English</option>
@@ -240,7 +240,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               type="text"
               value={welcomeMessage}
               onChange={e => setWelcomeMessage(e.target.value)}
-              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -250,7 +250,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 type="text"
                 value={businessHoursStart}
                 onChange={e => setBusinessHoursStart(e.target.value)}
-                className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             <div>
@@ -259,7 +259,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 type="text"
                 value={businessHoursEnd}
                 onChange={e => setBusinessHoursEnd(e.target.value)}
-                className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           </div>
@@ -284,7 +284,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     Upload Logo (PNG, JPG, JPEG)
   <span className="text-red-500">*</span></label>
   <div
-    className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary transition-all cursor-pointer bg-white shadow-sm"
+    className="flex flex-col items-center justify-center border-2 border-dashed border-gray-400 rounded-lg p-4 hover:border-primary transition-all cursor-pointer bg-white shadow-sm"
     onClick={() => document.getElementById('logoInput')?.click()}
   >
     {logoPreview ? (
@@ -345,7 +345,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               id="includePdf"
               checked={includePdf}
               onChange={(e) => setIncludePdf(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              className="h-4 w-4 rounded border-gray-400 text-indigo-600 focus:ring-indigo-500"
             />
             <label htmlFor="includePdf" className="text-md font-medium text-gray-700">
               Add PDF to knowledge base
@@ -353,7 +353,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
      
           <div
-            className={`mt-6 border border-dashed border-gray-300 rounded-md p-6 text-center text-md transition-all ${
+            className={`mt-6 border border-dashed border-gray-400 rounded-md p-6 text-center text-md transition-all ${
               includePdf
                 ? "cursor-pointer hover:border-blue-400 bg-white"
                 : "cursor-not-allowed bg-gray-100 text-gray-400"
@@ -469,7 +469,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         placeholder="Type your message..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2"
+        className="flex-1 px-3 py-2 border border-gray-400 rounded-l-md focus:outline-none focus:ring-2"
       />
       <button
         onClick={handleSend}
@@ -534,14 +534,14 @@ const handleSubmit = async (e: React.FormEvent) => {
 
       <div className="flex items-center gap-3 mt-2 sm:mt-0">
         <div
-          className="w-8 h-8 rounded-full border border-gray-300 shadow-inner"
+          className="w-8 h-8 rounded-full border border-gray-400 shadow-inner"
           style={{ backgroundColor: value }}
         ></div>
         <input
           type="color"
           value={value}
           onChange={e => setter(e.target.value)}
-          className="w-14 h-10 cursor-pointer rounded-md border border-gray-300 dark:border-gray-600 shadow-sm transition-all hover:scale-105 focus:ring-2 focus:ring-primary focus:outline-none"
+          className="w-14 h-10 cursor-pointer rounded-md border border-gray-400 dark:border-gray-600 shadow-sm transition-all hover:scale-105 focus:ring-2 focus:ring-primary focus:outline-none"
         />
       </div>
     </div>

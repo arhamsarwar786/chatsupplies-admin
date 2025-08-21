@@ -131,7 +131,8 @@ export default function EditClientForm() {
               </div>
               <div>
                 <Label className="mb-2">Phone Number</Label>
-                <PhoneInput name="phone_number" value={form.phone_number}  onChange={handlePhoneChange} placeholder="Enter Phone Number" className="border border-gray-300 rounded-md p-2" />
+                <PhoneInput name="phone_number" value={form.phone_number}  onChange={handlePhoneChange} placeholder="Enter Phone Number"
+                 className="border border-gray-300 rounded-md p-2" />
               </div>
               <div>
                 <Label className="mb-2">Company Name</Label>

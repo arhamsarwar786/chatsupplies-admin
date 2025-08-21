@@ -1,3 +1,5 @@
+// @ts-check
+"use client";
 import { cn } from "@/src/lib/utils";
 import React, { useState } from "react";
 import PhoneInputWithCountry from "react-phone-number-input";
