@@ -11,7 +11,7 @@ export default function ChatbotCards() {
       <Card className="h-full">
         <CardContent className="pt-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Performanc Overview</h2>
+            <h2 className="text-lg font-semibold">Performance Overview</h2>
             <FaChartLine className="text-primary" />
           </div>
           {/* Empty for now */}
