@@ -28,45 +28,97 @@ export function AppSidebar() {
     setOpenMenu(prev => (prev === title ? null : title)) // Open only one menu
   }
 
-  const baseItems = [
-    { title: "Dashboard", url: "/dashboard", icon: Home },
-    {
-      title: "Chatbot Management",
-      url: "/dashboard/chatbot-management",
-      icon: Bot,
-      subItems: [
-        { title: "Chat History", url: "/dashboard/chatbot-management/chat-history", icon: Home },
-        { title: "Chat Creation", url: "/dashboard/chatbot-management/create-chatbot", icon: Home },
-      ],
-    },
-    {
-      title: "Docs",
-      url: "/dashboard/docs",
-      icon: Book,
-      subItems: [
-        { title: "Script", url: "/dashboard/docs/script", icon: Home },
-      ],
-    },
-    { title: "Settings", url: "/dashboard/settings", icon: SettingsIcon },
-    { title: "Subscription Packages", url: "/dashboard/subscription-packages", icon: Package },
-  ]
+  // const baseItems = [
+  //   { title: "Dashboard", url: "/dashboard", icon: Home },
+  //   {
+  //     title: "Chatbot Management",
+  //     url: "/dashboard/chatbot-management",
+  //     icon: Bot,
+  //     subItems: [
+  //       { title: "Chat History", url: "/dashboard/chatbot-management/chat-history", icon: Home },
+  //       { title: "Chat Creation", url: "/dashboard/chatbot-management/create-chatbot", icon: Home },
+  //     ],
+  //   },
+  // ]
+  //   const baseItems2 = [
+  //   {
+  //     title: "Docs",
+  //     url: "/dashboard/docs",
+  //     icon: Book,
+  //     subItems: [
+  //       { title: "Script", url: "/dashboard/docs/script", icon: Home },
+  //     ],
+  //   },
+  //   // { title: "Settings", url: "/dashboard/settings", icon: SettingsIcon },
+  //   { title: "Subscription Packages", url: "/dashboard/subscription-packages", icon: Package },
+  // ]
 
-  const clientManagementItem =
-    role === "super_admin"
-      ? [
-          {
-            title: "Client Management",
-            url: "/dashboard/client-management",
-            icon: User,
-            subItems: [
-              { title: "Create Client", url: "/dashboard/client-management/create-client", icon: Home },
-            ],
-          },
-          { title: "Add Package", url: "/dashboard/add-packages", icon: PackagePlus },
-        ]
-      : []
+  // const clientManagementItem =
+  //   role === "super_admin"
+  //     ? [
+  //         {
+  //           title: "Client Management",
+  //           url: "/dashboard/client-management",
+  //           icon: User,
+  //           subItems: [
+  //             { title: "Create Client", url: "/dashboard/client-management/create-client", icon: Home },
+  //           ],
+  //         },
+  //         { title: "Add Package", url: "/dashboard/add-packages", icon: PackagePlus },
+  //       ]
+  //     : []
 
-  const items = [...baseItems, ...clientManagementItem]
+  // const items = [...baseItems, ...clientManagementItem, ...baseItems2]
+const items = [
+  // Base Items
+  { title: "Dashboard", url: "/dashboard", icon: Home },
+  {
+    title: "Chatbot Management",
+    url: "/dashboard/chatbot-management",
+    icon: Bot,
+    subItems: [
+      { title: "Chat History", url: "/dashboard/chatbot-management/chat-history", icon: Home },
+      { title: "Chat Creation", url: "/dashboard/chatbot-management/create-chatbot", icon: Home },
+    ],
+  },
+
+  // Conditionally include super_admin-only items
+  ...(role === "super_admin"
+    ? [
+        {
+          title: "Client Management",
+          url: "/dashboard/client-management",
+          icon: User,
+          subItems: [
+            { title: "Create Client", url: "/dashboard/client-management/create-client", icon: Home },
+          ],
+        },
+        {
+          title: "Add Package",
+          url: "/dashboard/add-packages",
+          icon: PackagePlus,
+        },
+      ]
+    : []),
+
+  // Additional Items
+  {
+    title: "Docs",
+    url: "/dashboard/docs",
+    icon: Book,
+    subItems: [
+      { title: "Script", url: "/dashboard/docs/script", icon: Home },
+    ],
+  },
+  {
+    title: "Packages Management",
+    url: "/dashboard/subscription-packages",
+    icon: Package,
+  },
+
+  // Optional: add Settings back if needed
+  // { title: "Settings", url: "/dashboard/settings", icon: SettingsIcon },
+]
 
   return (
     <aside className=" left-0 bottom-0 sticky top-0 h-screen relative w-[250px] bg-white border-r shadow-sm flex flex-col justify-between">

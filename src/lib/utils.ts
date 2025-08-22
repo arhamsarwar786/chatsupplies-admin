@@ -13,7 +13,7 @@ export const decodeToken = (token: string, api_key: string): DecodedToken | null
     const decoded = jwtDecode<DecodedToken>(token);
     const apiKey = localStorage.getItem("api_key");
     if (apiKey !== api_key) {
-      console.error("API key does not match the one in local storage.");
+      // console.error("API key does not match the one in local storage.");
       return null;
     }
 

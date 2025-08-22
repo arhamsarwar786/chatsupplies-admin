@@ -4,7 +4,7 @@ import { RadioGroup } from "@headlessui/react";
 import { useCreateChatbotMutation } from "@/src/hooks/useChatbot";
 import { toast } from "sonner";
 import axios from "axios";
-import { CheckCircle, Loader2, Send, BotIcon, ImageIcon, Check } from "lucide-react";
+import { CheckCircle, Loader2, Trash, Send, BotIcon, ImageIcon, Check } from "lucide-react";
 
 const tones = [
   { name: "Professional", value: "professional" },
@@ -91,8 +91,8 @@ const ChatbotSetup = () => {
   const [welcomeMessage, setWelcomeMessage] = useState(
     "Hi! I'm here to help you with any questions..."
   );
-  const [businessHoursStart, setBusinessHoursStart] = useState("");
-  const [businessHoursEnd, setBusinessHoursEnd] = useState("");
+  const [businessHoursStart, setBusinessHoursStart] = useState("default");
+  const [businessHoursEnd, setBusinessHoursEnd] = useState("default");
   const [isActive, setIsActive] = useState(true);
 
 const resetForm = () => {
@@ -103,8 +103,8 @@ const resetForm = () => {
   setTone("Friendly");
   setBotAvatar("");
   setWelcomeMessage("Hi! I'm here to help you with any questions...");
-  setBusinessHoursStart("");
-  setBusinessHoursEnd("");
+  setBusinessHoursStart("default");
+  setBusinessHoursEnd("default");
   setIsActive(true);
   setWindowBgColor("#ffffff");
   setUserBubbleColor("#e2e8f0");
@@ -169,6 +169,10 @@ const handleSubmit = async (e: React.FormEvent) => {
     console.error("Error creating chatbot:", error);
   }
 };
+const handleRemoveFile = (index: number) => {
+  setUploadedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index))
+}
+
 
   return (
     <form onSubmit={handleSubmit}>
@@ -243,7 +247,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-md font-medium text-gray-700">Business Hours Start<span className="text-red-500">*</span></label>
               <input
@@ -262,8 +266,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                 className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
-          </div>
-          <div className="flex items-center gap-2 mt-2">
+          </div> */}
+          {/* <div className="flex items-center gap-2 mt-2">
             <input
               type="checkbox"
               checked={isActive}
@@ -272,7 +276,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               className="form-checkbox"
             />
             <label htmlFor="isActive" className="text-md text-gray-700">Active<span className="text-red-500">*</span></label>
-          </div>
+          </div> */}
         </div>
         {/* Right Side Avatar & Personality */}
         <div className="space-y-4">
@@ -383,23 +387,32 @@ const handleSubmit = async (e: React.FormEvent) => {
             <div>
               <p className="text-md font-medium text-gray-700 mb-2">Processed Files</p>
               <ul className="space-y-3">
-                {uploadedFiles.map((file, index) => (
-                  <li
-                    key={index}
-                    className="flex items-center justify-between text-md"
-                  >
-                    <div className="flex items-center space-x-2 font-medium text-blue-600">
-                      <span>📄</span>
-                      <span>{file.name}</span>
-                    </div>
-                    {file.status === "uploaded" ? (
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
-                    )}
-                  </li>
-                ))}
-              </ul>
+  {uploadedFiles.map((file, index) => (
+    <li
+      key={index}
+      className="flex items-center justify-between text-md"
+    >
+      <div className="flex items-center space-x-2 font-medium text-blue-600">
+        <span>📄</span>
+        <span>{file.name}</span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        {file.status === "uploaded" ? (
+          <CheckCircle className="w-4 h-4 text-green-500" />
+        ) : (
+          <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+        )}
+        
+        {/* Trash Icon to remove the file */}
+        <button onClick={() => handleRemoveFile(index)}>
+          <Trash className="w-4 h-4 text-red-500 hover:text-red-700" />
+        </button>
+      </div>
+    </li>
+  ))}
+</ul>
+
             </div>
           )}
         </div>
