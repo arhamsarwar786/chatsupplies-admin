@@ -9,6 +9,11 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "@/src/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/src/components/ui/tooltip";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { useUploadRequirementMutation } from "@/src/hooks/useTraining";
@@ -50,7 +55,13 @@ const UploadPDF = ({ chatbotId, status }: { chatbotId: number , status: string }
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Upload className="h-4 w-4 text-green-600 cursor-pointer" />
+        <Tooltip>
+  <TooltipTrigger>  <Upload className="h-4 w-4 text-green-600 cursor-pointer" /></TooltipTrigger>
+  <TooltipContent>
+    <p>Upload PDF</p>
+  </TooltipContent>
+</Tooltip>
+      
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

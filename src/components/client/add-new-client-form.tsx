@@ -30,8 +30,8 @@ export default function AddNewClientForm() {
     access_level: "",
     max_chatbots: "",
     notes: "",
-    send_welcome_email: false,
-    auto_activate_account: false,
+    send_welcome_email: true,
+    auto_activate_account: true,
   };
 
   const [form, setForm] = useState(initialFormState);
@@ -221,16 +221,32 @@ const isFormComplete = () => {
                 placeholder="Additional notes about the client..." />
               </div>
 
-              <div className="space-y-2 mt-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="welcome" checked={form.send_welcome_email} onCheckedChange={(val) => setForm(f => ({ ...f, send_welcome_email: !!val }))} className="border border-gray-400" />
-                  <Label htmlFor="welcome" className="text-md">Send welcome email</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="auto" checked={form.auto_activateaccount} onCheckedChange={(val) => setForm(f => ({ ...f, auto_activate_account: !!val }))} className="border border-gray-400" />
-                  <Label htmlFor="auto"className="text-md">Auto-activate account</Label>
-                </div>
-              </div>
+<div className="space-y-2 mt-4">
+  <div className="flex items-center space-x-2">
+    <Checkbox
+      id="welcome"
+      checked={true}
+      disabled
+      className="border border-gray-400 opacity-50 cursor-not-allowed"
+    />
+    <Label htmlFor="welcome" className="text-md text-gray-500">
+      Send welcome email
+    </Label>
+  </div>
+  <div className="flex items-center space-x-2">
+    <Checkbox
+      id="auto"
+      checked={true}
+      disabled
+      className="border border-gray-400 opacity-50 cursor-not-allowed"
+    />
+    <Label htmlFor="auto" className="text-md text-gray-500">
+      Auto-activate account
+    </Label>
+  </div>
+</div>
+
+
             </div>
           </div>
         </div>

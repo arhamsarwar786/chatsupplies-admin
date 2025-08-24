@@ -10,6 +10,11 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/src/components/ui/alert-dialog"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/src/components/ui/tooltip";
 import { toast } from "sonner";
 
 import { ClipboardCopy } from "lucide-react";
@@ -25,7 +30,13 @@ const CopyScript = ({ chatbotId, status }: { chatbotId: number; status: string }
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <ClipboardCopy className="h-4 w-4 text-green-900 cursor-pointer" />
+               <Tooltip>
+          <TooltipTrigger>  <ClipboardCopy className="h-4 w-4 text-green-900 cursor-pointer" /></TooltipTrigger>
+          <TooltipContent>
+            <p>Copy Script</p>
+          </TooltipContent>
+        </Tooltip>
+       
       </AlertDialogTrigger>
 
       <AlertDialogContent className="w-[600px] max-w-[90vw]">

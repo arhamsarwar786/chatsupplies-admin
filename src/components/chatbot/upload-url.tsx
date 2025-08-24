@@ -8,6 +8,11 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "@/src/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/src/components/ui/tooltip";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Checkbox } from "@/src/components/ui/checkbox";
@@ -50,12 +55,20 @@ const UploadURL = ({ chatbotId,  status }: { chatbotId: number , status: string 
     <Dialog>
      {(status == "ready" || status == "just_created" || status == "knowledge_base_ready" ) ? (
   <DialogTrigger asChild>
-    <button
+      <Tooltip>
+                                <TooltipTrigger>
+                                 <button
       type="button"
       className="p-1 rounded hover:bg-muted transition"
     >
       <Play className="h-4 w-4 text-green-600" />
     </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Upload URL</p>
+                                </TooltipContent>
+                              </Tooltip>
+ 
   </DialogTrigger>
 ) : (
   <button

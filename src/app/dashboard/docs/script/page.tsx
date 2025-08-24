@@ -41,7 +41,6 @@ interface Chatbot {
   total_interactions: number;
   interaction_change_percent: number;
 }
-
 const tabData = [
   {
     id: "react",
@@ -53,10 +52,220 @@ const tabData = [
         description:
           "Locate the global component. Open your main app layout file. For most React apps (created using Create React App or Vite), use App.js or App.tsx.",
       },
-      // ... other steps
+      {
+        title: "Step 2: Use useEffect to inject script",
+        description:
+          "Use useEffect to inject script. Inside your main layout component (App.js), use useEffect() from React to dynamically inject the script after the DOM loads.",
+      },
+      {
+        title: "Step 3: Dynamically add the chatbot script",
+        description:
+          "Dynamically add the chatbot script. Create the <script> tag programmatically and append it to the document only if it hasn’t been added yet. This avoids multiple inserts.",
+      },
+      {
+        title: "Step 4: Make sure it loads once",
+        description:
+          'Make sure it loads once. Prevent duplicate script loading by checking document.getElementById("chatbot") before adding the script.',
+      },
+      {
+        title: "Step 5: Confirm chatbot loads on every route",
+        description:
+          "Confirm chatbot loads on every route. Since App.js wraps your entire application, this ensures the chatbot appears on all pages/routes automatically.",
+      },
     ],
   },
-  // ... other tab data
+  {
+    id: "next",
+    label: "Next.js",
+    description: "Next.js script and usage info",
+    steps: [
+      {
+        title: "Step 1: Identify your project router",
+        description:
+          "Determine if your project uses the App Router (Next.js 13+ with /app) or Pages Router (older /pages setup). This affects where you'll inject the script.",
+      },
+      {
+        title: "Step 2: Decide where to load the script",
+        description:
+          "To show the chatbot on all pages, place the script in a global file: layout.tsx (App Router) or _app.tsx (Pages Router).",
+      },
+      {
+        title: "Step 3: Add your chatbot script",
+        description:
+          "Insert the chatbot <script> tag with type='module', src, data-admin-id, and data-token attributes into the chosen layout file.",
+      },
+      {
+        title: "Step 4: Ensure the script loads early",
+        description:
+          "Use the right loading strategy so the chatbot loads before user interaction. Use 'beforeInteractive' in the Script component or place the tag inside <head>.",
+      },
+      {
+        title: "Step 5: Test your chatbot",
+        description:
+          "Run the app and verify the chatbot appears on all pages. Check for console errors and validate the script source and token.",
+      },
+    ],
+  },
+  {
+    id: "vue",
+    label: "Vue.js",
+    description: "Vue script and usage info",
+    steps: [
+      {
+        title: "Step 1: Locate Main Layout",
+        description:
+          "Find your main Vue component where all other pages are rendered — usually App.vue.",
+      },
+      {
+        title: "Step 2: Add Script Dynamically",
+        description:
+          "Use the component’s lifecycle hook to inject the chatbot script into the page when the app starts.",
+      },
+      {
+        title: "Step 3: Confirm Script Path",
+        description:
+          "Ensure the script file (e.g., index.js) is hosted publicly (like on a CDN) or accessible via your app’s /public directory.",
+      },
+      {
+        title: "Step 4: Test Integration",
+        description:
+          "Run your Vue app and open it in the browser. Confirm the chatbot appears and loads without errors.",
+      },
+      {
+        title: "Step 5: Optional - Make It Reusable",
+        description:
+          "To keep your code clean, you can move this logic into a reusable Vue plugin or utility function for future use.",
+      },
+    ],
+  },
+  {
+    id: "nuxt",
+    label: "Nuxt.js",
+    description: "Nuxt script and usage info",
+    steps: [
+      {
+        title: "Step 1: Locate Your App Layout",
+        description:
+          "Locate your app layout file (e.g., layouts/default.vue) which is used across all pages. This is the best place to include global scripts like the chatbot.",
+      },
+      {
+        title: "Step 2: Provide Script Parameters",
+        description:
+          "Use Nuxt’s <Head> section or useHead (in Nuxt 3 with Composition API) to inject the chatbot script so it loads client-side and avoids SSR issues.",
+      },
+      {
+        title: "Step 3: Client-Side Only Handling",
+        description:
+          "Ensure the script runs only on the client. In Nuxt 3, wrap the logic inside onMounted() or create a plugin with client-only mode.",
+      },
+      {
+        title: "Step 4: Provide Script Parameters",
+        description:
+          "Provide required data attributes like data-admin-id and data-token within the script tag, either hardcoded or dynamically based on user/session.",
+      },
+      {
+        title: "Step 5: Test on All Pages",
+        description:
+          "Run your app (npm run dev or yarn dev), visit multiple pages, and confirm the chatbot is showing correctly site-wide.",
+      },
+    ],
+  },
+  {
+    id: "angular",
+    label: "Angular.js",
+    description: "Angular script and usage info",
+    steps: [
+      {
+        title: "Step 1: Add the Chatbot Script to Your Main HTML File",
+        description:
+          "Insert the chatbot script directly into your index.html file. This ensures it loads once for the entire AngularJS app.",
+      },
+      {
+        title: "Step 2: Make the Script Accessible",
+        description:
+          "If the script is hosted locally, place it in a public folder like 'assets/' to ensure it's available to the browser.",
+      },
+      {
+        title: "Step 3: Insert Dynamic Data (Optional)",
+        description:
+          "To personalize the chatbot, inject the script dynamically using AngularJS's run() block or a custom directive with data attributes like token or admin ID.",
+      },
+      {
+        title: "Step 4: Verify Script Load in the Browser",
+        description:
+          "Check your browser console to ensure the script loads without errors, and confirm the chatbot appears on the site.",
+      },
+      {
+        title: "Step 5: Prevent Duplicate Loads",
+        description:
+          "When injecting dynamically, ensure the script is added only once. Use a check to avoid re-adding it on route changes or reloads.",
+      },
+    ],
+  },
+  {
+    id: "solid",
+    label: "SolidJS",
+    description: "SolidJS script and usage info",
+    steps: [
+      {
+        title: "Step 1",
+        description:
+          "Locate your root layout component. In a Solid.js project (especially if using Vite), your root layout is typically defined in a file like `src/App.tsx` or `src/root.tsx`. This is the best place to inject global scripts that should appear across all pages.",
+      },
+      {
+        title: "Step 2",
+        description:
+          "Inject the script using `onMount`. Since Solid.js runs on the client, use `onMount` from `solid-js` to ensure the script runs only after the DOM is available.",
+      },
+      {
+        title: "Step 3",
+        description:
+          "Append the script dynamically. Inside the `onMount()` block, create a `<script>` tag, set its attributes (`type`, `src`, `id`, `data-admin-id`, `data-token`), and append it to the document body or head.",
+      },
+      {
+        title: "Step 4",
+        description:
+          'Ensure the script loads only once. Use a condition like checking if an element with `id="chatbot"` already exists to avoid duplicate loading when navigating between routes.',
+      },
+      {
+        title: "Step 5",
+        description:
+          "Run and verify. Start your project using `npm run dev` or `yarn dev`. Open the site, navigate through routes, and confirm that the chatbot appears and functions globally across your app.",
+      },
+    ],
+  },
+  {
+    id: "wordpress",
+    label: "WordPress",
+    description: "WordPress script and usage info",
+      steps: [
+      {
+        title: "Step 1: Locate the Global Layout or App Component",
+        description:
+          "Locate the Global Layout or App Component. For Next.js WordPress frontend, this is usually pages/_app.js or pages/_app.tsx. For Gatsby, it's gatsby-browser.js or wrapRootElement.",
+      },
+      {
+        title: "Step 2: Use a useEffect or DOM-ready lifecycle hook",
+        description:
+          "Use a useEffect() or DOM-ready lifecycle hook to ensure the script is injected after the page loads.",
+      },
+      {
+        title: "Step 3: Dynamically Inject the Script",
+        description:
+          "Dynamically create a <script> tag with type='module', src='index.js', id='chatbot', and add data-admin-id and data-token attributes. Append this to document.body or document.head.",
+      },
+      {
+        title: "Step 4: Prevent Duplicate Injections",
+        description:
+          "Before injecting the script, check if it already exists using: if (!document.getElementById('chatbot')) { /* append script */ } to prevent duplicate loading.",
+      },
+      {
+        title: "Step 5: Test Across All Pages",
+        description:
+          "Run your WordPress frontend, visit various pages, and ensure the chatbot script is loaded and working on all routes using the provided data attributes.",
+      },
+    ]
+  }
 ];
 
 const ScriptManagementPage = () => {

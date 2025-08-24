@@ -46,6 +46,18 @@ export const client = createApi({
         };
       },
     }),
+        searchClients: builder.query<any, { query: string }>({
+      query: ({ query }) => ({
+        url: `search?query=${encodeURIComponent(query)}`,
+        method: "GET",
+      }),
+    }),
+     resendWelcomeEmail: builder.mutation<any, { id: number }>({
+      query: ({ id }) => ({
+        url: `${id}/resend-welcome-email`,
+        method: "POST",
+      }),
+    }),
   }),
 });
 
@@ -55,5 +67,7 @@ export const {
   useCreateClientMutation,
   useGetClientByIdQuery,
   useDeleteClientByIdMutation,
-  useUpdateClientByIdMutation
+  useUpdateClientByIdMutation,
+   useSearchClientsQuery,
+   useResendWelcomeEmailMutation
 } = client;
