@@ -26,6 +26,7 @@ const ChatbotSetup = () => {
     const role = useSelector((state: RootState) => state.authSlice.role);
     const [searchTerm, setSearchTerm] = useState('');
 const [selectedEmail, setSelectedEmail] = useState('');
+const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 const { data: clientResults = [] } = useSearchClientsQuery(
   { query: searchTerm },
   { skip: searchTerm.length < 2 } // skip search unless input is at least 2 chars
@@ -214,45 +215,49 @@ const { data: clientResults = [] } = useSearchClientsQuery(
           <h1 className="text-3xl font-bold text-gray-900">Create Your Chatbot</h1>
         <p className="text-gray-600 mt-2">Follow these steps to build your custom AI assistant</p>
       </div>
-          {role === "super_admin" && (
-      <div>
-    <div className="relative w-full">
-  <input
-    type="text"
-    placeholder="Search client by email..."
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-    className="border rounded-lg p-2 w-full mt-1 mb-4"
-  />
+   {role === "super_admin" && (
+  <div className="w-full max-w-md mt-4">
+    <div className="relative">
+      <input
+        type="text"
+        placeholder="🔍 Search client by email..."
+        value={searchTerm || selectedEmail}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          setIsDropdownOpen(true);
+        }}
+        className="border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 rounded-lg p-2.5 w-full shadow-sm"
+      />
 
-  {/* Show dropdown results */}
-  {searchTerm.length >= 2 && clientResults?.length > 0 && (
-    <ul className="absolute z-10 bg-white border mt-[-12px] w-full max-h-48 overflow-y-auto">
-      {clientResults.map((client: any) => (
-        <li
-          key={client.id}
-          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-          onClick={() => {
-            setSelectedEmail(client.email);
-            setSearchTerm(client.email); // optionally set the input field to selected email
-          }}
-        >
-          {client.first_name} ({client.email})
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
+      {/* Dropdown results */}
+      {isDropdownOpen && searchTerm.length >= 2 && clientResults?.length > 0 && (
+        <ul className="absolute z-20 bg-white border border-gray-200 shadow-lg mt-1 w-full rounded-lg overflow-hidden max-h-60 overflow-y-auto">
+          {clientResults.map((client: any) => (
+            <li
+              key={client.id}
+              className="px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-800 cursor-pointer transition-colors"
+              onClick={() => {
+                setSelectedEmail(client.email);
+                setSearchTerm(client.email);
+                setIsDropdownOpen(false); // close dropdown
+              }}
+            >
+              <span className="font-medium">{client.first_name}</span>{" "}
+              <span className="text-gray-500">({client.email})</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
 
-{/* Show selected email */}
-{selectedEmail && (
-  <div className="mt-2 text-sm text-gray-700">
-    Selected: <strong>{selectedEmail}</strong>
+    {/* Show selected email */}
+    {/* {selectedEmail && (
+      <div className="mt-3 text-sm text-purple-700 bg-purple-50 p-2 rounded-md shadow-sm border border-purple-200">
+        <span className="font-medium">Selected:</span> {selectedEmail}
+      </div>
+    )} */}
   </div>
 )}
-
-      </div>
-          )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

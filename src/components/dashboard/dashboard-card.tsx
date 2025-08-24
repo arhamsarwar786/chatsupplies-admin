@@ -53,7 +53,7 @@ const StatCard: FC<StatCardProps> = ({
 
 export function CardSection() {
   const { data, isLoading, error } = useGetSummaryQuery({});
-  console.log("CardSection data:", data);
+  // console.log("CardSection data:", data);
 
   if (isLoading) {
     return <div>Loading summary...</div>;

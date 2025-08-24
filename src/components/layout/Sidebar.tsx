@@ -72,6 +72,7 @@ export function AppSidebar() {
 const items = [
   // Base Items
   { title: "Dashboard", url: "/dashboard", icon: Home },
+
   {
     title: "Chatbot Management",
     url: "/dashboard/chatbot-management",
@@ -82,7 +83,7 @@ const items = [
     ],
   },
 
-  // Conditionally include super_admin-only items
+  // Conditionally include super_admin-only Client Management
   ...(role === "super_admin"
     ? [
         {
@@ -93,15 +94,9 @@ const items = [
             { title: "Create Client", url: "/dashboard/client-management/create-client", icon: Home },
           ],
         },
-        {
-          title: "Add Package",
-          url: "/dashboard/add-packages",
-          icon: PackagePlus,
-        },
       ]
     : []),
 
-  // Additional Items
   {
     title: "Docs",
     url: "/dashboard/docs",
@@ -110,15 +105,19 @@ const items = [
       { title: "Script", url: "/dashboard/docs/script", icon: Home },
     ],
   },
+
   {
     title: "Packages Management",
     url: "/dashboard/subscription-packages",
     icon: Package,
+    // Conditionally include Add Package inside subItems
+    subItems: [
+      ...(role === "super_admin"
+        ? [{ title: "Add Package", url: "/dashboard/add-packages", icon: PackagePlus }]
+        : []),
+    ],
   },
-
-  // Optional: add Settings back if needed
-  // { title: "Settings", url: "/dashboard/settings", icon: SettingsIcon },
-]
+];
 
   return (
     <aside className=" left-0 bottom-0 sticky top-0 h-screen relative w-[250px] bg-white border-r shadow-sm flex flex-col justify-between">
