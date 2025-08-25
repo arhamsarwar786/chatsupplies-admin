@@ -56,7 +56,7 @@ export function CardSection() {
   // console.log("CardSection data:", data);
 
   if (isLoading) {
-    return <div>Loading summary...</div>;
+    return <div>Loading summary..</div>;
   }
 
   if (error) {
