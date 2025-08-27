@@ -19,7 +19,13 @@ import { Checkbox } from "@/src/components/ui/checkbox";
 import { useUploadUrlMutation } from "@/src/hooks/useTraining";
 import { toast } from "sonner";
 
-const UploadURL = ({ chatbotId,  status }: { chatbotId: number , status: string }) => {
+const UploadURL = ({
+  chatbotId,
+  status,
+}: {
+  chatbotId: number;
+  status: string;
+}) => {
   const [url, setUrl] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [crawlingStarted, setCrawlingStarted] = useState(false);
@@ -44,7 +50,6 @@ const UploadURL = ({ chatbotId,  status }: { chatbotId: number , status: string 
       setTimeout(() => {
         setCrawlingStarted(false);
       }, 30000);
-
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to start crawling.");
       // console.error("Upload URL error:", err);
@@ -53,32 +58,26 @@ const UploadURL = ({ chatbotId,  status }: { chatbotId: number , status: string 
 
   return (
     <Dialog>
-     {(status == "ready" || status == "just_created" || status == "knowledge_base_ready" ) ? (
-  <DialogTrigger asChild>
-      <Tooltip>
-                                <TooltipTrigger>
-                                 <button
-      type="button"
-      className="p-1 rounded hover:bg-muted transition"
-    >
-      <Play className="h-4 w-4 text-green-600" />
-    </button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Upload URL</p>
-                                </TooltipContent>
-                              </Tooltip>
- 
-  </DialogTrigger>
-) : (
-  <button
-    type="button"
-    disabled
-    className="p-1 rounded cursor-not-allowed"
-  >
-    <Loader className="h-4 w-4 animate-spin" />
-  </button>
-) }
+      {status == "ready" ||
+      status == "just_created" ||
+      status == "knowledge_base_ready" ? (
+        <DialogTrigger asChild>
+              <button
+                type="button"
+                className="p-1 rounded hover:bg-muted transition"
+              >
+                <Play className="h-4 w-4 text-green-600" />
+              </button>
+        </DialogTrigger>
+      ) : (
+        <button
+          type="button"
+          disabled
+          className="p-1 rounded cursor-not-allowed"
+        >
+          <Loader className="h-4 w-4 animate-spin" />
+        </button>
+      )}
 
       <DialogContent>
         <DialogHeader>

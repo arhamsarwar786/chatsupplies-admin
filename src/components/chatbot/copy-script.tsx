@@ -30,12 +30,7 @@ const CopyScript = ({ chatbotId, status }: { chatbotId: number; status: string }
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-               <Tooltip>
-          <TooltipTrigger>  <ClipboardCopy className="h-4 w-4 text-green-900 cursor-pointer" /></TooltipTrigger>
-          <TooltipContent>
-            <p>Copy Script</p>
-          </TooltipContent>
-        </Tooltip>
+                <ClipboardCopy className="h-4 w-4 text-green-900 cursor-pointer" />
        
       </AlertDialogTrigger>
 

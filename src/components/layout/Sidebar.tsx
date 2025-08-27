@@ -117,6 +117,7 @@ const items = [
         : []),
     ],
   },
+    { title: "Beta Users", url: "/dashboard/beta-users", icon: Home },
 ];
 
   return (

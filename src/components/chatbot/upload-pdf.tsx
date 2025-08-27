@@ -55,12 +55,7 @@ const UploadPDF = ({ chatbotId, status }: { chatbotId: number , status: string }
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Tooltip>
-  <TooltipTrigger>  <Upload className="h-4 w-4 text-green-600 cursor-pointer" /></TooltipTrigger>
-  <TooltipContent>
-    <p>Upload PDF</p>
-  </TooltipContent>
-</Tooltip>
+         <Upload className="h-4 w-4 text-green-600 cursor-pointer" />
       
       </DialogTrigger>
       <DialogContent>
