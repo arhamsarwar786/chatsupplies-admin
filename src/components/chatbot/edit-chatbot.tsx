@@ -254,7 +254,7 @@ const EditChatbot = () => {
               className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-700">Business Hours Start</label>
               <input
@@ -273,8 +273,8 @@ const EditChatbot = () => {
                 className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
-          </div>
-          <div className="flex items-center gap-2 mt-2">
+          </div> */}
+          {/* <div className="flex items-center gap-2 mt-2">
             <input
               type="checkbox"
               checked={isActive}
@@ -283,7 +283,7 @@ const EditChatbot = () => {
               className="form-checkbox"
             />
             <label htmlFor="isActive" className="text-sm text-gray-700">Active</label>
-          </div>
+          </div> */}
         </div>
         {/* Right Side Avatar & Personality */}
         <div className="space-y-4">

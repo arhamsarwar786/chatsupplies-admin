@@ -12,8 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/src/components/ui/dropdown-menu"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/src/components/ui/tooltip";
 import { Avatar, AvatarFallback } from "@/src/components/ui/avatar"
-import { Bell, Plus, User, LogOut, Settings } from "lucide-react"
+import { Bell, Plus, User, LogOut, Settings, CircleUserRound } from "lucide-react"
 
 type DashboardHeaderProps = {
   title?: string
@@ -28,15 +33,17 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   buttonText = "",
   onButtonClick,
 }) => {
-  const [userEmail, setUserEmail] = useState("")
-  const [userName, setUserName] = useState("")
+  const [role, setRole] = useState("")
+  const [username, setUsername] = useState("")
   const router = useRouter()
 
   useEffect(() => {
-    const email = localStorage.getItem("userEmail") || ""
-    const name = localStorage.getItem("userName") || email.split("@")[0]
-    setUserEmail(email)
-    setUserName(name)
+    // const role = localStorage.getItem("role") || "hhh"
+    const name = localStorage.getItem("username") || "hhh"
+    console.log("Fetched username:", name)
+    // console.log("Fetched email:", role)
+    // setRole(role)
+    setUsername(name)
   }, [])
 
   const handleLogout = () => {
@@ -69,7 +76,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             onClick={onButtonClick}
             className="flex gap-2  text-white bg-primary hover:bg-primary/80"
           >
-            <Plus className="w-4 h-4" /> {buttonText}
+             {buttonText}
           </Button>
         )}
 
@@ -81,24 +88,30 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
         {/* Avatar Dropdown */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 w-9 p-0 rounded-full">
-              <Avatar>
-                <AvatarFallback className="bg-primary text-primary font-bold">
-                  {getInitials(userName)}
-                </AvatarFallback>
-              </Avatar>
-            </Button>
+          <DropdownMenuTrigger>
+     
+  <Tooltip>
+  <TooltipTrigger asChild>
+    <button className=" rounded-full">
+      <CircleUserRound size={30} className="text-muted-foreground" />
+    </button>
+  </TooltipTrigger>
+  <TooltipContent>
+    <p>Profile</p>
+  </TooltipContent>
+</Tooltip>
+
+
           </DropdownMenuTrigger>
 
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-semibold">{userName}</p>
-                <p className="text-xs text-muted-foreground">{userEmail}</p>
+                <p className="text-sm font-semibold">{username}</p>
+                <p className="text-xs text-muted-foreground">{role}</p>
               </div>
             </DropdownMenuLabel>
-
+{/* 
             <DropdownMenuSeparator />
 
             <DropdownMenuItem>
@@ -109,7 +122,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             <DropdownMenuItem>
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
 
             <DropdownMenuSeparator />
 

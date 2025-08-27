@@ -34,6 +34,13 @@ const { data: clientResults = [] } = useSearchClientsQuery(
   const [progress] = useState(65);
   const [message, setMessage] = useState("");
 
+    // Add state for form validation
+  const [formErrors, setFormErrors] = useState({
+    name: false,
+    description: false,
+    industry: false,
+    logo: false
+  });
   const handleSend = () => {
     if (!message.trim()) return;
     setMessage("");
@@ -149,13 +156,36 @@ const { data: clientResults = [] } = useSearchClientsQuery(
   useEffect(() => {
     const emailFromQuery = searchParams.get('clientEmail');
     if (emailFromQuery) {
-      setClientEmail(emailFromQuery);
+      setSelectedEmail(emailFromQuery);
+      setSearchTerm(emailFromQuery);
     }
   }, [searchParams]);
 
+    const validateForm = () => {
+    const errors = {
+      name: !name.trim(),
+      description: !description.trim(),
+      industry: !industry.trim(),
+      logo: !logoFile
+    };
+    
+    setFormErrors(errors);
+    
+    // Return true if there are no errors
+    return !Object.values(errors).some(error => error);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+ // Validate form before submission
+    if (!validateForm()) {
+      toast.error("Please fill in all required fields");
+      // Open the basic section if it's closed to show the errors
+      if (!openSections.basic) {
+        setOpenSections(prev => ({ ...prev, basic: true }));
+      }
+      return;
+    }
     const chatbotForm = {
       name,
       description,
@@ -191,16 +221,21 @@ const { data: clientResults = [] } = useSearchClientsQuery(
     if (logoFile) {
       formData.append("logo", logoFile);
     }
+try {
+  const result = await createChatbot(formData).unwrap();
+  toast.success("Chatbot created successfully");
+  resetForm();
+  console.log(result);
+} catch (error: any) {
+  const errorMessage =
+    error?.data?.detail ||
+    error?.data?.message ||
+    "Error creating chatbot";
 
-    try {
-      const result = await createChatbot(formData).unwrap();
-      toast.success("Chatbot created successfully");
-      resetForm();
-      console.log(result);
-    } catch (error: any) {
-      toast.error(error.data?.message || "Error creating chatbot");
-      console.error("Error creating chatbot:", error);
-    }
+  toast.error(errorMessage);
+
+  console.error("Error creating chatbot:", error);
+}
   };
 
   const handleRemoveFile = (index: number) => {
@@ -215,39 +250,40 @@ const { data: clientResults = [] } = useSearchClientsQuery(
           <h1 className="text-3xl font-bold text-gray-900">Create Your Chatbot</h1>
         <p className="text-gray-600 mt-2">Follow these steps to build your custom AI assistant</p>
       </div>
-   {role === "super_admin" && (
-  <div className="w-full max-w-md mt-4">
-    <div className="relative">
-      <input
-        type="text"
-        placeholder="🔍 Search client by email..."
-        value={searchTerm || selectedEmail}
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-          setIsDropdownOpen(true);
-        }}
-        className="border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 rounded-lg p-2.5 w-full shadow-sm"
-      />
-
-      {/* Dropdown results */}
-      {isDropdownOpen && searchTerm.length >= 2 && clientResults?.length > 0 && (
-        <ul className="absolute z-20 bg-white border border-gray-200 shadow-lg mt-1 w-full rounded-lg overflow-hidden max-h-60 overflow-y-auto">
-          {clientResults.map((client: any) => (
-            <li
-              key={client.id}
-              className="px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-800 cursor-pointer transition-colors"
-              onClick={() => {
-                setSelectedEmail(client.email);
-                setSearchTerm(client.email);
-                setIsDropdownOpen(false); // close dropdown
+     {role === "super_admin" && (
+        <div className="w-full max-w-md mt-4">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="🔍 Search client by email..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setSelectedEmail(e.target.value); // Sync with selected email
+                setIsDropdownOpen(true);
               }}
-            >
-              <span className="font-medium">{client.first_name}</span>{" "}
-              <span className="text-gray-500">({client.email})</span>
-            </li>
-          ))}
-        </ul>
-      )}
+              className="border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 rounded-lg p-2.5 w-full shadow-sm"
+            />
+
+            {/* Dropdown results */}
+            {isDropdownOpen && searchTerm.length >= 2 && clientResults?.length > 0 && (
+              <ul className="absolute z-20 bg-white border border-gray-200 shadow-lg mt-1 w-full rounded-lg overflow-hidden max-h-60 overflow-y-auto">
+                {clientResults.map((client: any) => (
+                  <li
+                    key={client.id}
+                    className="px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-800 cursor-pointer transition-colors"
+                    onClick={() => {
+                      setSelectedEmail(client.email);
+                      setSearchTerm(client.email);
+                      setIsDropdownOpen(false);
+                    }}
+                  >
+                    <span className="font-medium">{client.first_name}</span>{" "}
+                    <span className="text-gray-500">({client.email})</span>
+                  </li>
+                ))}
+              </ul>
+            )}
     </div>
 
     {/* Show selected email */}
@@ -262,7 +298,7 @@ const { data: clientResults = [] } = useSearchClientsQuery(
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Setup Section */}
-        <div className="bg-white w-full rounded-xl shadow-md border border-gray-200 overflow-hidden">
+       <div className="bg-white w-full rounded-xl shadow-md border border-gray-200 overflow-hidden">
           <div 
             className="flex items-center justify-between p-5 bg-gray-50 cursor-pointer"
             onClick={() => toggleSection('basic')}
@@ -284,23 +320,45 @@ const { data: clientResults = [] } = useSearchClientsQuery(
                   <input
                     type="text"
                     value={name}
-                    onChange={e => setName(e.target.value)}
+                    onChange={e => {
+                      setName(e.target.value);
+                      // Clear error when user starts typing
+                      if (formErrors.name) {
+                        setFormErrors(prev => ({ ...prev, name: false }));
+                      }
+                    }}
                     placeholder="e.g., Customer Support Bot"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
+                      formErrors.name ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
+                    }`}
                     required
                   />
+                  {formErrors.name && (
+                    <p className="text-red-500 text-xs mt-1">Chatbot name is required</p>
+                  )}
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Description <span className="text-red-500">*</span></label>
                   <textarea
                     value={description}
-                    onChange={e => setDescription(e.target.value)}
+                    onChange={e => {
+                      setDescription(e.target.value);
+                      // Clear error when user starts typing
+                      if (formErrors.description) {
+                        setFormErrors(prev => ({ ...prev, description: false }));
+                      }
+                    }}
                     placeholder="What does your chatbot do?"
                     rows={3}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
+                      formErrors.description ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
+                    }`}
                     required
                   />
+                  {formErrors.description && (
+                    <p className="text-red-500 text-xs mt-1">Description is required</p>
+                  )}
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -308,8 +366,16 @@ const { data: clientResults = [] } = useSearchClientsQuery(
                     <label className="block text-sm font-medium text-gray-700 mb-1">Industry <span className="text-red-500">*</span></label>
                     <select
                       value={industry}
-                      onChange={e => setIndustry(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                      onChange={e => {
+                        setIndustry(e.target.value);
+                        // Clear error when user selects an option
+                        if (formErrors.industry) {
+                          setFormErrors(prev => ({ ...prev, industry: false }));
+                        }
+                      }}
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-blue-500 transition ${
+                        formErrors.industry ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
+                      }`}
                       required
                     >
                       <option value="">Select Industry</option>
@@ -319,6 +385,9 @@ const { data: clientResults = [] } = useSearchClientsQuery(
                       <option value="E-commerce">E-commerce</option>
                       <option value="Technology">Technology</option>
                     </select>
+                    {formErrors.industry && (
+                      <p className="text-red-500 text-xs mt-1">Industry is required</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Language <span className="text-red-500">*</span></label>
@@ -351,7 +420,9 @@ const { data: clientResults = [] } = useSearchClientsQuery(
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Upload Logo <span className="text-red-500">*</span></label>
                   <div
-                    className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-400 transition-all cursor-pointer bg-white"
+                    className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 hover:border-blue-400 transition-all cursor-pointer bg-white ${
+                      formErrors.logo ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
+                    }`}
                     onClick={() => document.getElementById('logoInput')?.click()}
                   >
                     {logoPreview ? (
@@ -373,6 +444,9 @@ const { data: clientResults = [] } = useSearchClientsQuery(
                       </div>
                     )}
                   </div>
+                  {formErrors.logo && (
+                    <p className="text-red-500 text-xs mt-1">Logo is required</p>
+                  )}
                   <input
                     id="logoInput"
                     type="file"

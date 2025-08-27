@@ -7,16 +7,16 @@ import React from 'react'
 const page = () => {
   const router = useRouter()
 
-    const handleCreateChatbot = () => {
-      router.push("/dashboard/chatbot-management/create-chatbot")
+    const handleBackToChatbot = () => {
+      router.push("/dashboard/chatbot-management")
     }
   return (
    <div>
       <DashboardHeader
               title="Update Chatbot"
             description="update, manage and monitor your chatbots"
-            // buttonText="Update Chatbot"
-            // onButtonClick={handleCreateChatbot}
+            buttonText="Back to Chatbot"
+           onButtonClick={handleBackToChatbot}
             />
      <div className='flex md:p-5 p-4 flex-col gap-8'>
         <EditChatbot/>

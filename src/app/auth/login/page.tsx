@@ -42,11 +42,17 @@ export default function LoginPage() {
       const user = result.user;
       const apikey = result.apikey || result.api_key;
       const token = result.token || result.access_token;
+      const email = result?.user?.email || result.email;
+      console.log("User data:", email);
+      console.log("Login response:", result);
+
 
       if (token && user?.role ) {
-        dispatch(setLogin({ token, role: user.role, api_key: apikey }));
+        dispatch(setLogin({ token, role: user.role,  api_key: apikey }));
         localStorage.setItem("token", token);
         localStorage.setItem("apikey", apikey);
+        localStorage.setItem("email", email);
+
         toast.success("Login successful!");
         setTimeout(() => router.push("/dashboard"), 700);
       } else {

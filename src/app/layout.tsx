@@ -4,6 +4,8 @@ import { Bot } from "lucide-react";
 import Provider from "./Provider";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { Elements } from "@stripe/react-stripe-js";
+import { stripePromise } from "@/src/lib/stripe";
 import Image from "next/image";
 
 const ubuntu = Ubuntu({

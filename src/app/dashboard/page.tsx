@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { CardSection } from "@/src/components/dashboard/dashboard-card"
 import { UserInteractions } from "@/src/components/dashboard/dashboard-userinteractions"
@@ -10,19 +10,25 @@ import { ClientDistributionChart } from "@/src/components/dashboard/dashboard-cl
 import { useSelector } from "react-redux"
 import { RootState } from "@/src/store/store"
 import { DashboardHeader } from "@/src/components/layout/dashboard-header"
+import { Split } from "lucide-react"
 
 export default function DashboardPage() {
   const token = useSelector((state: RootState) => state.authSlice.token)
+    const role = useSelector((state: RootState) => state.authSlice.role);
+  const [namePart, setNamePart] = useState("")
   const router = useRouter()
 
-  useEffect(() => {
-
+   useEffect(() => {
     if (!token) {
       router.push("/")
     }
-  }, [token])
+  }, [token, router])
 
-
+  useEffect(() => {
+    const name = localStorage.getItem("username") || ""
+    const part = name.includes("@") ? name.split("@")[0] : name
+    setNamePart(part)
+  }, [])
 
   return (
    
@@ -33,16 +39,24 @@ export default function DashboardPage() {
         // buttonText="Add New"
         />
         <div className="flex-1 space-y-4 p-4 md:p-5">
+          <h1 className="text-3xl font-bold">Welcome
+            <span className="text-primary"> {namePart}!</span>
+            </h1>
+            {role === "super_admin" && (
         <CardSection/>
+            )}
           <div className="grid grid-cols-1 md:grid-cols-2  gap-4">
         <PlatformUsageTrends/>
         <ClientDistributionChart/>
             </div>
+             {role === "super_admin" && (
        <div className="grid grid-cols-1 md:grid-cols-2  gap-4">
+        
          <UserInteractions/>
         <TopClients/>
+       
        </div>
-    
+      )}
       </div>
   </>
   )
