@@ -118,6 +118,8 @@ const items = [
     ],
   },
     { title: "Beta Users", url: "/dashboard/beta-users", icon: Home },
+     { title: "Terms and Conditions", url: "/dashboard/term-and-condition", icon: Home },
+      { title: "Privacy Policy", url: "/dashboard/privacy-policy", icon: Home },
 ];
 
   return (
