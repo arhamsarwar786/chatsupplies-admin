@@ -372,7 +372,7 @@ const PrivacyPolicy = () => {
                       7. Cookies
                     </h2>
                     <p className="mt-4 text-gray-600">
-                      We use cookies and similar tracking technologies to track activity on our service and hold certain information.
+                      
                     </p>
                     <p className="mt-4 text-gray-600">
                       Cookies are files with a small amount of data that may include an anonymous unique identifier. They are sent to 
