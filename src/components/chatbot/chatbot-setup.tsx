@@ -89,20 +89,31 @@ const { data: clientResults = [] } = useSearchClientsQuery(
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.type !== 'application/pdf') {
-        toast.error('Please upload a PDF file only');
-        return;
-      }
-      
-      setPdfFile(file);
-      setUploadedFiles([
-        ...uploadedFiles,
-        { name: file.name, status: "uploaded" },
-      ]);
+  const file = e.target.files?.[0];
+  const maxFileSize = 10 * 1024 * 1024; // 10 MB in bytes
+
+  if (file) {
+    // Check file type first
+    if (file.type !== 'application/pdf') {
+      toast.error('Please upload a PDF file only');
+      return;
     }
-  };
+
+    // Now, check the file size
+    if (file.size > maxFileSize) {
+      toast.error('File size exceeds the 10MB limit.');
+      return;
+    }
+
+    // If both checks pass, proceed with setting the file and updating state
+    setPdfFile(file);
+    setUploadedFiles([
+      ...uploadedFiles,
+      { name: file.name, status: "uploaded" },
+    ]);
+  }
+};
+
 
   // Form State
   const [windowBgColor, setWindowBgColor] = useState("#ffffff");

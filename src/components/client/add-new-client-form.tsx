@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
   SelectContent,
-SelectItem,
+  SelectItem,
 } from "@/src/components/ui/select"
 import { Input } from "@/src/components/ui/input"
 import { UserPlus } from "lucide-react"
@@ -51,59 +51,59 @@ export default function AddNewClientForm() {
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-const handleSubmit = async (e?: React.FormEvent) => {
-  if (e) e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
 
-  if (!isFormComplete()) {
-    toast.warning("Please fill in all required fields.");
-    return;
-  }
-
-  try {
-    const response = await createClient(form).unwrap();
-
-    if (response?.success === false) {
-      // If API call succeeded (200 OK) but business logic failed
-      toast.error(response.detail || "Something went wrong.");
+    if (!isFormComplete()) {
+      toast.warning("Please fill in all required fields.");
       return;
     }
 
-    // Success
-    toast.success(response.detail || "Client created successfully!");
-    setForm(initialFormState);
-  } catch (err: any) {
-    // If API call failed (non-200 status)
-    const errorMessage =
-      err?.status === 400 && err?.data?.detail ||
-      err?.data?.message ||
-      err?.message ||
-      "Failed to create client.";
+    try {
+      const response = await createClient(form).unwrap();
 
-    toast.error(errorMessage); 
-  }
-};
+      if (response?.success === false) {
+        // If API call succeeded (200 OK) but business logic failed
+        toast.error(response.detail || "Something went wrong.");
+        return;
+      }
 
-const handlePhoneChange = (value: string | undefined) => {
-  setForm((prev) => ({
-    ...prev,
-    phone_number: value,
-  }));
-};
+      // Success
+      toast.success(response.detail || "Client created successfully!");
+      setForm(initialFormState);
+    } catch (err: any) {
+      // If API call failed (non-200 status)
+      const errorMessage =
+        err?.status === 400 && err?.data?.detail ||
+        err?.data?.message ||
+        err?.message ||
+        "Failed to create client.";
+
+      toast.error(errorMessage);
+    }
+  };
+
+  const handlePhoneChange = (value: string | undefined) => {
+    setForm((prev) => ({
+      ...prev,
+      phone_number: value,
+    }));
+  };
 
 
 
-const isFormComplete = () => {
-  return (
-    form.first_name.trim() &&
-    form.last_name.trim() &&
-    form.email.trim() &&
-    form.phone_number.trim() &&
-    form.company_name.trim() &&
-    form.industry.trim() &&
-    form.access_level.trim() &&
-    form.max_chatbots.trim()
-  );
-};
+  const isFormComplete = () => {
+    return (
+      form.first_name.trim() &&
+      form.last_name.trim() &&
+      form.email.trim() &&
+      form.phone_number.trim() &&
+      form.company_name.trim() &&
+      form.industry.trim() &&
+      form.access_level.trim() &&
+      form.max_chatbots.trim()
+    );
+  };
   return (
     <div className="rounded-xl border shadow-sm overflow-hidden bg-card">
       <div className="bg-indigo-600 text-white px-6 py-4 flex items-center gap-2">
@@ -121,59 +121,59 @@ const isFormComplete = () => {
                 <div>
                   <Label className="mb-2 text-md">First Name <span className="text-red-500">*</span></Label>
                   <Input
-  name="first_name"
-  value={form.first_name}
-  onChange={handleChange}
-  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-  placeholder="Enter First Name"
-/>
+                    name="first_name"
+                    value={form.first_name}
+                    onChange={handleChange}
+                    className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Enter First Name"
+                  />
 
                 </div>
                 <div>
                   <Label className="mb-2 text-md">Last Name <span className="text-red-500">*</span></Label>
-                  <Input 
-                  name="last_name" 
-                  value={form.last_name} 
-                  onChange={handleChange} 
-                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Enter Last Name" />
+                  <Input
+                    name="last_name"
+                    value={form.last_name}
+                    onChange={handleChange}
+                    className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Enter Last Name" />
                 </div>
               </div>
 
               <div>
                 <Label className="mb-2 text-md">Email Address <span className="text-red-500">*</span></Label>
-                <Input 
-                name="email" 
-                type="email" 
-                value={form.email} 
-                onChange={handleChange} 
-                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Enter Email Address" />
+                <Input
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Enter Email Address" />
               </div>
 
               <div>
                 <Label className="mb-2 text-md">Phone Number <span className="text-red-500">*</span></Label>
-                <PhoneInput 
-                name="phone_number" 
-                value={form.phone_number}  
-                onChange={handlePhoneChange} 
-                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Enter Phone Number" />
+                <PhoneInput
+                  name="phone_number"
+                  value={form.phone_number}
+                  onChange={handlePhoneChange}
+                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Enter Phone Number" />
               </div>
 
               <div>
                 <Label className="mb-2 text-md">Company Name <span className="text-red-500">*</span></Label>
-                <Input name="company_name" value={form.company_name} onChange={handleChange} 
-                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Enter Company Name" />
+                <Input name="company_name" value={form.company_name} onChange={handleChange}
+                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Enter Company Name" />
               </div>
 
               <div>
                 <Label className="mb-2 text-md">Industry <span className="text-red-500">*</span></Label>
                 <Select value={form.industry} onValueChange={(val) => handleSelectChange(val, "industry")}>
                   <SelectTrigger className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <SelectValue 
-                    placeholder="Select Industry" />
+                    <SelectValue
+                      placeholder="Select Industry" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="tech">Technology</SelectItem>
@@ -193,8 +193,8 @@ const isFormComplete = () => {
               <div>
                 <Label className="mb-2 text-md">Access Level <span className="text-red-500">*</span></Label>
                 <Select value={form.access_level} onValueChange={(val) => handleSelectChange(val, "access_level")}  >
-                  <SelectTrigger  
-                   className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <SelectTrigger
+                    className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -207,44 +207,27 @@ const isFormComplete = () => {
 
               <div>
                 <Label className="mb-2 text-md">Max Chatbots <span className="text-red-500">*</span></Label>
-                <Input 
-                name="max_chatbots" 
-                value={form.max_chatbots}
-                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                onChange={handleChange} />
+                <Input
+                  name="max_chatbots"
+                  value={form.max_chatbots}
+                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  onChange={handleChange} />
               </div>
 
               <div>
                 <Label className="mb-2 text-md">Notes <span className="text-red-500">*</span></Label>
-                <Textarea name="notes" value={form.notes} onChange={handleChange} 
-                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Additional notes about the client..." />
+                <Textarea name="notes" value={form.notes} onChange={handleChange}
+                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Additional notes about the client..." />
               </div>
 
-<div className="space-y-2 mt-4">
-  <div className="flex items-center space-x-2">
-    <Checkbox
-      id="welcome"
-      checked={true}
-      disabled
-      className="border border-gray-400 opacity-50 cursor-not-allowed"
-    />
-    <Label htmlFor="welcome" className="text-md text-gray-500">
-      Send welcome email
-    </Label>
-  </div>
-  <div className="flex items-center space-x-2">
-    <Checkbox
-      id="auto"
-      checked={true}
-      disabled
-      className="border border-gray-400 opacity-50 cursor-not-allowed"
-    />
-    <Label htmlFor="auto" className="text-md text-gray-500">
-      Auto-activate account
-    </Label>
-  </div>
-</div>
+              <div className="space-y-2 mt-4">
+                <div className="flex items-center space-x-2">
+                </div>
+                <div className="flex items-center space-x-2">
+                 
+                </div>
+              </div>
 
 
             </div>
@@ -252,12 +235,12 @@ const isFormComplete = () => {
         </div>
 
         {/* Buttons */}
-<div className="flex justify-end gap-4 pt-4 border-t">
-  <Button variant="outline" type="button">Cancel</Button>
-  <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
-    {isLoading ? "Creating..." : "Create Client"}
-  </Button>
-</div>
+        <div className="flex justify-end gap-4 pt-4 border-t">
+          <Button variant="outline" type="button">Cancel</Button>
+          <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? "Creating..." : "Create Client"}
+          </Button>
+        </div>
 
       </form>
     </div>
