@@ -154,6 +154,7 @@ export default function AddNewClientForm() {
               <div>
                 <Label className="mb-2 text-md">Phone Number <span className="text-red-500">*</span></Label>
                 <PhoneInput
+               
                   name="phone_number"
                   value={form.phone_number}
                   onChange={handlePhoneChange}
@@ -225,7 +226,7 @@ export default function AddNewClientForm() {
                 <div className="flex items-center space-x-2">
                 </div>
                 <div className="flex items-center space-x-2">
-                 
+
                 </div>
               </div>
 

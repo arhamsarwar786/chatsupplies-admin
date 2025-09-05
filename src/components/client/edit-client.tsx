@@ -195,14 +195,6 @@ export default function EditClientForm() {
                 placeholder="Additional notes about the client..." />
               </div>
               <div className="space-y-2 mt-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="welcome" checked={form.send_welcome_email} onCheckedChange={(val) => setForm(f => ({ ...f, send_welcome_email: !!val }))} />
-                  <Label htmlFor="welcome">Send welcome email</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="auto" checked={form.auto_activate_account} onCheckedChange={(val) => setForm(f => ({ ...f, auto_activate_account: !!val }))} />
-                  <Label htmlFor="auto">Auto-activate account</Label>
-                </div>
               </div>
             </div>
           </div>

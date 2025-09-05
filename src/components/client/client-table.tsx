@@ -127,11 +127,10 @@ export default function ClientTable() {
                   return (
                     <TableRow
                       key={index}
-                      className={`group transition-all ${
-                        isDisabled
-                          ? "opacity-50 bg-gray-50"
-                          : "hover:bg-gray-50"
-                      }`}
+                      className={`group transition-all ${isDisabled
+                        ? "opacity-50 bg-gray-50"
+                        : "hover:bg-gray-50"
+                        }`}
                     >
                       <TableCell className="py-3 px-6">
                         <div className="flex flex-col">
@@ -154,11 +153,10 @@ export default function ClientTable() {
                       <TableCell className="py-3 px-6">
                         <Badge
                           variant="outline"
-                          className={`text-xs px-3 py-1 rounded-full ${
-                            client.payment_status === "paid"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
+                          className={`text-xs px-3 py-1 rounded-full ${client.payment_status === "paid"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                            }`}
                         >
                           {client.payment_status}
                         </Badge>
@@ -170,11 +168,10 @@ export default function ClientTable() {
                       </TableCell>
                       <TableCell className="py-3 px-6">
                         <Badge
-                          className={`text-xs px-3 py-1 rounded-full ${
-                            client.payment_status === "paid"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
+                          className={`text-xs px-3 py-1 rounded-full ${client.payment_status === "paid"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-red-100 text-red-700"
+                            }`}
                         >
                           {client.payment_status === "paid"
                             ? "✓ Verified"
@@ -183,28 +180,31 @@ export default function ClientTable() {
                       </TableCell>
                       <TableCell className="py-3 px-6">
                         <Badge
-                          className={`text-xs px-3 py-1 rounded-full ${
-                            client.is_active
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-200 text-gray-500"
-                          }`}
+                          className={`text-xs px-3 py-1 rounded-full ${client.is_active
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-200 text-gray-500"
+                            }`}
                         >
                           {client.is_active ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
                       <TableCell className="py-3 px-6">
                         <Button
-                          className="p-2"
+                          className={`p-2 ${!client.is_active ? "opacity-50 cursor-not-allowed" : ""}`}
                           onClick={() => {
-                            router.push(
-                              `/dashboard/chatbot-management/create-chatbot?clientEmail=${encodeURIComponent(
-                                client.email
-                              )}`
-                            );
+                            if (client.is_active) {
+                              router.push(
+                                `/dashboard/chatbot-management/create-chatbot?clientEmail=${encodeURIComponent(
+                                  client.email
+                                )}`
+                              );
+                            }
                           }}
+                          disabled={!client.is_active}
                         >
                           Add Chatbot
                         </Button>
+
                       </TableCell>
                       <TableCell className="py-3 px-6">
                         <div className="flex items-center justify-center gap-3">
@@ -212,11 +212,10 @@ export default function ClientTable() {
                             <TooltipTrigger>
                               <ShieldMinus
                                 title="Deactivate"
-                                className={`w-4 h-4 transition-transform hover:scale-110 ${
-                                  !client.is_active
-                                    ? "text-gray-400 cursor-not-allowed"
-                                    : "text-red-500 cursor-pointer"
-                                }`}
+                                className={`w-4 h-4 transition-transform hover:scale-110 ${!client.is_active
+                                  ? "text-gray-400 cursor-not-allowed"
+                                  : "text-red-500 cursor-pointer"
+                                  }`}
                                 onClick={() =>
                                   client.is_active &&
                                   handleUpdateStatusClick(client)
@@ -227,41 +226,42 @@ export default function ClientTable() {
                               <p>Deactivate</p>
                             </TooltipContent>
                           </Tooltip>
-                            <Tooltip>
+                          <Tooltip>
                             <TooltipTrigger>
-                           <Pencil
-                            title="Edit"
-                            className={`w-4 h-4 transition-transform hover:scale-110 ${
-                              !client.is_active
-                                ? "text-gray-400 cursor-not-allowed"
-                                : "text-green-600 cursor-pointer"
-                            }`}
-                            onClick={() =>
-                              client.is_active &&
-                              router.push(
-                                `/dashboard/client-management/edit-client/${client.id}`
-                              )
-                            }
-                          />
+                              <Pencil
+                                title="Edit"
+                                className={`w-4 h-4 transition-transform hover:scale-110 ${!client.is_active
+                                  ? "text-gray-400 cursor-not-allowed"
+                                  : "text-green-600 cursor-pointer"
+                                  }`}
+                                onClick={() =>
+                                  client.is_active &&
+                                  router.push(
+                                    `/dashboard/client-management/edit-client/${client.id}`
+                                  )
+                                }
+                              />
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>Edit Client</p>
                             </TooltipContent>
                           </Tooltip>
-                    <Tooltip>
+                          <Tooltip>
                             <TooltipTrigger>
                               <MailPlus
-                            title="Resend Welcome Email"
-                            onClick={() => handleResendEmail(client.id)}
-                            className={`w-4 h-4 text-blue-600 cursor-pointer hover:scale-110 transition-transform ${
-                              isSending ? "opacity-50 cursor-not-allowed" : ""
-                            }`}
-                          />
+                                title="Resend Welcome Email"
+                                onClick={() => client.is_active && handleResendEmail(client.id)}
+                                className={`w-4 h-4 transition-transform hover:scale-110 ${client.is_active
+                                  ? "text-blue-600 cursor-pointer"
+                                  : "text-gray-400 cursor-not-allowed"
+                                  } ${isSending ? "opacity-50 cursor-not-allowed" : ""}`}
+                              />
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>Resend Email</p>
                             </TooltipContent>
                           </Tooltip>
+
                         </div>
                       </TableCell>
                     </TableRow>
@@ -279,11 +279,10 @@ export default function ClientTable() {
               <button
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
-                className={`px-2 py-1 rounded ${
-                  currentPage === 1
-                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-100 text-gray-700"
-                }`}
+                className={`px-2 py-1 rounded ${currentPage === 1
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-100 text-gray-700"
+                  }`}
               >
                 Previous
               </button>
@@ -293,11 +292,10 @@ export default function ClientTable() {
               <button
                 onClick={handleNextPage}
                 disabled={clients.length < 10}
-                className={`px-2 py-1 rounded ${
-                  clients.length < 10
-                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-100 text-gray-700"
-                }`}
+                className={`px-2 py-1 rounded ${clients.length < 10
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-100 text-gray-700"
+                  }`}
               >
                 Next
               </button>

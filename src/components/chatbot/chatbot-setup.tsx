@@ -23,18 +23,18 @@ interface UploadedFile {
 
 const ChatbotSetup = () => {
   const [createChatbot, { isLoading }] = useCreateChatbotMutation();
-    const role = useSelector((state: RootState) => state.authSlice.role);
-    const [searchTerm, setSearchTerm] = useState('');
-const [selectedEmail, setSelectedEmail] = useState('');
-const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-const { data: clientResults = [] } = useSearchClientsQuery(
-  { query: searchTerm },
-  { skip: searchTerm.length < 2 } // skip search unless input is at least 2 chars
-);
+  const role = useSelector((state: RootState) => state.authSlice.role);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedEmail, setSelectedEmail] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { data: clientResults = [] } = useSearchClientsQuery(
+    { query: searchTerm },
+    { skip: searchTerm.length < 2 } // skip search unless input is at least 2 chars
+  );
   const [progress] = useState(65);
   const [message, setMessage] = useState("");
 
-    // Add state for form validation
+  // Add state for form validation
   const [formErrors, setFormErrors] = useState({
     name: false,
     description: false,
@@ -80,7 +80,7 @@ const { data: clientResults = [] } = useSearchClientsQuery(
         toast.error('Please upload a valid image (PNG, JPG, JPEG)');
         return;
       }
-      
+
       const previewUrl = URL.createObjectURL(file);
       setLogoPreview(previewUrl);
       setLogoFile(file);
@@ -89,30 +89,30 @@ const { data: clientResults = [] } = useSearchClientsQuery(
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  const maxFileSize = 10 * 1024 * 1024; // 10 MB in bytes
+    const file = e.target.files?.[0];
+    const maxFileSize = 10 * 1024 * 1024; // 10 MB in bytes
 
-  if (file) {
-    // Check file type first
-    if (file.type !== 'application/pdf') {
-      toast.error('Please upload a PDF file only');
-      return;
+    if (file) {
+      // Check file type first
+      if (file.type !== 'application/pdf') {
+        toast.error('Please upload a PDF file only');
+        return;
+      }
+
+      // Now, check the file size
+      if (file.size > maxFileSize) {
+        toast.error('File size exceeds the 10MB limit.');
+        return;
+      }
+
+      // If both checks pass, proceed with setting the file and updating state
+      setPdfFile(file);
+      setUploadedFiles([
+        ...uploadedFiles,
+        { name: file.name, status: "uploaded" },
+      ]);
     }
-
-    // Now, check the file size
-    if (file.size > maxFileSize) {
-      toast.error('File size exceeds the 10MB limit.');
-      return;
-    }
-
-    // If both checks pass, proceed with setting the file and updating state
-    setPdfFile(file);
-    setUploadedFiles([
-      ...uploadedFiles,
-      { name: file.name, status: "uploaded" },
-    ]);
-  }
-};
+  };
 
 
   // Form State
@@ -161,7 +161,7 @@ const { data: clientResults = [] } = useSearchClientsQuery(
     setIncludePdf(true);
     setMessage("");
   };
-   const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
   const [clientEmail, setClientEmail] = useState('');
 
   useEffect(() => {
@@ -172,23 +172,23 @@ const { data: clientResults = [] } = useSearchClientsQuery(
     }
   }, [searchParams]);
 
-    const validateForm = () => {
+  const validateForm = () => {
     const errors = {
       name: !name.trim(),
       description: !description.trim(),
       industry: !industry.trim(),
       logo: !logoFile
     };
-    
+
     setFormErrors(errors);
-    
+
     // Return true if there are no errors
     return !Object.values(errors).some(error => error);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
- // Validate form before submission
+    // Validate form before submission
     if (!validateForm()) {
       toast.error("Please fill in all required fields");
       // Open the basic section if it's closed to show the errors
@@ -208,7 +208,7 @@ const { data: clientResults = [] } = useSearchClientsQuery(
       business_hours_start: businessHoursStart,
       business_hours_end: businessHoursEnd,
       is_active: isActive,
-      color_scheme: JSON.stringify({ 
+      color_scheme: JSON.stringify({
         primary: primaryColor,
         botTextColor,
         userTextColor
@@ -222,7 +222,7 @@ const { data: clientResults = [] } = useSearchClientsQuery(
 
     const formData = new FormData();
     formData.append("chatbot_form", JSON.stringify(chatbotForm));
-    
+
     if (includePdf && pdfFile) {
       formData.append("files", pdfFile);
     }
@@ -232,21 +232,21 @@ const { data: clientResults = [] } = useSearchClientsQuery(
     if (logoFile) {
       formData.append("logo", logoFile);
     }
-try {
-  const result = await createChatbot(formData).unwrap();
-  toast.success("Chatbot created successfully");
-  resetForm();
-  console.log(result);
-} catch (error: any) {
-  const errorMessage =
-    error?.data?.detail ||
-    error?.data?.message ||
-    "Error creating chatbot";
+    try {
+      const result = await createChatbot(formData).unwrap();
+      toast.success("Chatbot created successfully");
+      resetForm();
+      console.log(result);
+    } catch (error: any) {
+      const errorMessage =
+        error?.data?.detail ||
+        error?.data?.message ||
+        "Error creating chatbot";
 
-  toast.error(errorMessage);
+      toast.error(errorMessage);
 
-  console.error("Error creating chatbot:", error);
-}
+      console.error("Error creating chatbot:", error);
+    }
   };
 
   const handleRemoveFile = (index: number) => {
@@ -257,60 +257,60 @@ try {
   return (
     <div className="w-full">
       <div className="mb-8 flex items-center justify-between">
-      <div>
+        <div>
           <h1 className="text-3xl font-bold text-gray-900">Create Your Chatbot</h1>
-        <p className="text-gray-600 mt-2">Follow these steps to build your custom AI assistant</p>
-      </div>
-     {role === "super_admin" && (
-        <div className="w-full max-w-md mt-4">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="🔍 Search client by email..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setSelectedEmail(e.target.value); // Sync with selected email
-                setIsDropdownOpen(true);
-              }}
-              className="border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 rounded-lg p-2.5 w-full shadow-sm"
-            />
+          <p className="text-gray-600 mt-2">Follow these steps to build your custom AI assistant</p>
+        </div>
+        {role === "super_admin" && (
+          <div className="w-full max-w-md mt-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="🔍 Search client by email..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setSelectedEmail(e.target.value); // Sync with selected email
+                  setIsDropdownOpen(true);
+                }}
+                className="border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 rounded-lg p-2.5 w-full shadow-sm"
+              />
 
-            {/* Dropdown results */}
-            {isDropdownOpen && searchTerm.length >= 2 && clientResults?.length > 0 && (
-              <ul className="absolute z-20 bg-white border border-gray-200 shadow-lg mt-1 w-full rounded-lg overflow-hidden max-h-60 overflow-y-auto">
-                {clientResults.map((client: any) => (
-                  <li
-                    key={client.id}
-                    className="px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-800 cursor-pointer transition-colors"
-                    onClick={() => {
-                      setSelectedEmail(client.email);
-                      setSearchTerm(client.email);
-                      setIsDropdownOpen(false);
-                    }}
-                  >
-                    <span className="font-medium">{client.first_name}</span>{" "}
-                    <span className="text-gray-500">({client.email})</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-    </div>
+              {/* Dropdown results */}
+              {isDropdownOpen && searchTerm.length >= 2 && clientResults?.length > 0 && (
+                <ul className="absolute z-20 bg-white border border-gray-200 shadow-lg mt-1 w-full rounded-lg overflow-hidden max-h-60 overflow-y-auto">
+                  {clientResults.map((client: any) => (
+                    <li
+                      key={client.id}
+                      className="px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-800 cursor-pointer transition-colors"
+                      onClick={() => {
+                        setSelectedEmail(client.email);
+                        setSearchTerm(client.email);
+                        setIsDropdownOpen(false);
+                      }}
+                    >
+                      <span className="font-medium">{client.first_name}</span>{" "}
+                      <span className="text-gray-500">({client.email})</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
-    {/* Show selected email */}
-    {/* {selectedEmail && (
+            {/* Show selected email */}
+            {/* {selectedEmail && (
       <div className="mt-3 text-sm text-purple-700 bg-purple-50 p-2 rounded-md shadow-sm border border-purple-200">
         <span className="font-medium">Selected:</span> {selectedEmail}
       </div>
     )} */}
-  </div>
-)}
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Setup Section */}
-       <div className="bg-white w-full rounded-xl shadow-md border border-gray-200 overflow-hidden">
-          <div 
+        <div className="bg-white w-full rounded-xl shadow-md border border-gray-200 overflow-hidden">
+          <div
             className="flex items-center justify-between p-5 bg-gray-50 cursor-pointer"
             onClick={() => toggleSection('basic')}
           >
@@ -322,7 +322,7 @@ try {
             </div>
             {openSections.basic ? <ChevronUp className="text-gray-500" /> : <ChevronDown className="text-gray-500" />}
           </div>
-          
+
           {openSections.basic && (
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-5">
@@ -339,16 +339,15 @@ try {
                       }
                     }}
                     placeholder="e.g., Customer Support Bot"
-                    className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
-                      formErrors.name ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${formErrors.name ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
+                      }`}
                     required
                   />
                   {formErrors.name && (
                     <p className="text-red-500 text-xs mt-1">Chatbot name is required</p>
                   )}
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Description <span className="text-red-500">*</span></label>
                   <textarea
@@ -362,16 +361,15 @@ try {
                     }}
                     placeholder="What does your chatbot do?"
                     rows={3}
-                    className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
-                      formErrors.description ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${formErrors.description ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
+                      }`}
                     required
                   />
                   {formErrors.description && (
                     <p className="text-red-500 text-xs mt-1">Description is required</p>
                   )}
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Industry <span className="text-red-500">*</span></label>
@@ -384,9 +382,8 @@ try {
                           setFormErrors(prev => ({ ...prev, industry: false }));
                         }
                       }}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-blue-500 transition ${
-                        formErrors.industry ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-blue-500 transition ${formErrors.industry ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
+                        }`}
                       required
                     >
                       <option value="">Select Industry</option>
@@ -415,7 +412,7 @@ try {
                     </select>
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Welcome Message <span className="text-red-500">*</span></label>
                   <input
@@ -426,14 +423,13 @@ try {
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Upload Logo <span className="text-red-500">*</span></label>
                   <div
-                    className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 hover:border-blue-400 transition-all cursor-pointer bg-white ${
-                      formErrors.logo ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
-                    }`}
+                    className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 hover:border-blue-400 transition-all cursor-pointer bg-white ${formErrors.logo ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-300'
+                      }`}
                     onClick={() => document.getElementById('logoInput')?.click()}
                   >
                     {logoPreview ? (
@@ -466,12 +462,12 @@ try {
                     className="hidden"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Personality Tone</label>
                   <div className="grid grid-cols-1 gap-2">
                     {tones.map((item) => (
-                      <div 
+                      <div
                         key={item.value}
                         className={`border rounded-lg p-3 cursor-pointer transition-all ${tone === item.name ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
                         onClick={() => setTone(item.name)}
@@ -496,7 +492,7 @@ try {
 
         {/* Training Data Section */}
         <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-          <div 
+          <div
             className="flex items-center justify-between p-5 bg-gray-50 cursor-pointer"
             onClick={() => toggleSection('training')}
           >
@@ -508,7 +504,7 @@ try {
             </div>
             {openSections.training ? <ChevronUp className="text-gray-500" /> : <ChevronDown className="text-gray-500" />}
           </div>
-          
+
           {openSections.training && (
             <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2 space-y-5">
@@ -524,13 +520,12 @@ try {
                     Add PDF documents to knowledge base
                   </label>
                 </div>
-                
+
                 <div
-                  className={`mt-4 border-2 border-dashed rounded-lg p-8 text-center transition-all ${
-                    includePdf
-                      ? "cursor-pointer border-gray-300 hover:border-blue-400 bg-white"
-                      : "cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400"
-                  }`}
+                  className={`mt-4 border-2 border-dashed rounded-lg p-8 text-center transition-all ${includePdf
+                    ? "cursor-pointer border-gray-300 hover:border-blue-400 bg-white"
+                    : "cursor-not-allowed bg-gray-100 border-gray-200 text-gray-400"
+                    }`}
                   onClick={() => includePdf && document.getElementById('pdfInput')?.click()}
                 >
                   <input
@@ -550,10 +545,10 @@ try {
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 <h3 className="text-sm font-medium text-gray-700">Uploaded Files</h3>
-                
+
                 {uploadedFiles.length > 0 ? (
                   <ul className="space-y-3">
                     {uploadedFiles.map((file, index) => (
@@ -571,7 +566,7 @@ try {
                           ) : (
                             <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
                           )}
-                          <button 
+                          <button
                             type="button"
                             onClick={() => handleRemoveFile(index)}
                             className="text-gray-400 hover:text-red-500 transition"
@@ -595,7 +590,7 @@ try {
 
         {/* Appearance Section */}
         <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-          <div 
+          <div
             className="flex items-center justify-between p-5 bg-gray-50 cursor-pointer"
             onClick={() => toggleSection('appearance')}
           >
@@ -607,7 +602,7 @@ try {
             </div>
             {openSections.appearance ? <ChevronUp className="text-gray-500" /> : <ChevronDown className="text-gray-500" />}
           </div>
-          
+
           {openSections.appearance && (
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-5 w-full">
@@ -674,7 +669,7 @@ try {
                   </div>
                 ))}
               </div>
-              
+
               {/* Live Preview */}
               <div className="space-y-4 w-full">
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Live Preview</h3>
@@ -682,68 +677,68 @@ try {
                   className="border flex flex-col justify-between rounded-xl overflow-hidden shadow-lg w-full h-[450px]"
                   style={{ backgroundColor: windowBgColor }}
                 >
-          <div>
+                  <div>
                     {/* Chat Header */}
-                  <div
-                    className="text-white p-4 flex items-center space-x-3"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    {logoPreview ? (
-                      <img src={logoPreview} alt="Logo" className="w-8 h-8 rounded-full object-cover" />
-                    ) : (
-                      <div className="bg-white/20 p-1.5 rounded-full">
-                        <BotIcon className="w-5 h-5 text-white" />
+                    <div
+                      className="text-white p-4 flex items-center space-x-3"
+                      style={{ backgroundColor: primaryColor }}
+                    >
+                      {logoPreview ? (
+                        <img src={logoPreview} alt="Logo" className="w-8 h-8 rounded-full object-cover" />
+                      ) : (
+                        <div className="bg-white/20 p-1.5 rounded-full">
+                          <BotIcon className="w-5 h-5 text-white" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium">{name || "Customer Support"}</p>
+                        <p className="text-xs text-white/80">Online</p>
                       </div>
-                    )}
-                    <div>
-                      <p className="font-medium">{name || "Customer Support"}</p>
-                      <p className="text-xs text-white/80">Online</p>
+                    </div>
+
+                    {/* Chat Messages */}
+                    <div className="p-4 space-y-4 h-64 overflow-y-auto">
+                      {/* Bot Message */}
+                      <div className="flex items-start space-x-2">
+                        {logoPreview ? (
+                          <img src={logoPreview} alt="Logo" className="w-6 h-6 rounded-full mt-0.5 object-cover" />
+                        ) : (
+                          <BotIcon className="w-5 h-5 mt-0.5" style={{ color: primaryColor }} />
+                        )}
+                        <div
+                          className="rounded-lg px-3 py-2 max-w-xs"
+                          style={{ backgroundColor: botBubbleColor, color: botTextColor }}
+                        >
+                          {welcomeMessage}
+                        </div>
+                      </div>
+
+                      {/* User Message */}
+                      <div className="flex justify-end">
+                        <div
+                          className="rounded-lg px-3 py-2 max-w-xs"
+                          style={{ backgroundColor: userBubbleColor, color: userTextColor }}
+                        >
+                          What are your business hours?
+                        </div>
+                      </div>
+
+                      {/* Bot Response */}
+                      <div className="flex items-start space-x-2">
+                        {logoPreview ? (
+                          <img src={logoPreview} alt="Logo" className="w-6 h-6 rounded-full mt-0.5 object-cover" />
+                        ) : (
+                          <BotIcon className="w-5 h-5 mt-0.5" style={{ color: primaryColor }} />
+                        )}
+                        <div
+                          className="rounded-lg px-3 py-2 max-w-xs"
+                          style={{ backgroundColor: botBubbleColor, color: botTextColor }}
+                        >
+                          We're open Monday to Friday, 9 AM to 6 PM EST.
+                        </div>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Chat Messages */}
-                  <div className="p-4 space-y-4 h-64 overflow-y-auto">
-                    {/* Bot Message */}
-                    <div className="flex items-start space-x-2">
-                      {logoPreview ? (
-                        <img src={logoPreview} alt="Logo" className="w-6 h-6 rounded-full mt-0.5 object-cover" />
-                      ) : (
-                        <BotIcon className="w-5 h-5 mt-0.5" style={{ color: primaryColor }} />
-                      )}
-                      <div
-                        className="rounded-lg px-3 py-2 max-w-xs"
-                        style={{ backgroundColor: botBubbleColor, color: botTextColor }}
-                      >
-                        {welcomeMessage}
-                      </div>
-                    </div>
-
-                    {/* User Message */}
-                    <div className="flex justify-end">
-                      <div
-                        className="rounded-lg px-3 py-2 max-w-xs"
-                        style={{ backgroundColor: userBubbleColor, color: userTextColor }}
-                      >
-                        What are your business hours?
-                      </div>
-                    </div>
-
-                    {/* Bot Response */}
-                    <div className="flex items-start space-x-2">
-                      {logoPreview ? (
-                        <img src={logoPreview} alt="Logo" className="w-6 h-6 rounded-full mt-0.5 object-cover" />
-                      ) : (
-                        <BotIcon className="w-5 h-5 mt-0.5" style={{ color: primaryColor }} />
-                      )}
-                      <div
-                        className="rounded-lg px-3 py-2 max-w-xs"
-                        style={{ backgroundColor: botBubbleColor, color: botTextColor }}
-                      >
-                        We're open Monday to Friday, 9 AM to 6 PM EST.
-                      </div>
-                    </div>
-                  </div>
-          </div>
 
                   {/* Chat Input */}
                   <div className="flex items-center p-3 border-t  bg-white">
@@ -752,15 +747,15 @@ try {
                       placeholder="Type your message..."
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault(); // stop form submission
+                          handleSend();       // just send preview message
+                        }
+                      }}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
-                    <button
-                      onClick={handleSend}
-                      className="text-white px-4 py-2 rounded-r-lg flex items-center justify-center"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
+
                   </div>
                 </div>
               </div>
@@ -770,7 +765,7 @@ try {
 
         {/* Final Preview Section */}
         <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-          <div 
+          <div
             className="flex items-center justify-between p-5 bg-gray-50 cursor-pointer"
             onClick={() => toggleSection('preview')}
           >
@@ -782,13 +777,13 @@ try {
             </div>
             {openSections.preview ? <ChevronUp className="text-gray-500" /> : <ChevronDown className="text-gray-500" />}
           </div>
-          
+
           {openSections.preview && (
             <div className="p-6">
               <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
                 <div className="flex-1 space-y-4">
                   <h3 className="text-lg font-medium text-gray-800">Chatbot Summary</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-sm text-gray-500">Name</p>
@@ -807,42 +802,42 @@ try {
                       <p className="font-medium">{uploadedFiles.length} PDF(s)</p>
                     </div>
                   </div>
-                  
+
                   <div className="pt-4 border-t border-gray-200">
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition flex items-center justify-center shadow-md"
+                      className={`w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition flex items-center justify-center shadow-md ${!isLoading ? "cursor-pointer" : "cursor-not-allowed"}`}
                     >
                       {isLoading ? (
                         <>
-                          <Loader2 className="animate-spin w-5 h-5 mr-2" />
+                          <Loader2 className="animate-spin w-5 h-5 mr-2 cursor-pointer" />
                           Creating Chatbot...
                         </>
                       ) : (
                         <>
-                          <Check className="w-5 h-5 mr-2" />
+                          <Check className="w-5 h-5 mr-2 cursor-pointer" />
                           Create Chatbot
                         </>
                       )}
                     </button>
-                    
+
                     <button
                       type="button"
                       onClick={resetForm}
-                      className="mt-3 text-sm text-gray-500 hover:text-gray-700 transition"
+                      className="mt-3 text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer"
                     >
                       Reset form
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="w-full md:w-96">
                   <h3 className="text-lg font-medium text-gray-800 mb-4">Final Preview</h3>
                   <div
                     className="border rounded-xl overflow-hidden shadow-lg mx-auto"
-                    style={{ 
-                      backgroundColor: windowBgColor, 
+                    style={{
+                      backgroundColor: windowBgColor,
                       maxWidth: '320px',
                       transform: 'scale(0.9)',
                       transformOrigin: 'top'
@@ -914,8 +909,17 @@ try {
                       <input
                         type="text"
                         placeholder="Type your message..."
-                        className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-l-lg focus:outline-none"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault(); // stop form submission
+                            handleSend();       // just send preview message
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
+
                       <button
                         className="text-white px-3 py-1.5 rounded-r-lg flex items-center justify-center text-sm"
                         style={{ backgroundColor: primaryColor }}
