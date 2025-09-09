@@ -182,7 +182,10 @@ export default function LoginPage() {
 
             <div className="text-center max-w-xl mx-auto sm:mt-1">
               <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
-                <span className="text-primary font-semibold">ChatSupplies</span>{" "}
+                <span  onClick={() => router.push("https://www.chatsupplies.com/")} 
+                className="text-primary font-semibold cursor-pointer">
+                  ChatSupplies
+                  </span>{" "}
                 is a modern AI-powered platform designed to enhance customer
                 interactions through intelligent chat solutions. It empowers
                 businesses to automate conversations, improve support

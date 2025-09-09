@@ -19,6 +19,10 @@ import {
 
 import { useCreateClientMutation } from "@/src/hooks/useClients";
 
+// ✅ Import PhoneInput
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+
 export default function SignupPage() {
   const [form, setForm] = useState({
     first_name: "",
@@ -38,12 +42,10 @@ export default function SignupPage() {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
 
-    // remove red border immediately when user types
     if (value.trim() !== "" && missing.includes(name)) {
       setMissing((prev) => prev.filter((field) => field !== name));
     }
 
-    // remove error message if field is being fixed
     if (error) {
       setError("");
     }
@@ -52,12 +54,23 @@ export default function SignupPage() {
   const handleSelectChange = (value: string, name: string) => {
     setForm((prev) => ({ ...prev, [name]: value }));
 
-    // remove red border immediately when user selects
     if (value.trim() !== "" && missing.includes(name)) {
       setMissing((prev) => prev.filter((field) => field !== name));
     }
 
-    // remove error message if field is being fixed
+    if (error) {
+      setError("");
+    }
+  };
+
+  // ✅ Added handlePhoneChange
+  const handlePhoneChange = (value: string | undefined) => {
+    setForm({ ...form, phone_number: value || "" });
+
+    if (value && missing.includes("phone_number")) {
+      setMissing((prev) => prev.filter((field) => field !== "phone_number"));
+    }
+
     if (error) {
       setError("");
     }
@@ -120,7 +133,6 @@ export default function SignupPage() {
       <div className="grid grid-cols-1 h-full md:grid-cols-2 w-full bg-white shadow-xl overflow-hidden">
         {/* Left Section - Form */}
         <div className="p-4 sm:p-6 md:p-8">
-          {/* Header */}
           <div className="flex flex-col w-full mb-8 sm:mb-10 md:mb-12 items-start gap-3">
             <div className="flex items-center gap-3 hover:scale-105 transition-transform duration-300">
               <Image
@@ -151,7 +163,7 @@ export default function SignupPage() {
 
             <form
               onSubmit={handleSignup}
-              className="space-y-4 sm:space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-xl border border-white/30 -mt-5"
+              className="space-y-4 sm:space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-xl border border-white/30 -mt-3"
             >
               {error && (
                 <Alert variant="destructive">
@@ -192,14 +204,13 @@ export default function SignupPage() {
               />
 
               {/* Phone */}
-              <Input
-                name="phone_number"
+              <PhoneInput
+                international
+                defaultCountry="US"
                 value={form.phone_number}
-                onChange={handleChange}
-                placeholder="Phone Number"
-                className={
-                  missing.includes("phone_number") ? "border-red-500" : ""
-                }
+                onChange={handlePhoneChange}
+                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Enter Phone Number"
               />
 
               {/* Company */}
