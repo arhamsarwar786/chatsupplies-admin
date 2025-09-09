@@ -191,21 +191,7 @@ export default function AddNewClientForm() {
           <div>
             <h4 className="font-medium mb-4">Account Settings</h4>
             <div className="space-y-4">
-              <div>
-                <Label className="mb-2 text-md">Access Level <span className="text-red-500">*</span></Label>
-                <Select value={form.access_level} onValueChange={(val) => handleSelectChange(val, "access_level")}  >
-                  <SelectTrigger
-                    className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Basic">Basic</SelectItem>
-                    <SelectItem value="Pro">Pro</SelectItem>
-                    <SelectItem value="Enterprise">Enterprise</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
+            
               <div>
                 <Label className="mb-2 text-md">Max Chatbots <span className="text-red-500">*</span></Label>
                 <Input
