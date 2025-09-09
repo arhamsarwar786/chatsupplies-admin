@@ -100,7 +100,6 @@ export default function AddNewClientForm() {
       form.phone_number.trim() &&
       form.company_name.trim() &&
       form.industry.trim() &&
-      form.access_level.trim() &&
       form.max_chatbots.trim()
     );
   };
