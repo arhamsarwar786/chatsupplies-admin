@@ -34,34 +34,34 @@ export default function SignupPage() {
   const [createClient, { isLoading }] = useCreateClientMutation();
   const router = useRouter();
 
-const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const { name, value } = e.target;
-  setForm({ ...form, [name]: value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
 
-  // remove red border immediately when user types
-  if (value.trim() !== "" && missing.includes(name)) {
-    setMissing((prev) => prev.filter((field) => field !== name));
-  }
+    // remove red border immediately when user types
+    if (value.trim() !== "" && missing.includes(name)) {
+      setMissing((prev) => prev.filter((field) => field !== name));
+    }
 
-  // remove error message if field is being fixed
-  if (error) {
-    setError("");
-  }
-};
+    // remove error message if field is being fixed
+    if (error) {
+      setError("");
+    }
+  };
 
-const handleSelectChange = (value: string, name: string) => {
-  setForm((prev) => ({ ...prev, [name]: value }));
+  const handleSelectChange = (value: string, name: string) => {
+    setForm((prev) => ({ ...prev, [name]: value }));
 
-  // remove red border immediately when user selects
-  if (value.trim() !== "" && missing.includes(name)) {
-    setMissing((prev) => prev.filter((field) => field !== name));
-  }
+    // remove red border immediately when user selects
+    if (value.trim() !== "" && missing.includes(name)) {
+      setMissing((prev) => prev.filter((field) => field !== name));
+    }
 
-  // remove error message if field is being fixed
-  if (error) {
-    setError("");
-  }
-};
+    // remove error message if field is being fixed
+    if (error) {
+      setError("");
+    }
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
