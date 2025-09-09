@@ -29,9 +29,9 @@ export const training = createApi({
         body.append("url", url);
 
         return {
-          url: "crawl_build_index",                              // Matches your cURL endpoint
+          url: "crawl_build_index",                            
           method: "POST",
-          body,                                      // URLSearchParams as body
+          body,                                      
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
