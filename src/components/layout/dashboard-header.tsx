@@ -76,7 +76,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             onClick={onButtonClick}
             className="flex gap-2  text-white bg-primary hover:bg-primary/80"
           >
-             {buttonText}
+            {buttonText}
           </Button>
         )}
 
@@ -88,21 +88,20 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
         {/* Avatar Dropdown */}
         <DropdownMenu>
-          <DropdownMenuTrigger>
-     
-  <Tooltip>
-  <TooltipTrigger asChild>
-    <button className=" rounded-full">
-      <CircleUserRound size={30} className="text-muted-foreground" />
-    </button>
-  </TooltipTrigger>
-  <TooltipContent>
-    <p>Profile</p>
-  </TooltipContent>
-</Tooltip>
-
-
-          </DropdownMenuTrigger>
+         <DropdownMenuTrigger asChild>
+  <div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button className="rounded-full">
+          <CircleUserRound size={30} className="text-muted-foreground" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Profile</p>
+      </TooltipContent>
+    </Tooltip>
+  </div>
+</DropdownMenuTrigger>
 
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
@@ -111,7 +110,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 <p className="text-xs text-muted-foreground">{role}</p>
               </div>
             </DropdownMenuLabel>
-{/* 
+            {/* 
             <DropdownMenuSeparator />
 
             <DropdownMenuItem>

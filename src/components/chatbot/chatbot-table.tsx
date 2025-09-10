@@ -40,6 +40,7 @@ import { SquarePen } from "lucide-react";
 //   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
 //   { ssr: false }
 // );
+
 interface Chatbot {
   name: string;
   description: string;
@@ -60,6 +61,7 @@ interface Chatbot {
   total_interactions: number;
   interaction_change_percent: number;
 }
+
 const getStatusStyle = (status: string) => {
   switch (status.toLowerCase()) {
     case "pending":
@@ -81,6 +83,26 @@ const getStatusStyle = (status: string) => {
   }
 };
 
+// Utility: relative time like "5 sec ago"
+const getRelativeTime = (dateString: string) => {
+  if (!dateString) return "N/A";
+  const now = new Date();
+  const created = new Date(dateString);
+  const diffMs = now.getTime() - created.getTime();
+
+  const seconds = Math.floor(diffMs / 1000);
+  if (seconds < 60) return `${seconds} sec ago`;
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hr${hours > 1 ? "s" : ""} ago`;
+
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? "s" : ""} ago`;
+};
+
 export default function ChatbotTable() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
@@ -92,7 +114,6 @@ export default function ChatbotTable() {
     refetch,
   } = useGetChatbotQuery({ page: currentPage });
   const [createChatbot, { isLoading: isCreating }] = useCreateChatbotMutation();
-  // console.log("Chatbots data:", data);
 
   const handleAddChatbot = async () => {
     try {
@@ -123,179 +144,174 @@ export default function ChatbotTable() {
 
   return (
     <div className="space-y-4">
-      {/* <div className="flex flex-wrap items-center justify-between gap-4">
-        <Input placeholder="Search chatbots..." className="w-64" />
-        <div className="flex gap-2">
-          <Button variant="outline">All Status</Button>
-          <Button variant="outline">All Clients</Button>
-          <Button variant="outline">Filter</Button>
-          <Button>Export</Button>
-          <Button onClick={handleAddChatbot} disabled={isCreating}>
-            {isCreating ? "Adding..." : "Add Chatbot"}
-          </Button>
-        </div>
-      </div> */}
       <div>
         <h1 className="text-2xl font-semibold">Chatbots</h1>
       </div>
 
       <Table className="w-full border border-gray-200 rounded-md shadow-sm">
-  <TableHeader className="bg-gray-50">
-    <TableRow>
-      <TableHead className="px-4 py-3 text-left font-semibold text-gray-700">
-        Chatbot Name
-      </TableHead>
-      <TableHead className="px-4 py-3 text-left">Client</TableHead>
-      <TableHead className="px-4 py-3 text-left">Status</TableHead>
-      <TableHead className="px-4 py-3 text-left">Interactions</TableHead>
-      <TableHead className="px-4 py-3 text-left">Edit</TableHead>
-      <TableHead className="px-4 py-3 text-left">Created</TableHead>
-      <TableHead className="px-4 py-3 text-right">Actions</TableHead>
-    </TableRow>
-  </TableHeader>
+        <TableHeader className="bg-gray-50">
+          <TableRow>
+            <TableHead className="px-4 py-3 text-left font-semibold text-gray-700">
+              Chatbot Name
+            </TableHead>
+            <TableHead className="px-4 py-3 text-left">Client</TableHead>
+            <TableHead className="px-4 py-3 text-left">Status</TableHead>
+            <TableHead className="px-4 py-3 text-left">Interactions</TableHead>
+            <TableHead className="px-4 py-3 text-left">Edit</TableHead>
+            <TableHead className="px-4 py-3 text-left">Created</TableHead>
+            <TableHead className="px-4 py-3 text-left">Last Response</TableHead>
+            <TableHead className="px-4 py-3 text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
 
-  <TableBody>
-    {isLoading && (
-      <TableRow>
-        <TableCell colSpan={7} className="text-center py-6 text-gray-500">
-          Loading...
-        </TableCell>
-      </TableRow>
-    )}
+        <TableBody>
+          {isLoading && (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center py-6 text-gray-500">
+                Loading...
+              </TableCell>
+            </TableRow>
+          )}
 
-    {error && (
-      <TableRow>
-        <TableCell colSpan={7} className="text-center py-6 text-red-500">
-          Failed to load chatbots.
-        </TableCell>
-      </TableRow>
-    )}
+          {error && (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center py-6 text-red-500">
+                Failed to load chatbots.
+              </TableCell>
+            </TableRow>
+          )}
 
-    {data.length === 0 && !isLoading && !error && (
-      <TableRow>
-        <TableCell colSpan={7}>
-          <div className="w-full flex flex-col items-center py-10 text-muted-foreground">
-            <Player
-              autoplay
-              loop
-              src={NoDataFoundAnimation}
-              style={{ height: "200px", width: "200px" }}
-            />
-            <p className="mt-4 text-sm">No chatbots found.</p>
-          </div>
-        </TableCell>
-      </TableRow>
-    )}
+          {data.length === 0 && !isLoading && !error && (
+            <TableRow>
+              <TableCell colSpan={8}>
+                <div className="w-full flex flex-col items-center py-10 text-muted-foreground">
+                  <Player
+                    autoplay
+                    loop
+                    src={NoDataFoundAnimation}
+                    style={{ height: "200px", width: "200px" }}
+                  />
+                  <p className="mt-4 text-sm">No chatbots found.</p>
+                </div>
+              </TableCell>
+            </TableRow>
+          )}
 
-    {data.map((bot: Chatbot, idx: number) => (
-      <TableRow
-        key={idx}
-        className="hover:bg-gray-50 transition-colors duration-150"
-      >
-        {/* Chatbot Name & Description */}
-        <TableCell className="px-4 py-3">
-          <div className="flex flex-col">
-            <span className="font-medium text-gray-800">{bot.name}</span>
-            <span className="text-sm text-gray-500">{bot.description}</span>
-          </div>
-        </TableCell>
+          {data.map((bot: Chatbot, idx: number) => (
+            <TableRow
+              key={idx}
+              className="hover:bg-gray-50 transition-colors duration-150"
+            >
+              {/* Chatbot Name & Description */}
+              <TableCell className="px-4 py-3">
+                <div className="flex flex-col">
+                  <span className="font-medium text-gray-800">{bot.name}</span>
+                  <span className="text-sm text-gray-500">
+                    {bot.description}
+                  </span>
+                </div>
+              </TableCell>
 
-        {/* Client Name */}
-        <TableCell className="px-4 py-3">
-          <span>{bot.client_name}</span>
-        </TableCell>
+              {/* Client Name */}
+              <TableCell className="px-4 py-3">
+                <span>{bot.client_name}</span>
+              </TableCell>
 
-        {/* Status Badge */}
-        <TableCell className="px-4 py-3">
-          <span
-            className={`text-xs font-semibold uppercase px-2 py-1 rounded-full ${getStatusStyle(
-              bot.progress_status
-            )}`}
-          >
-            {bot.progress_status.replace(/_/g, " ")}
-          </span>
-        </TableCell>
+              {/* Status Badge */}
+              <TableCell className="px-4 py-3">
+                <span
+                  className={`text-xs font-semibold uppercase px-2 py-1 rounded-full ${getStatusStyle(
+                    bot.progress_status
+                  )}`}
+                >
+                  {bot.progress_status.replace(/_/g, " ")}
+                </span>
+              </TableCell>
 
-        {/* Interactions */}
-        <TableCell className="px-4 py-3">
-          <span className="font-medium text-gray-700">
-            {bot.total_interactions ?? "N/A"}
-          </span>
-        </TableCell>
+              {/* Interactions */}
+              <TableCell className="px-4 py-3">
+                <span className="font-medium text-gray-700">
+                  {bot.total_interactions ?? "N/A"}
+                </span>
+              </TableCell>
 
-        {/* Edit Icon */}
-        <TableCell className="px-4 py-3">
-          <SquarePen
-            onClick={() =>
-              router.push(
-                `/dashboard/chatbot-management/update-chatbot/${bot.id}`
-              )
-            }
-            className="cursor-pointer text-blue-600 hover:text-blue-500 transition"
-          />
-        </TableCell>
-
-        {/* Creation Date */}
-        <TableCell className="px-4 py-3">
-          {bot.created_at
-            ? new Date(bot.created_at).toLocaleDateString()
-            : "N/A"}
-        </TableCell>
-
-        {/* Actions */}
-        <TableCell className="px-4 py-3 text-right">
-          <div className="flex justify-end items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger>
-                <UploadURL
-                  chatbotId={bot.id}
-                  status={bot.progress_status}
+              {/* Edit Icon */}
+              <TableCell className="px-4 py-3">
+                <SquarePen
+                  onClick={() =>
+                    router.push(
+                      `/dashboard/chatbot-management/update-chatbot/${bot.id}`
+                    )
+                  }
+                  className="cursor-pointer text-blue-600 hover:text-blue-500 transition"
                 />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Upload URL</p>
-              </TooltipContent>
-            </Tooltip>
+              </TableCell>
 
-            {(bot.progress_status === "ready" ||
-              bot.progress_status === "just_created") && (
-              <>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <UploadPDF
-                      chatbotId={bot.id}
-                      status={bot.progress_status}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Upload PDF</p>
-                  </TooltipContent>
-                </Tooltip>
+              {/* Creation Date */}
+              <TableCell className="px-4 py-3">
+                {bot.created_at
+                  ? new Date(bot.created_at).toLocaleDateString()
+                  : "N/A"}
+              </TableCell>
 
-                {bot.progress_status === "ready" && (
+              {/* Relative Time for Last Response */}
+              <TableCell className="px-4 py-3">
+                {bot.created_at ? getRelativeTime(bot.created_at) : "N/A"}
+              </TableCell>
+
+              {/* Actions */}
+              <TableCell className="px-4 py-3 text-right">
+                <div className="flex justify-end items-center gap-2">
                   <Tooltip>
                     <TooltipTrigger>
-                      <CopyScript
+                      <UploadURL
                         chatbotId={bot.id}
                         status={bot.progress_status}
                       />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Copy Script</p>
+                      <p>Upload URL</p>
                     </TooltipContent>
                   </Tooltip>
-                )}
 
-                <ActionsDropdown chatbotId={bot.id} />
-              </>
-            )}
-          </div>
-        </TableCell>
-      </TableRow>
-    ))}
-  </TableBody>
-</Table>
+                  {(bot.progress_status === "ready" ||
+                    bot.progress_status === "just_created") && (
+                    <>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <UploadPDF
+                            chatbotId={bot.id}
+                            status={bot.progress_status}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Upload PDF</p>
+                        </TooltipContent>
+                      </Tooltip>
 
+                      {bot.progress_status === "ready" && (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <CopyScript
+                              chatbotId={bot.id}
+                              status={bot.progress_status}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Copy Script</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+
+                      <ActionsDropdown chatbotId={bot.id} />
+                    </>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
       <div className="flex justify-between text-sm text-muted-foreground pt-4">
         <span>
@@ -316,7 +332,7 @@ export default function ChatbotTable() {
             variant="outline"
             size="sm"
             onClick={handleNextPage}
-            disabled={data.length < 10} // Disable Next if data count is less than expected page size
+            disabled={data.length < 10}
           >
             Next
           </Button>
