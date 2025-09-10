@@ -8,6 +8,11 @@ import { toast } from "sonner";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Alert, AlertDescription } from "@/src/components/ui/alert";
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> origin/Numan
 import { Label } from "@/src/components/ui/label";
 import {
   Select,
@@ -16,7 +21,13 @@ import {
   SelectContent,
   SelectItem,
 } from "@/src/components/ui/select";
+<<<<<<< HEAD
 
+=======
+import PhoneInput from "@/src/components/PhoneInput"; // Fixed import path
+
+>>>>>>> Stashed changes
+>>>>>>> origin/Numan
 import { useCreateClientMutation } from "@/src/hooks/useClients";
 
 // ✅ Import PhoneInput
@@ -39,13 +50,43 @@ export default function SignupPage() {
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+<<<<<<< HEAD
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
 
+=======
+<<<<<<< Updated upstream
+    setForm({ ...form, [e.target.name]: e.target.value });
+=======
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+
+    // remove red border immediately when user types
+>>>>>>> origin/Numan
     if (value.trim() !== "" && missing.includes(name)) {
       setMissing((prev) => prev.filter((field) => field !== name));
     }
 
+<<<<<<< HEAD
+=======
+    // remove error message if field is being fixed
+    if (error) {
+      setError("");
+    }
+  };
+
+  // Fixed handlePhoneChange function to accept string | undefined
+  const handlePhoneChange = (value: string | undefined) => {
+    const phoneValue = value || ""; // Handle undefined case
+    setForm({ ...form, phone_number: phoneValue });
+
+    // remove red border immediately when user types
+    if (phoneValue.trim() !== "" && missing.includes("phone_number")) {
+      setMissing((prev) => prev.filter((field) => field !== "phone_number"));
+    }
+
+    // remove error message if field is being fixed
+>>>>>>> origin/Numan
     if (error) {
       setError("");
     }
@@ -54,10 +95,15 @@ export default function SignupPage() {
   const handleSelectChange = (value: string, name: string) => {
     setForm((prev) => ({ ...prev, [name]: value }));
 
+<<<<<<< HEAD
+=======
+    // remove red border immediately when user selects
+>>>>>>> origin/Numan
     if (value.trim() !== "" && missing.includes(name)) {
       setMissing((prev) => prev.filter((field) => field !== name));
     }
 
+<<<<<<< HEAD
     if (error) {
       setError("");
     }
@@ -74,6 +120,13 @@ export default function SignupPage() {
     if (error) {
       setError("");
     }
+=======
+    // remove error message if field is being fixed
+    if (error) {
+      setError("");
+    }
+>>>>>>> Stashed changes
+>>>>>>> origin/Numan
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -202,6 +255,7 @@ export default function SignupPage() {
                 placeholder="Email Address"
                 className={missing.includes("email") ? "border-red-500" : ""}
               />
+<<<<<<< HEAD
 
               {/* Phone */}
               <PhoneInput
@@ -211,7 +265,21 @@ export default function SignupPage() {
                 onChange={handlePhoneChange}
                 className="mt-1 w-full border border-gray-400 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="Enter Phone Number"
+=======
+              <PhoneInput
+                {...({ name: "phone_number" } as any)} 
+                value={form.phone_number}
+<<<<<<< Updated upstream
+                onChange={handleChange}
+                placeholder="Phone Number"
+=======
+                onChange={handlePhoneChange}
+                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Enter Phone Number"
+>>>>>>> Stashed changes
+>>>>>>> origin/Numan
               />
+
 
               {/* Company */}
               <Input
@@ -225,17 +293,35 @@ export default function SignupPage() {
               />
 
               {/* Industry */}
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+              <Input
+                name="industry"
+                value={form.industry}
+                onChange={handleChange}
+                placeholder="Industry"
+              />
+=======
+>>>>>>> origin/Numan
               <div>
                 <Select
                   value={form.industry}
                   onValueChange={(val) => handleSelectChange(val, "industry")}
                 >
                   <SelectTrigger
+<<<<<<< HEAD
                     className={`mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
                       missing.includes("industry")
                         ? "border-red-500"
                         : "border-gray-400"
                     }`}
+=======
+                    className={`mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${missing.includes("industry")
+                        ? "border-red-500"
+                        : "border-gray-400"
+                      }`}
+>>>>>>> origin/Numan
                   >
                     <SelectValue placeholder="Select Industry" />
                   </SelectTrigger>
@@ -247,6 +333,10 @@ export default function SignupPage() {
                   </SelectContent>
                 </Select>
               </div>
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
+>>>>>>> origin/Numan
 
               {/* Signup Button */}
               <Button

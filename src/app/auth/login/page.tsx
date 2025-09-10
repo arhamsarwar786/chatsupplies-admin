@@ -180,12 +180,16 @@ export default function LoginPage() {
               </p>
             </form>
 
-            <div className="text-center max-w-xl mx-auto sm:mt-1">
+            <div className="text-center max-w-xl mx-auto mt-6">
+              {/* <p className="text-sm text-muted-foreground font-medium leading-relaxed"> */}
+                <span className="text-primary font-semibold">ChatSupplies</span>{" "}
+            <div className="text-center max-w-xl mx-auto sm:mt-1 ">
               <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
-                <span  onClick={() => router.push("https://www.chatsupplies.com/")} 
-                className="text-primary font-semibold cursor-pointer">
-                  ChatSupplies
-                  </span>{" "}
+                <span
+                  onClick={() => router.push("/auth/signup")}
+                  className="text-primary font-bold cursor-pointer">
+                    ChatSupplies
+                    </span>{" "}
                 is a modern AI-powered platform designed to enhance customer
                 interactions through intelligent chat solutions. It empowers
                 businesses to automate conversations, improve support
@@ -214,6 +218,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
