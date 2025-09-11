@@ -4,10 +4,18 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
-import PhoneInput from "react-phone-number-input/input";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Alert, AlertDescription } from "@/src/components/ui/alert";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/src/components/ui/select";
+import PhoneInput from "@/src/components/PhoneInput";
+
 import { useCreateClientMutation } from "@/src/hooks/useClients";
 
 export default function SignupPage() {
@@ -21,18 +29,62 @@ export default function SignupPage() {
   });
 
   const [error, setError] = useState("");
+  const [missing, setMissing] = useState<string[]>([]);
+  const [invalidNames, setInvalidNames] = useState<string[]>([]);
   const [createClient, { isLoading }] = useCreateClientMutation();
   const router = useRouter();
 
+  // ✅ Handle input changes with live validation
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Live validation for first_name & last_name
+    if (name === "first_name" || name === "last_name") {
+      if (/^[A-Za-z\s]*$/.test(value)) {
+        setInvalidNames((prev) => prev.filter((field) => field !== name));
+      } else {
+        if (!invalidNames.includes(name)) setInvalidNames((prev) => [...prev, name]);
+      }
+    }
+
+    setForm({ ...form, [name]: value });
+
+    // Remove from missing if user filled it
+    if (value.trim() !== "" && missing.includes(name)) {
+      setMissing((prev) => prev.filter((field) => field !== name));
+    }
+
+    if (error) setError("");
+  };
+
+  const handlePhoneChange = (value: string | undefined) => {
+    const phoneValue = value || "";
+    setForm({ ...form, phone_number: phoneValue });
+
+    if (phoneValue.trim() !== "" && missing.includes("phone_number")) {
+      setMissing((prev) =>
+        prev.filter((field) => field !== "phone_number")
+      );
+    }
+
+    if (error) setError("");
+  };
+
+  const handleSelectChange = (value: string, name: string) => {
+    setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (value.trim() !== "" && missing.includes(name)) {
+      setMissing((prev) => prev.filter((field) => field !== name));
+    }
+
+    if (error) setError("");
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // Trim all fields
+    // Trim all values
     const trimmedForm = {
       first_name: form.first_name.trim(),
       last_name: form.last_name.trim(),
@@ -42,13 +94,28 @@ export default function SignupPage() {
       industry: form.industry.trim(),
     };
 
-    // Required fields check
-    const isEmptyField = Object.values(trimmedForm).some((val) => val === "");
+    // Check for empty fields
+    const emptyFields = Object.entries(trimmedForm)
+      .filter(([_, val]) => val === "")
+      .map(([key]) => key);
 
-    if (isEmptyField) {
-      setError("Please fill in all required fields");
-      toast.error("Please fill in all required fields");
-      return;
+    // Check for invalid first/last names
+    const invalidNameFields = ["first_name", "last_name"].filter(
+      (key) => !/^[A-Za-z\s]+$/.test(trimmedForm[key as keyof typeof trimmedForm])
+    );
+
+    if (emptyFields.length > 0 || invalidNameFields.length > 0) {
+      setMissing(emptyFields);
+      setInvalidNames(invalidNameFields);
+
+      if (invalidNameFields.length > 0) {
+        toast.error("Fill the fields with correct Information.");
+        setError("Fill the fields with correct Information.");
+      } else {
+        toast.error("Please fill in all required fields");
+        setError("Please fill in all required fields");
+      }
+      return; // Prevent form submission
     }
 
     try {
@@ -95,7 +162,7 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in">
+          <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in -mt-9">
             <div className="flex flex-col items-center text-center">
               <h2 className="text-4xl font-bold text-gray-800 mb-2">
                 Create Account
@@ -108,7 +175,7 @@ export default function SignupPage() {
 
             <form
               onSubmit={handleSignup}
-              className="space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/30"
+              className="space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/30 -mt-4"
             >
               {error && (
                 <Alert variant="destructive">
@@ -123,12 +190,22 @@ export default function SignupPage() {
                   value={form.first_name}
                   onChange={handleChange}
                   placeholder="First Name"
+                  className={`${
+                    missing.includes("first_name") || invalidNames.includes("first_name")
+                      ? "border-red-500"
+                      : "border-gray-400"
+                  }`}
                 />
                 <Input
                   name="last_name"
                   value={form.last_name}
                   onChange={handleChange}
                   placeholder="Last Name"
+                  className={`${
+                    missing.includes("last_name") || invalidNames.includes("last_name")
+                      ? "border-red-500"
+                      : "border-gray-400"
+                  }`}
                 />
               </div>
 
@@ -140,13 +217,14 @@ export default function SignupPage() {
                 onChange={handleChange}
                 placeholder="Email Address"
               />
-              <PhoneInput
-                {...({ name: "phone_number" } as any)} 
-                value={form.phone_number}
-                onChange={handleChange}
-                placeholder="Phone Number"
-              />
 
+              {/* Phone */}
+              <PhoneInput
+                value={form.phone_number}
+                onChange={handlePhoneChange}
+                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                {...({ placeholder: "Enter Phone Number" } as any)}
+              />
 
               {/* Company */}
               <Input
@@ -157,12 +235,28 @@ export default function SignupPage() {
               />
 
               {/* Industry */}
-              <Input
-                name="industry"
-                value={form.industry}
-                onChange={handleChange}
-                placeholder="Industry"
-              />
+              <div>
+                <Select
+                  value={form.industry}
+                  onValueChange={(val) => handleSelectChange(val, "industry")}
+                >
+                  <SelectTrigger
+                    className={`mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                      missing.includes("industry")
+                        ? "border-red-500"
+                        : "border-gray-400"
+                    }`}
+                  >
+                    <SelectValue placeholder="Select Industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tech">Technology</SelectItem>
+                    <SelectItem value="finance">Finance</SelectItem>
+                    <SelectItem value="health">Healthcare</SelectItem>
+                    <SelectItem value="education">Education</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Signup Button */}
               <Button
@@ -174,7 +268,7 @@ export default function SignupPage() {
               </Button>
 
               {/* Redirect to Login link */}
-              <p className="text-center text-sm text-gray-600 mt-4">
+              <p className="text-center text-sm text-gray-600">
                 Already have an account?{" "}
                 <span
                   onClick={() => router.push("/auth/login")}

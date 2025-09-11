@@ -85,7 +85,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in">
+          <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in -mt-10">
             <div className="flex flex-col items-center text-center">
               <h2 className="text-4xl font-bold text-gray-800 mb-2">
                 Welcome Back
@@ -98,42 +98,56 @@ export default function LoginPage() {
 
             <form
               onSubmit={handleLogin}
-              className="space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/30"
+              className="space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/30 -mt-3"
             >
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
+             <Input
+  type="text"
+  placeholder="Username"
+  value={username}
+  onChange={(e) => {
+    setUsername(e.target.value);
+    if (error && e.target.value.trim()) {
+      setError("");
+    }
+  }}
+  disabled={isLoading}
+  className={`bg-[#f3f0ff] ${
+    error && !username ? "border border-red-500" : ""
+  }`}
+/>
 
-              <Input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                disabled={isLoading}
-                className="bg-[#f3f0ff]"
-              />
+<div className="relative">
+  <Input
+    type={showPassword ? "text" : "password"}
+    placeholder="Password"
+    value={password}
+    onChange={(e) => {
+      setPassword(e.target.value);
+      if (error && e.target.value.trim()) {
+        setError("");
+      }
+    }}
+    disabled={isLoading}
+    className={`bg-[#f3f0ff] ${
+      error && !password ? "border border-red-500" : ""
+    }`}
+/>
+  <Button
+    type="button"
+    variant="ghost"
+    size="sm"
+    className="absolute bg-gray-100 right-2 top-1/2 -translate-y-1/2 cursor-pointer"
+    onClick={() => setShowPassword(!showPassword)}
+  >
+    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+  </Button>
+</div>
 
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  className="bg-[#f3f0ff]"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute bg-gray-100 right-2 top-1/2 -translate-y-1/2 cursor-pointer"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </Button>
-              </div>
 
               {/* ✅ Single Login button */}
               <Button
@@ -156,14 +170,18 @@ export default function LoginPage() {
               </p>
             </form>
 
-            <div className="text-center max-w-xl mx-auto mt-6">
-              <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                <span className="text-primary font-semibold">ChatSupplies</span>{" "}
+            <div className="text-center max-w-xl mx-auto sm:mt-1">
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
+                <span
+                  onClick={() => router.push("chatsupplies.com")}
+                  className="text-primary font-bold cursor-pointer"
+                >
+                  ChatSupplies
+                </span>{" "}
                 is a modern AI-powered platform designed to enhance customer
                 interactions through intelligent chat solutions. It empowers
-                businesses to automate conversations, improve support
-                efficiency, and drive user engagement with smart, responsive
-                chatbots.
+                businesses to automate conversations, improve support efficiency,
+                and drive user engagement with smart, responsive chatbots.
               </p>
             </div>
           </div>

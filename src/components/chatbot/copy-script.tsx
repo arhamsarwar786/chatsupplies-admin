@@ -21,11 +21,11 @@ import { ClipboardCopy } from "lucide-react";
 
 
 
-const CopyScript = ({ chatbotId, status }: { chatbotId: number; status: string }) => {
+const CopyScript = ({ chatbotId, status, client_api_key }: { chatbotId: number; status: string, client_api_key:string }) => {
     const apikeyStore = localStorage.getItem("apikey")
   const ApiKey = apikeyStore;
 
-  const scriptTag = `<script type="module" src="index.js" id="chatbot" data-admin-id="${chatbotId}"  api-key="${ApiKey}"></script>`;
+  const scriptTag = `<script type="module" src="index.js" id="chatbot" data-admin-id="${chatbotId}"   api-key="${client_api_key}"></script>`;
 
   return (
     <AlertDialog>

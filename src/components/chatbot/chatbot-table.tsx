@@ -60,6 +60,7 @@ interface Chatbot {
   user_id: number;
   total_interactions: number;
   interaction_change_percent: number;
+  client_api_key: string;
 }
 
 const getStatusStyle = (status: string) => {
@@ -282,6 +283,7 @@ export default function ChatbotTable() {
                         <TooltipTrigger>
                           <UploadPDF
                             chatbotId={bot.id}
+                            
                             status={bot.progress_status}
                           />
                         </TooltipTrigger>
@@ -295,8 +297,10 @@ export default function ChatbotTable() {
                           <TooltipTrigger>
                             <CopyScript
                               chatbotId={bot.id}
+                              client_api_key={bot.client_api_key}
                               status={bot.progress_status}
                             />
+                            
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Copy Script</p>
