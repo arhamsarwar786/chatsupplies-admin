@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useSearchClientsQuery } from "@/src/hooks/useClients";
 import axios from "axios";
 import { CheckCircle, Loader2, Trash, Send, BotIcon, ImageIcon, Check, ChevronDown, ChevronUp, Upload, Palette, Settings, FileText, MessageSquare } from "lucide-react";
+import { useRouter } from "next/navigation"; // Add this import at the top
 
 const tones = [
   { name: "Professional", value: "professional", description: "Formal and business-appropriate" },
@@ -186,6 +187,8 @@ const ChatbotSetup = () => {
     return !Object.values(errors).some(error => error);
   };
 
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Validate form before submission
@@ -197,6 +200,7 @@ const ChatbotSetup = () => {
       }
       return;
     }
+    setShowLoadingOverlay(true); // Show loading overlay
     const chatbotForm = {
       name,
       description,
@@ -236,8 +240,11 @@ const ChatbotSetup = () => {
       const result = await createChatbot(formData).unwrap();
       toast.success("Chatbot created successfully");
       resetForm();
-      console.log(result);
+      console.log("Chatbot creation result:", result);
+      setShowLoadingOverlay(false); // Hide loading overlay
+      window.location.href = "/dashboard/chatbot-management";
     } catch (error: any) {
+      setShowLoadingOverlay(false); // Hide loading overlay
       const errorMessage =
         error?.data?.detail ||
         error?.data?.message ||
@@ -255,7 +262,20 @@ const ChatbotSetup = () => {
 
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
+      {/* Loading Overlay */}
+      {showLoadingOverlay && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center"
+             style={{
+               backdropFilter: "blur(8px)",
+               backgroundColor: "rgba(0,0,0,0.35)"
+             }}>
+          <div className="flex flex-col items-center">
+            <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
+            <span className="text-lg font-semibold text-white">Creating Chatbot...</span>
+          </div>
+        </div>
+      )}
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Create Your Chatbot</h1>

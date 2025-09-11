@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// import dynamic from "next/dynamic";
+import dynamic from "next/dynamic";
 import {
   Table,
   TableBody,
@@ -36,10 +36,10 @@ import ActionsDropdown from "./uploaded-files";
 import CopyScript from "./copy-script";
 import { SquarePen } from "lucide-react";
 
-// const Player = dynamic(
-//   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
-//   { ssr: false }
-// );
+const Player = dynamic(
+  () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
+  { ssr: false }
+);
 
 interface Chatbot {
   name: string;
@@ -64,18 +64,18 @@ interface Chatbot {
 
 const getStatusStyle = (status: string) => {
   switch (status.toLowerCase()) {
-    case "pending":
-      return "bg-yellow-100 text-yellow-800";
+    // case "pending":
+    //   return "bg-yellow-100 text-yellow-800";
     case "just_created":
       return "bg-red-100 text-red-800";
-    case "knowledge_base_ready":
-      return "bg-green-100 text-green-800";
-    case "scrapping":
+    // case "knowledge_base_ready":
+    //   return "bg-green-100 text-green-800";
+    case "in_progress":
       return "bg-orange-100 text-orange-800";
-    case "building_knowledge_base":
-      return "bg-blue-100 text-blue-800";
-    case "training":
-      return "bg-purple-100 text-purple-800";
+    // case "building_knowledge_base":
+    //   return "bg-blue-100 text-blue-800";
+    // case "training":
+    //   return "bg-purple-100 text-purple-800";
     case "ready":
       return "bg-green-100 text-green-800";
     default:
@@ -113,6 +113,7 @@ export default function ChatbotTable() {
     error,
     refetch,
   } = useGetChatbotQuery({ page: currentPage });
+  console.log(data);
   const [createChatbot, { isLoading: isCreating }] = useCreateChatbotMutation();
 
   const handleAddChatbot = async () => {
@@ -188,7 +189,7 @@ export default function ChatbotTable() {
                   <Player
                     autoplay
                     loop
-                    src={NoDataFoundAnimation}
+                    src="NoDataFoundAnimation"
                     style={{ height: "200px", width: "200px" }}
                   />
                   <p className="mt-4 text-sm">No chatbots found.</p>
