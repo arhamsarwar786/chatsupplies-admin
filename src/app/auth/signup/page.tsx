@@ -4,35 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
-
+import PhoneInput from "react-phone-number-input/input";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Alert, AlertDescription } from "@/src/components/ui/alert";
-<<<<<<< HEAD
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> origin/Numan
-import { Label } from "@/src/components/ui/label";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/src/components/ui/select";
-<<<<<<< HEAD
-
-=======
-import PhoneInput from "@/src/components/PhoneInput"; // Fixed import path
-
->>>>>>> Stashed changes
->>>>>>> origin/Numan
 import { useCreateClientMutation } from "@/src/hooks/useClients";
-
-// ✅ Import PhoneInput
-import PhoneInput from "react-phone-number-input";
-import "react-phone-number-input/style.css";
 
 export default function SignupPage() {
   const [form, setForm] = useState({
@@ -45,95 +21,18 @@ export default function SignupPage() {
   });
 
   const [error, setError] = useState("");
-  const [missing, setMissing] = useState<string[]>([]);
   const [createClient, { isLoading }] = useCreateClientMutation();
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-<<<<<<< HEAD
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-
-=======
-<<<<<<< Updated upstream
     setForm({ ...form, [e.target.name]: e.target.value });
-=======
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-
-    // remove red border immediately when user types
->>>>>>> origin/Numan
-    if (value.trim() !== "" && missing.includes(name)) {
-      setMissing((prev) => prev.filter((field) => field !== name));
-    }
-
-<<<<<<< HEAD
-=======
-    // remove error message if field is being fixed
-    if (error) {
-      setError("");
-    }
-  };
-
-  // Fixed handlePhoneChange function to accept string | undefined
-  const handlePhoneChange = (value: string | undefined) => {
-    const phoneValue = value || ""; // Handle undefined case
-    setForm({ ...form, phone_number: phoneValue });
-
-    // remove red border immediately when user types
-    if (phoneValue.trim() !== "" && missing.includes("phone_number")) {
-      setMissing((prev) => prev.filter((field) => field !== "phone_number"));
-    }
-
-    // remove error message if field is being fixed
->>>>>>> origin/Numan
-    if (error) {
-      setError("");
-    }
-  };
-
-  const handleSelectChange = (value: string, name: string) => {
-    setForm((prev) => ({ ...prev, [name]: value }));
-
-<<<<<<< HEAD
-=======
-    // remove red border immediately when user selects
->>>>>>> origin/Numan
-    if (value.trim() !== "" && missing.includes(name)) {
-      setMissing((prev) => prev.filter((field) => field !== name));
-    }
-
-<<<<<<< HEAD
-    if (error) {
-      setError("");
-    }
-  };
-
-  // ✅ Added handlePhoneChange
-  const handlePhoneChange = (value: string | undefined) => {
-    setForm({ ...form, phone_number: value || "" });
-
-    if (value && missing.includes("phone_number")) {
-      setMissing((prev) => prev.filter((field) => field !== "phone_number"));
-    }
-
-    if (error) {
-      setError("");
-    }
-=======
-    // remove error message if field is being fixed
-    if (error) {
-      setError("");
-    }
->>>>>>> Stashed changes
->>>>>>> origin/Numan
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setMissing([]);
 
+    // Trim all fields
     const trimmedForm = {
       first_name: form.first_name.trim(),
       last_name: form.last_name.trim(),
@@ -141,21 +40,12 @@ export default function SignupPage() {
       phone_number: form.phone_number.trim(),
       company_name: form.company_name.trim(),
       industry: form.industry.trim(),
-      send_welcome_email: true,
-      auto_activate_account: true,
     };
 
-    const emptyFields = Object.entries(trimmedForm)
-      .filter(
-        ([key, val]) =>
-          val === "" &&
-          key !== "send_welcome_email" &&
-          key !== "auto_activate_account"
-      )
-      .map(([key]) => key);
+    // Required fields check
+    const isEmptyField = Object.values(trimmedForm).some((val) => val === "");
 
-    if (emptyFields.length > 0) {
-      setMissing(emptyFields);
+    if (isEmptyField) {
       setError("Please fill in all required fields");
       toast.error("Please fill in all required fields");
       return;
@@ -163,11 +53,13 @@ export default function SignupPage() {
 
     try {
       const response = await createClient(trimmedForm).unwrap();
-      if (response && "success" in response && response.success === false) {
+
+      if (response?.success === false) {
         toast.error(response.detail || "Something went wrong.");
         setError(response.detail || "Something went wrong.");
         return;
       }
+
       toast.success("Signup successful! Please log in.");
       router.push("/auth/login");
     } catch (err: any) {
@@ -185,8 +77,8 @@ export default function SignupPage() {
     <div className="min-h-screen overflow-y-auto bg-gradient-to-br from-[#eeeaff] to-white flex items-center justify-center">
       <div className="grid grid-cols-1 h-full md:grid-cols-2 w-full bg-white shadow-xl overflow-hidden">
         {/* Left Section - Form */}
-        <div className="p-4 sm:p-6 md:p-8">
-          <div className="flex flex-col w-full mb-8 sm:mb-10 md:mb-12 items-start gap-3">
+        <div className="p-8">
+          <div className="flex flex-col w-full mb-12 items-start gap-3">
             <div className="flex items-center gap-3 hover:scale-105 transition-transform duration-300">
               <Image
                 src="/Frame.svg"
@@ -195,7 +87,7 @@ export default function SignupPage() {
                 height={40}
                 className="rounded-md shadow-md shadow-primary"
               />
-              <h1 className="text-[20px] sm:text-[22px] md:text-2xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-[22px] sm:text-2xl font-bold tracking-tight text-gray-900">
                 <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Chat Supplies
                 </span>
@@ -203,12 +95,12 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <div className="px-4 sm:px-6 md:px-12 lg:px-28 flex space-y-6 sm:space-y-8 flex-col justify-center h-full animate-fade-in -mt-12">
+          <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in">
             <div className="flex flex-col items-center text-center">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+              <h2 className="text-4xl font-bold text-gray-800 mb-2">
                 Create Account
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 mb-4 max-w-md">
+              <p className="text-sm text-gray-500 mb-4 max-w-md">
                 Start a new chat to engage users, automate responses, and grow
                 smarter conversations with AI.
               </p>
@@ -216,7 +108,7 @@ export default function SignupPage() {
 
             <form
               onSubmit={handleSignup}
-              className="space-y-4 sm:space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-xl border border-white/30 -mt-3"
+              className="space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/30"
             >
               {error && (
                 <Alert variant="destructive">
@@ -231,18 +123,12 @@ export default function SignupPage() {
                   value={form.first_name}
                   onChange={handleChange}
                   placeholder="First Name"
-                  className={
-                    missing.includes("first_name") ? "border-red-500" : ""
-                  }
                 />
                 <Input
                   name="last_name"
                   value={form.last_name}
                   onChange={handleChange}
                   placeholder="Last Name"
-                  className={
-                    missing.includes("last_name") ? "border-red-500" : ""
-                  }
                 />
               </div>
 
@@ -253,31 +139,12 @@ export default function SignupPage() {
                 value={form.email}
                 onChange={handleChange}
                 placeholder="Email Address"
-                className={missing.includes("email") ? "border-red-500" : ""}
               />
-<<<<<<< HEAD
-
-              {/* Phone */}
-              <PhoneInput
-                international
-                defaultCountry="US"
-                value={form.phone_number}
-                onChange={handlePhoneChange}
-                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Enter Phone Number"
-=======
               <PhoneInput
                 {...({ name: "phone_number" } as any)} 
                 value={form.phone_number}
-<<<<<<< Updated upstream
                 onChange={handleChange}
                 placeholder="Phone Number"
-=======
-                onChange={handlePhoneChange}
-                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Enter Phone Number"
->>>>>>> Stashed changes
->>>>>>> origin/Numan
               />
 
 
@@ -287,56 +154,15 @@ export default function SignupPage() {
                 value={form.company_name}
                 onChange={handleChange}
                 placeholder="Company Name"
-                className={
-                  missing.includes("company_name") ? "border-red-500" : ""
-                }
               />
 
               {/* Industry */}
-<<<<<<< HEAD
-=======
-<<<<<<< Updated upstream
               <Input
                 name="industry"
                 value={form.industry}
                 onChange={handleChange}
                 placeholder="Industry"
               />
-=======
->>>>>>> origin/Numan
-              <div>
-                <Select
-                  value={form.industry}
-                  onValueChange={(val) => handleSelectChange(val, "industry")}
-                >
-                  <SelectTrigger
-<<<<<<< HEAD
-                    className={`mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                      missing.includes("industry")
-                        ? "border-red-500"
-                        : "border-gray-400"
-                    }`}
-=======
-                    className={`mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${missing.includes("industry")
-                        ? "border-red-500"
-                        : "border-gray-400"
-                      }`}
->>>>>>> origin/Numan
-                  >
-                    <SelectValue placeholder="Select Industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tech">Technology</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="health">Healthcare</SelectItem>
-                    <SelectItem value="education">Education</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-<<<<<<< HEAD
-=======
->>>>>>> Stashed changes
->>>>>>> origin/Numan
 
               {/* Signup Button */}
               <Button
@@ -348,7 +174,7 @@ export default function SignupPage() {
               </Button>
 
               {/* Redirect to Login link */}
-              <p className="text-center text-xs sm:text-sm text-gray-600">
+              <p className="text-center text-sm text-gray-600 mt-4">
                 Already have an account?{" "}
                 <span
                   onClick={() => router.push("/auth/login")}
@@ -364,7 +190,7 @@ export default function SignupPage() {
         {/* Right Section - Image */}
         <div className="hidden md:block bg-gradient-to-br from-primary to-secondary relative w-full h-full">
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="rounded-3xl overflow-hidden p-4 lg:p-8 bg-white/10 backdrop-blur-lg shadow-2xl border border-white/20">
+            <div className="rounded-3xl overflow-hidden p-8 bg-white/10 backdrop-blur-lg shadow-2xl border border-white/20">
               <Image
                 src="/Bot.png"
                 alt="Signup Illustration"

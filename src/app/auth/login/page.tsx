@@ -19,11 +19,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [missingFields, setMissingFields] = useState<{ username: boolean; password: boolean }>({
-    username: false,
-    password: false,
-  });
-
   const router = useRouter();
   const dispatch = useDispatch();
   const [login] = useLoginMutation();
@@ -32,17 +27,10 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    setMissingFields({ username: false, password: false });
 
     if (!username || !password) {
       setError("Please fill in all fields");
       toast.error("Please fill in all fields");
-
-      setMissingFields({
-        username: !username,
-        password: !password,
-      });
-
       setIsLoading(false);
       return;
     }
@@ -79,8 +67,8 @@ export default function LoginPage() {
     <div className="h-screen overflow-y-auto bg-gradient-to-br from-[#eeeaff] to-white flex items-center justify-center">
       <div className="grid grid-cols-1 h-full md:grid-cols-2 w-full bg-white shadow-xl overflow-hidden">
         {/* Left Section - Form */}
-        <div className="p-4 sm:p-6 md:p-8">
-          <div className="flex flex-col w-full mb-8 sm:mb-10 md:mb-12 items-start gap-3">
+        <div className="p-8">
+          <div className="flex flex-col w-full mb-12 items-start gap-3">
             <div className="flex items-center gap-3 hover:scale-105 transition-transform duration-300">
               <Image
                 src="/Frame.svg"
@@ -89,7 +77,7 @@ export default function LoginPage() {
                 height={40}
                 className="rounded-md shadow-md shadow-primary"
               />
-              <h1 className="text-[20px] sm:text-[22px] md:text-2xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-[22px] sm:text-2xl font-bold tracking-tight text-gray-900">
                 <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   Chat Supplies
                 </span>
@@ -97,12 +85,12 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="px-4 sm:px-6 md:px-12 lg:px-28 flex space-y-6 sm:space-y-8 flex-col justify-center h-full animate-fade-in -mt-8">
+          <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in">
             <div className="flex flex-col items-center text-center">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+              <h2 className="text-4xl font-bold text-gray-800 mb-2">
                 Welcome Back
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 mb-4 max-w-md">
+              <p className="text-sm text-gray-500 mb-4 max-w-md">
                 Start a new chat to engage users, automate responses, and grow
                 smarter conversations with AI.
               </p>
@@ -110,7 +98,7 @@ export default function LoginPage() {
 
             <form
               onSubmit={handleLogin}
-              className="space-y-4 sm:space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-xl border border-white/30 -mt-2"
+              className="space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/30"
             >
               {error && (
                 <Alert variant="destructive">
@@ -122,15 +110,9 @@ export default function LoginPage() {
                 type="text"
                 placeholder="Username"
                 value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  if (e.target.value.trim() !== "") {
-                    setMissingFields((prev) => ({ ...prev, username: false }));
-                    if (error) setError("");
-                  }
-                }}
+                onChange={(e) => setUsername(e.target.value)}
                 disabled={isLoading}
-                className={`bg-[#f3f0ff] ${missingFields.username ? "border-red-500" : ""}`}
+                className="bg-[#f3f0ff]"
               />
 
               <div className="relative">
@@ -138,15 +120,9 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (e.target.value.trim() !== "") {
-                      setMissingFields((prev) => ({ ...prev, password: false }));
-                      if (error) setError("");
-                    }
-                  }}
+                  onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
-                  className={`bg-[#f3f0ff] ${missingFields.password ? "border-red-500" : ""}`}
+                  className="bg-[#f3f0ff]"
                 />
                 <Button
                   type="button"
@@ -159,7 +135,7 @@ export default function LoginPage() {
                 </Button>
               </div>
 
-              {/* Login button */}
+              {/* ✅ Single Login button */}
               <Button
                 type="submit"
                 className="w-full rounded-full bg-gradient-to-r from-[#2648EF] to-[#252F8B] hover:opacity-90 text-white"
@@ -168,9 +144,9 @@ export default function LoginPage() {
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
 
-              {/* Signup link */}
-              <p className="text-center text-xs sm:text-sm text-gray-600">
-                Don't have an account?{" "}
+              {/* ✅ Signup link */}
+              <p className="text-center text-sm text-gray-600 mt-4">
+                Don’t have an account?{" "}
                 <span
                   onClick={() => router.push("/auth/signup")}
                   className="text-primary font-semibold cursor-pointer hover:underline"
@@ -181,15 +157,8 @@ export default function LoginPage() {
             </form>
 
             <div className="text-center max-w-xl mx-auto mt-6">
-              {/* <p className="text-sm text-muted-foreground font-medium leading-relaxed"> */}
+              <p className="text-sm text-muted-foreground font-medium leading-relaxed">
                 <span className="text-primary font-semibold">ChatSupplies</span>{" "}
-            <div className="text-center max-w-xl mx-auto sm:mt-1 ">
-              <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
-                <span
-                  onClick={() => router.push("/auth/signup")}
-                  className="text-primary font-bold cursor-pointer">
-                    ChatSupplies
-                    </span>{" "}
                 is a modern AI-powered platform designed to enhance customer
                 interactions through intelligent chat solutions. It empowers
                 businesses to automate conversations, improve support
@@ -203,7 +172,7 @@ export default function LoginPage() {
         {/* Right Section - Image */}
         <div className="hidden md:block bg-gradient-to-br from-primary to-secondary relative w-full h-full">
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="rounded-3xl overflow-hidden p-4 lg:p-8 bg-white/10 backdrop-blur-lg shadow-2xl border border-white/20">
+            <div className="rounded-3xl overflow-hidden p-8 bg-white/10 backdrop-blur-lg shadow-2xl border border-white/20">
               <Image
                 src="/Bot.png"
                 alt="Login Illustration"
@@ -218,7 +187,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }
