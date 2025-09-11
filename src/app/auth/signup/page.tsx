@@ -8,8 +8,6 @@ import { toast } from "sonner";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Alert, AlertDescription } from "@/src/components/ui/alert";
-<<<<<<< Updated upstream
-=======
 import { Label } from "@/src/components/ui/label";
 import {
   Select,
@@ -20,7 +18,6 @@ import {
 } from "@/src/components/ui/select";
 import PhoneInput from "@/src/components/PhoneInput"; // Fixed import path
 
->>>>>>> Stashed changes
 import { useCreateClientMutation } from "@/src/hooks/useClients";
 
 export default function SignupPage() {
@@ -34,63 +31,46 @@ export default function SignupPage() {
   });
 
   const [error, setError] = useState("");
+  const [missing, setMissing] = useState<string[]>([]); // ✅ Added missing state
   const [createClient, { isLoading }] = useCreateClientMutation();
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-<<<<<<< Updated upstream
-    setForm({ ...form, [e.target.name]: e.target.value });
-=======
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
 
-    // remove red border immediately when user types
     if (value.trim() !== "" && missing.includes(name)) {
-      setMissing((prev) => prev.filter((field) => field !== name));
+      setMissing((prev: string[]) => prev.filter((field: string) => field !== name));
     }
 
-    // remove error message if field is being fixed
-    if (error) {
-      setError("");
-    }
+    if (error) setError("");
   };
 
-  // Fixed handlePhoneChange function to accept string | undefined
   const handlePhoneChange = (value: string | undefined) => {
-    const phoneValue = value || ""; // Handle undefined case
+    const phoneValue = value || "";
     setForm({ ...form, phone_number: phoneValue });
 
-    // remove red border immediately when user types
     if (phoneValue.trim() !== "" && missing.includes("phone_number")) {
-      setMissing((prev) => prev.filter((field) => field !== "phone_number"));
+      setMissing((prev: string[]) => prev.filter((field: string) => field !== "phone_number"));
     }
 
-    // remove error message if field is being fixed
-    if (error) {
-      setError("");
-    }
+    if (error) setError("");
   };
 
   const handleSelectChange = (value: string, name: string) => {
     setForm((prev) => ({ ...prev, [name]: value }));
 
-    // remove red border immediately when user selects
     if (value.trim() !== "" && missing.includes(name)) {
-      setMissing((prev) => prev.filter((field) => field !== name));
+      setMissing((prev: string[]) => prev.filter((field: string) => field !== name));
     }
 
-    // remove error message if field is being fixed
-    if (error) {
-      setError("");
-    }
->>>>>>> Stashed changes
+    if (error) setError("");
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // Trim all fields
     const trimmedForm = {
       first_name: form.first_name.trim(),
       last_name: form.last_name.trim(),
@@ -100,10 +80,12 @@ export default function SignupPage() {
       industry: form.industry.trim(),
     };
 
-    // Required fields check
-    const isEmptyField = Object.values(trimmedForm).some((val) => val === "");
+    const emptyFields = Object.entries(trimmedForm)
+      .filter(([_, val]) => val === "")
+      .map(([key]) => key);
 
-    if (isEmptyField) {
+    if (emptyFields.length > 0) {
+      setMissing(emptyFields);
       setError("Please fill in all required fields");
       toast.error("Please fill in all required fields");
       return;
@@ -198,18 +180,14 @@ export default function SignupPage() {
                 onChange={handleChange}
                 placeholder="Email Address"
               />
-              <PhoneInput
-                {...({ name: "phone_number" } as any)} 
-                value={form.phone_number}
-<<<<<<< Updated upstream
-                onChange={handleChange}
-                placeholder="Phone Number"
-=======
-                onChange={handlePhoneChange}
-                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Enter Phone Number"
->>>>>>> Stashed changes
-              />
+
+              {/* Phone */}
+             <PhoneInput
+  value={form.phone_number}
+  onChange={handlePhoneChange}
+  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+  {...({ placeholder: "Enter Phone Number" } as any)} // ✅ casted to any
+/>
 
 
               {/* Company */}
@@ -221,24 +199,17 @@ export default function SignupPage() {
               />
 
               {/* Industry */}
-<<<<<<< Updated upstream
-              <Input
-                name="industry"
-                value={form.industry}
-                onChange={handleChange}
-                placeholder="Industry"
-              />
-=======
               <div>
                 <Select
                   value={form.industry}
                   onValueChange={(val) => handleSelectChange(val, "industry")}
                 >
                   <SelectTrigger
-                    className={`mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${missing.includes("industry")
+                    className={`mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                      missing.includes("industry")
                         ? "border-red-500"
                         : "border-gray-400"
-                      }`}
+                    }`}
                   >
                     <SelectValue placeholder="Select Industry" />
                   </SelectTrigger>
@@ -250,7 +221,6 @@ export default function SignupPage() {
                   </SelectContent>
                 </Select>
               </div>
->>>>>>> Stashed changes
 
               {/* Signup Button */}
               <Button
