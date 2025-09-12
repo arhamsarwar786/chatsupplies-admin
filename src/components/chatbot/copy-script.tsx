@@ -25,7 +25,7 @@ const CopyScript = ({ chatbotId, status, client_api_key }: { chatbotId: number; 
     const apikeyStore = localStorage.getItem("apikey")
   const ApiKey = apikeyStore;
 
-  const scriptTag = `<script type="module" src="index.js" id="chatbot" data-admin-id="${chatbotId}"   api-key="${client_api_key}"></script>`;
+  const scriptTag = `<script type="module" src="https://cdn.jsdelivr.net/gh/devsinntechnologies/chatbot-script@refs/heads/main/index.js" id="chatbot" data-admin-id="${chatbotId}"   api-key="${client_api_key}"></script>`;
 
   return (
     <AlertDialog>
