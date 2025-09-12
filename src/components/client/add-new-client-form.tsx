@@ -12,7 +12,7 @@ import {
   SelectItem,
 } from "@/src/components/ui/select"
 import { Input } from "@/src/components/ui/input"
-import { UserPlus } from "lucide-react"
+import { UserPlus, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { useCreateClientMutation } from "@/src/hooks/useClients"
 import { toast } from "sonner"
@@ -34,6 +34,7 @@ export default function AddNewClientForm() {
   };
 
   const [form, setForm] = useState(initialFormState);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [formErrors, setFormErrors] = useState<{ [key: string]: boolean }>({});
 
   const [createClient, { isLoading }] = useCreateClientMutation();
@@ -72,6 +73,7 @@ export default function AddNewClientForm() {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    setShowLoadingOverlay(true); // Show loading overlay
 
     if (!isFormComplete()) {
       toast.warning("Please fill in all required fields.");
@@ -97,8 +99,11 @@ export default function AddNewClientForm() {
 
       toast.success(response.detail || "Client created successfully!");
       setForm(initialFormState);
-      setFormErrors({});
+      setShowLoadingOverlay(false); // Hide loading overlay
+      window.location.href = "/dashboard/client-management";
     } catch (err: any) {
+        setShowLoadingOverlay(false); // Hide loading overlay
+      // If API call failed (non-200 status)
       const errorMessage =
         err?.status === 400 && err?.data?.detail ||
         err?.data?.message ||
@@ -130,7 +135,25 @@ export default function AddNewClientForm() {
   };
 
   return (
-    <div className="rounded-xl border shadow-sm overflow-hidden bg-card">
+    <div className="rounded-xl border shadow-sm overflow-hidden bg-card relative">
+      {/* Blury Loading Overlay */}
+      {showLoadingOverlay && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{
+            backdropFilter: "blur(8px)",
+            backgroundColor: "rgba(0,0,0,0.35)",
+          }}
+        >
+          <div className="flex flex-col items-center">
+            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
+            <span className="text-lg font-semibold text-white">
+              Creating Client...
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="bg-indigo-600 text-white px-6 py-4 flex items-center gap-2">
         <UserPlus className="w-5 h-5" />
         <h3 className="font-semibold text-lg">Step 1: Add New Client</h3>

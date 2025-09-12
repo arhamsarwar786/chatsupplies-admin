@@ -29,6 +29,7 @@ const UploadURL = ({
   const [url, setUrl] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [crawlingStarted, setCrawlingStarted] = useState(false);
+  const [open, setOpen] = useState(false); // Add dialog open state
 
   const [uploadUrl, { isLoading }] = useUploadUrlMutation();
 
@@ -46,28 +47,29 @@ const UploadURL = ({
       setAgreed(false);
       setCrawlingStarted(true);
 
-      // Auto-reset the Loader after 30 seconds
       setTimeout(() => {
         setCrawlingStarted(false);
       }, 30000);
+
+      setTimeout(() => {
+        setOpen(false); // Close dialog after success
+      }, 1500); // Close after 1.5 seconds
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to start crawling.");
-      // console.error("Upload URL error:", err);
     }
   };
 
   return (
-    <Dialog>
-      {status == "ready" ||
-      status == "just_created" ||
-      status == "knowledge_base_ready" ? (
+    <Dialog open={open} onOpenChange={setOpen}>
+      {(status == "ready" || status == "just_created") ? (
         <DialogTrigger asChild>
-              <button
-                type="button"
-                className="p-1 rounded hover:bg-muted transition"
-              >
-                <Play className="h-4 w-4 text-green-600" />
-              </button>
+          <button
+            type="button"
+            className="p-1 rounded hover:bg-muted transition"
+            onClick={() => setOpen(true)} // Open dialog
+          >
+            <Play className="h-4 w-4 text-green-600" />
+          </button>
         </DialogTrigger>
       ) : (
         <button
