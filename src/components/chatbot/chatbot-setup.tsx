@@ -532,7 +532,7 @@ const ChatbotSetup = () => {
                   <input
                     type="checkbox"
                     id="includePdf"
-                    checked={includePdf}
+                    checked={!includePdf}
                     onChange={(e) => setIncludePdf(e.target.checked)}
                     className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
