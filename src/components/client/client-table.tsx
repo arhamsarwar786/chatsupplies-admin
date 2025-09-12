@@ -110,7 +110,7 @@ export default function ClientTable() {
                 <TableHead className="text-center py-4 px-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="min-h-[400px]">
               {clients.length === 0 ? (
                 <TableRow>
                   <TableCell
@@ -280,21 +280,21 @@ export default function ClientTable() {
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
                 className={`px-2 py-1 rounded ${currentPage === 1
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-100 text-gray-700"
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700 cursor-pointer"
                   }`}
               >
                 Previous
               </button>
-              <button className="px-3 py-1 bg-purple-600 text-white rounded">
+              <button className="px-3 py-1 bg-purple-600 text-white rounded cursor-pointer">
                 {currentPage}
               </button>
               <button
                 onClick={handleNextPage}
                 disabled={clients.length < 10}
                 className={`px-2 py-1 rounded ${clients.length < 10
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-100 text-gray-700"
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700 cursor-pointer"
                   }`}
               >
                 Next
@@ -323,6 +323,7 @@ export default function ClientTable() {
               variant="outline"
               onClick={() => setConfirmDialogOpen(false)}
               disabled={isDeleting}
+              className="cursor-pointer"
             >
               Cancel
             </Button>
@@ -330,10 +331,12 @@ export default function ClientTable() {
               variant="destructive"
               onClick={confirmDelete}
               disabled={isDeleting}
+              className="cursor-pointer"
             >
               {isDeleting ? "Deleting..." : "Confirm"}
             </Button>
           </div>
+
         </DialogContent>
       </Dialog>
     </div>
