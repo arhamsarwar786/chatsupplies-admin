@@ -124,7 +124,7 @@ const tabData = [
       {
         title: "Step 3: Confirm Script Path",
         description:
-          "Ensure the script file (e.g., index.js) is hosted publicly (like on a CDN) or accessible via your app’s /public directory.",
+          "Ensure the script file (e.g., https://cdn.jsdelivr.net/gh/devsinntechnologies/chatbot-script@refs/heads/main/index.js) is hosted publicly (like on a CDN) or accessible via your app’s /public directory.",
       },
       {
         title: "Step 4: Test Integration",
@@ -252,7 +252,7 @@ const tabData = [
       {
         title: "Step 3: Dynamically Inject the Script",
         description:
-          "Dynamically create a <script> tag with type='module', src='index.js', id='chatbot', and add data-admin-id and data-token attributes. Append this to document.body or document.head.",
+          "Dynamically create a <script> tag with type='module', src='https://cdn.jsdelivr.net/gh/devsinntechnologies/chatbot-script@refs/heads/main/index.js', id='chatbot', and add data-admin-id and data-token attributes. Append this to document.body or document.head.",
       },
       {
         title: "Step 4: Prevent Duplicate Injections",
@@ -297,7 +297,7 @@ const ScriptManagementPage = () => {
   const scriptTag = isClient && selectedBotId && apikey 
     ? `<script 
         type="module" 
-        src="index.js"
+        src="https://cdn.jsdelivr.net/gh/devsinntechnologies/chatbot-script@refs/heads/main/index.js"
         id="chatbot"
         data-admin-id="${selectedBotId}"
         api-key="${apikey}">

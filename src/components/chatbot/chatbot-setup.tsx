@@ -71,7 +71,7 @@ const ChatbotSetup = () => {
   };
 
   // 1. Add state for the new checkbox
-  const [includePdf, setIncludePdf] = useState(true);
+  const [includePdf, setIncludePdf] = useState(false);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
