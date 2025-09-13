@@ -22,9 +22,11 @@ import { toast } from "sonner";
 const UploadURL = ({
   chatbotId,
   status,
+  client_email,
 }: {
   chatbotId: number;
   status: string;
+  client_email: string;
 }) => {
   const [url, setUrl] = useState("");
   const [agreed, setAgreed] = useState(false);
@@ -40,6 +42,7 @@ const UploadURL = ({
       await uploadUrl({
         chatbot_id: chatbotId,
         url: url,
+        client_email: client_email,
       }).unwrap();
 
       toast.success("Crawling started successfully!");

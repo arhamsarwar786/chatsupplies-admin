@@ -1,40 +1,57 @@
+"use client";
+
 import type { Metadata } from "next";
 import { Ubuntu } from "next/font/google";
-import { Bot } from "lucide-react";
 import Provider from "./Provider";
 import { Toaster } from "sonner";
 import "./globals.css";
-import { Elements } from "@stripe/react-stripe-js";
-import { stripePromise } from "@/src/lib/stripe";
-import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 const ubuntu = Ubuntu({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-ubuntu",
-  weight: ["300", "400", "500", "700"], // Available Ubuntu weights
+  weight: ["300", "400", "500", "700"],
 });
 
-export const metadata: Metadata = {
-  
-};
+// export const metadata: Metadata = {
+//   title: "Chat Supplies",
+//   description: "Chatbot management platform",
+// };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
+  const pathname = usePathname();
+
   return (
     <html lang="en">
- <head>
-  <title>Chat Supplies</title>
-  <meta name="theme-color" content="#5046E5" />
-  <link rel="icon" href="/Frame.svg" type="image/svg+xml" />
-</head>
+      <head>
+        <title>Chat Supplies</title>
+        <meta name="theme-color" content="#5046E5" />
+        <link rel="icon" href="/Frame.svg" type="image/svg+xml" />
+      </head>
       <body className={`${ubuntu.className} w-screen min-h-screen`}>
         <Provider>
           <Toaster />
-          {children}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, scale: 0.97, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: -20 }}
+              transition={{
+                duration: 0.5,
+                ease: [0.25, 0.8, 0.25, 1], // smooth cubic bezier
+              }}
+              className="h-full"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </Provider>
       </body>
     </html>

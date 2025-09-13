@@ -25,6 +25,15 @@ import {
   DropdownMenuItem,
 } from "@/src/components/ui/dropdown-menu";
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/src/components/ui/pagination"
+import {
   useGetChatbotQuery,
   useCreateChatbotMutation,
 } from "@/src/hooks/useChatbot";
@@ -61,6 +70,7 @@ interface Chatbot {
   total_interactions: number;
   interaction_change_percent: number;
   client_api_key: string;
+  client_email: string;
 }
 
 const getStatusStyle = (status: string) => {
@@ -108,14 +118,26 @@ export default function ChatbotTable() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [uploadedFilesDialogOpen, setUploadedFilesDialogOpen] = useState(false);
-  const {
-    data = [],
-    isLoading,
-    error,
-    refetch,
-  } = useGetChatbotQuery({ page: currentPage });
-  console.log(data);
+const {
+  data,
+  isLoading,
+  error,
+  refetch,
+} = useGetChatbotQuery({ page: currentPage, sort_desc: true });
+
+const chatbots = data?.chatbots ?? [];
+const totalPages = data?.total_pages ?? 1;
+const totalCount = data?.total_count ?? 0;
+
+  console.log(chatbots);
   const [createChatbot, { isLoading: isCreating }] = useCreateChatbotMutation();
+const handlePreviousPage = () => {
+  setCurrentPage((prev) => Math.max(prev - 1, 1));
+};
+
+const handleNextPage = () => {
+  setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+};
 
   const handleAddChatbot = async () => {
     try {
@@ -131,14 +153,14 @@ export default function ChatbotTable() {
     }
   };
 
-  const handlePreviousPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
+  // const handlePreviousPage = () => {
+  //   setCurrentPage((prev) => Math.max(prev - 1, 1));
+  // };
 
-  const handleNextPage = () => {
-    if (data.length < 10) return; // adjust this limit as per your backend pagination
-    setCurrentPage((prev) => prev + 1);
-  };
+  // const handleNextPage = () => {
+  //   if (data.length < 10) return; // adjust this limit as per your backend pagination
+  //   setCurrentPage((prev) => prev + 1);
+  // };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -183,7 +205,7 @@ export default function ChatbotTable() {
             </TableRow>
           )}
 
-          {data.length === 0 && !isLoading && !error && (
+          {chatbots.length === 0 && !isLoading && !error && (
             <TableRow>
               <TableCell colSpan={8}>
                 <div className="w-full flex flex-col items-center py-10 text-muted-foreground">
@@ -199,7 +221,7 @@ export default function ChatbotTable() {
             </TableRow>
           )}
 
-          {data.map((bot: Chatbot, idx: number) => (
+         {chatbots.map((bot: Chatbot, idx: number) => (
             <TableRow
               key={idx}
               className="hover:bg-gray-50 transition-colors duration-150"
@@ -269,6 +291,8 @@ export default function ChatbotTable() {
                       <UploadURL
                         chatbotId={bot.id}
                         status={bot.progress_status}
+                        client_email={bot.client_email}
+
                       />
                     </TooltipTrigger>
                     <TooltipContent>
@@ -318,31 +342,55 @@ export default function ChatbotTable() {
         </TableBody>
       </Table>
 
-      <div className="flex justify-between text-sm text-muted-foreground pt-4">
-        <span>
-          Showing {data.length > 0 ? `1 to ${data.length}` : "0"} results on
-          page {currentPage}
-        </span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePreviousPage}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <span className="px-2">{currentPage}</span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleNextPage}
-            disabled={data.length < 10}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+    <div className="flex w-full justify-between text-sm text-muted-foreground pt-4">
+ <span>
+  Showing {chatbots.length > 0 ? `1 to ${chatbots.length}` : "0"} of {totalCount} results (Page {currentPage} of {totalPages})
+</span>
+<Pagination>
+  <PaginationContent>
+    {/* Previous */}
+    <PaginationItem>
+      <PaginationPrevious
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          if (currentPage > 1) setCurrentPage((p) => p - 1);
+        }}
+        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+      />
+    </PaginationItem>
+
+    {/* Page numbers */}
+    {Array.from({ length: totalPages }, (_, i) => (
+      <PaginationItem key={i}>
+        <PaginationLink
+          href="#"
+          isActive={currentPage === i + 1}
+          onClick={(e) => {
+            e.preventDefault();
+            setCurrentPage(i + 1);
+          }}
+        >
+          {i + 1}
+        </PaginationLink>
+      </PaginationItem>
+    ))}
+
+    {/* Next */}
+    <PaginationItem>
+      <PaginationNext
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          if (currentPage < totalPages) setCurrentPage((p) => p + 1);
+        }}
+        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+      />
+    </PaginationItem>
+  </PaginationContent>
+</Pagination>
+</div>
+
     </div>
   );
 }

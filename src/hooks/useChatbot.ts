@@ -15,9 +15,18 @@ export const chatbot = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getChatbot: builder.query<any, { page: number }>({
-      query: ({ page}) => `?page=${page}`,
-    }),
+ getChatbot: builder.query<any, { page: number; sort_desc?: boolean }>({
+  query: ({ page, sort_desc }) => {
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+
+    if (sort_desc !== undefined) {
+      params.set("sort_desc", String(sort_desc));
+    }
+
+    return `?${params.toString()}`;
+  },
+}),
    createChatbot: builder.mutation<any, FormData>({
       query: (formData) => ({
         url: "",

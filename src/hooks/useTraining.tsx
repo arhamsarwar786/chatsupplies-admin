@@ -23,10 +23,11 @@ export const training = createApi({
       }),
     }),
          uploadUrl: builder.mutation({
-      query: ({ chatbot_id, url }) => {
+      query: ({ chatbot_id, url, client_email }) => {
         const body = new URLSearchParams();
         body.append("chatbot_id", chatbot_id.toString());
         body.append("url", url);
+        body.append("client_email", client_email.toString());
 
         return {
           url: "crawl_build_index",                            
