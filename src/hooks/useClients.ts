@@ -15,9 +15,14 @@ export const client = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getClients: builder.query<any, { page: number }>({
-      query: ({ page}) => `?page=${page}`,
-    }),
+getClients: builder.query<
+  any,
+  { page: number; sort_desc?: boolean; only_active?: boolean }>
+({
+  query: ({ page, sort_desc = true, only_active = false }) =>
+    `/?page=${page}&sort_desc=${sort_desc}&only_active=${only_active}`,
+}),
+
  getDashboardSummary: builder.query({
       query: () => `dashboard/summary`,
     }),

@@ -12,12 +12,21 @@ import {
 } from "@/src/components/ui/table";
 import { toast } from "sonner";
 import { Badge } from "@/src/components/ui/badge";
-import { ShieldMinus, Pencil, Pause, Play, MailPlus } from "lucide-react";
+import { ShieldMinus, Pencil, MailPlus } from "lucide-react";
 import {
   useGetClientsQuery,
   useDeleteClientByIdMutation,
   useResendWelcomeEmailMutation,
 } from "@/src/hooks/useClients";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/src/components/ui/pagination"
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -38,59 +47,73 @@ export default function ClientTable() {
   const [selectedClient, setSelectedClient] = useState(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
+  // Fetch clients
   const {
-    data: clients = [],
+    data,
     isLoading,
     error,
     refetch,
-  } = useGetClientsQuery({ page: currentPage });
+  } = useGetClientsQuery({
+    page: currentPage,
+    only_active: false,
+    sort_desc: true,
+  });
+
+  // unwrap API response
+  const clients = data?.clients ?? [];
+  const totalPages = data?.total_pages ?? 1;
+  const totalCount = data?.total_count ?? 0;
+
+  // Mutations
   const [deleteClientById, { isLoading: isDeleting }] =
     useDeleteClientByIdMutation();
   const [resendWelcomeEmail, { isLoading: isSending }] =
     useResendWelcomeEmailMutation();
 
-  const handleResendEmail = async (clientId: number) => {
-    try {
-      await resendWelcomeEmail({ id: clientId }).unwrap();
-      toast.success("Welcome email has been resent successfully.");
-    } catch (error) {
-      toast.error("An error occurred while resending the welcome email.");
-    }
-  };
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (clients.length === 10) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  };
-
+  // Scroll to top on page change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentPage]);
 
+  // Email resend
+  const handleResendEmail = async (clientId: number) => {
+    try {
+      await resendWelcomeEmail({ id: clientId }).unwrap();
+      toast.success("Welcome email has been resent successfully.");
+    } catch {
+      toast.error("An error occurred while resending the welcome email.");
+    }
+  };
+
+  // Pagination controls
+  const handlePreviousPage = () => {
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+  };
+
+  // Confirm status update
   const handleUpdateStatusClick = (client) => {
     setSelectedClient(client);
     setConfirmDialogOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (selectedClient) {
-      try {
-        console.log("Attempting to delete client:", selectedClient.id);
-        await deleteClientById(selectedClient.id).unwrap();
-        setConfirmDialogOpen(false);
-        setSelectedClient(null);
-        refetch();
-      } catch (error) {
-        console.error("Error deleting client:", error);
-      }
+    if (!selectedClient) return;
+    try {
+      await deleteClientById(selectedClient.id).unwrap();
+      setConfirmDialogOpen(false);
+      setSelectedClient(null);
+      refetch();
+      toast.success("Client status updated successfully.");
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      toast.error("Failed to update client status.");
     }
   };
+
   return (
     <div className="border rounded-xl shadow-sm">
       {isLoading && <div className="p-4">Loading clients...</div>}
@@ -114,24 +137,26 @@ export default function ClientTable() {
               {clients.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={8}
                     className="text-center py-6 text-gray-500"
                   >
                     No clients found.
                   </TableCell>
                 </TableRow>
               ) : (
-                clients.map((client, index) => {
+                clients.map((client) => {
                   const isDisabled = !client.is_active;
 
                   return (
                     <TableRow
-                      key={index}
-                      className={`group transition-all ${isDisabled
-                        ? "opacity-50 bg-gray-50"
-                        : "hover:bg-gray-50"
-                        }`}
+                      key={client.id}
+                      className={`group transition-all ${
+                        isDisabled
+                          ? "opacity-50 bg-gray-50"
+                          : "hover:bg-gray-50"
+                      }`}
                     >
+                      {/* Client Info */}
                       <TableCell className="py-3 px-6">
                         <div className="flex flex-col">
                           <span className="font-medium">
@@ -142,6 +167,8 @@ export default function ClientTable() {
                           </span>
                         </div>
                       </TableCell>
+
+                      {/* Company */}
                       <TableCell className="py-3 px-6">
                         <div className="flex flex-col">
                           <span>{client.company}</span>
@@ -150,47 +177,64 @@ export default function ClientTable() {
                           </span>
                         </div>
                       </TableCell>
+
+                      {/* Payment Status */}
                       <TableCell className="py-3 px-6">
                         <Badge
                           variant="outline"
-                          className={`text-xs px-3 py-1 rounded-full ${client.payment_status === "paid"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                            }`}
+                          className={`text-xs px-3 py-1 rounded-full ${
+                            client.payment_status === "paid"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
                         >
                           {client.payment_status}
                         </Badge>
                       </TableCell>
+
+                      {/* Chatbots */}
                       <TableCell className="py-3 px-6">
                         <span className="text-sm font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
                           {client.max_chatbots}
                         </span>
                       </TableCell>
+
+                      {/* Payment Verification */}
                       <TableCell className="py-3 px-6">
                         <Badge
-                          className={`text-xs px-3 py-1 rounded-full ${client.payment_status === "paid"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-red-100 text-red-700"
-                            }`}
+                          className={`text-xs px-3 py-1 rounded-full ${
+                            client.payment_status === "paid"
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
                         >
                           {client.payment_status === "paid"
                             ? "✓ Verified"
                             : "✗ Unverified"}
                         </Badge>
                       </TableCell>
+
+                      {/* Activity */}
                       <TableCell className="py-3 px-6">
                         <Badge
-                          className={`text-xs px-3 py-1 rounded-full ${client.is_active
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-200 text-gray-500"
-                            }`}
+                          className={`text-xs px-3 py-1 rounded-full ${
+                            client.is_active
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-200 text-gray-500"
+                          }`}
                         >
                           {client.is_active ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
+
+                      {/* Add Chatbot */}
                       <TableCell className="py-3 px-6">
                         <Button
-                          className={`p-2 ${!client.is_active ? "opacity-50 cursor-not-allowed" : ""}`}
+                          className={`p-2 ${
+                            !client.is_active
+                              ? "opacity-50 cursor-not-allowed"
+                              : ""
+                          }`}
                           onClick={() => {
                             if (client.is_active) {
                               router.push(
@@ -204,18 +248,21 @@ export default function ClientTable() {
                         >
                           Add Chatbot
                         </Button>
-
                       </TableCell>
+
+                      {/* Actions */}
                       <TableCell className="py-3 px-6">
                         <div className="flex items-center justify-center gap-3">
+                          {/* Deactivate */}
                           <Tooltip>
                             <TooltipTrigger>
                               <ShieldMinus
                                 title="Deactivate"
-                                className={`w-4 h-4 transition-transform hover:scale-110 ${!client.is_active
-                                  ? "text-gray-400 cursor-not-allowed"
-                                  : "text-red-500 cursor-pointer"
-                                  }`}
+                                className={`w-4 h-4 transition-transform hover:scale-110 ${
+                                  !client.is_active
+                                    ? "text-gray-400 cursor-not-allowed"
+                                    : "text-red-500 cursor-pointer"
+                                }`}
                                 onClick={() =>
                                   client.is_active &&
                                   handleUpdateStatusClick(client)
@@ -226,14 +273,17 @@ export default function ClientTable() {
                               <p>Deactivate</p>
                             </TooltipContent>
                           </Tooltip>
+
+                          {/* Edit */}
                           <Tooltip>
                             <TooltipTrigger>
                               <Pencil
                                 title="Edit"
-                                className={`w-4 h-4 transition-transform hover:scale-110 ${!client.is_active
-                                  ? "text-gray-400 cursor-not-allowed"
-                                  : "text-green-600 cursor-pointer"
-                                  }`}
+                                className={`w-4 h-4 transition-transform hover:scale-110 ${
+                                  !client.is_active
+                                    ? "text-gray-400 cursor-not-allowed"
+                                    : "text-green-600 cursor-pointer"
+                                }`}
                                 onClick={() =>
                                   client.is_active &&
                                   router.push(
@@ -246,22 +296,27 @@ export default function ClientTable() {
                               <p>Edit Client</p>
                             </TooltipContent>
                           </Tooltip>
+
+                          {/* Resend Email */}
                           <Tooltip>
                             <TooltipTrigger>
                               <MailPlus
                                 title="Resend Welcome Email"
-                                onClick={() => client.is_active && handleResendEmail(client.id)}
-                                className={`w-4 h-4 transition-transform hover:scale-110 ${client.is_active
-                                  ? "text-blue-600 cursor-pointer"
-                                  : "text-gray-400 cursor-not-allowed"
-                                  } ${isSending ? "opacity-50 cursor-not-allowed" : ""}`}
+                                onClick={() =>
+                                  client.is_active &&
+                                  handleResendEmail(client.id)
+                                }
+                                className={`w-4 h-4 transition-transform hover:scale-110 ${
+                                  client.is_active
+                                    ? "text-blue-600 cursor-pointer"
+                                    : "text-gray-400 cursor-not-allowed"
+                                } ${isSending ? "opacity-50" : ""}`}
                               />
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>Resend Email</p>
                             </TooltipContent>
                           </Tooltip>
-
                         </div>
                       </TableCell>
                     </TableRow>
@@ -272,35 +327,50 @@ export default function ClientTable() {
           </Table>
 
           {/* Pagination */}
-          <div className="p-4 text-sm text-gray-600">
-            Showing {clients.length > 0 ? `1 to ${clients.length}` : "0"} of{" "}
-            {clients.length} results
-            <div className="flex justify-end mt-2 gap-2">
-              <button
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-                className={`px-2 py-1 rounded ${currentPage === 1
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-100 text-gray-700"
-                  }`}
-              >
-                Previous
-              </button>
-              <button className="px-3 py-1 bg-purple-600 text-white rounded">
-                {currentPage}
-              </button>
-              <button
-                onClick={handleNextPage}
-                disabled={clients.length < 10}
-                className={`px-2 py-1 rounded ${clients.length < 10
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-100 text-gray-700"
-                  }`}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+        {/* Pagination */}
+<div className="p-4 text-sm text-gray-600">
+  Showing {(currentPage - 1) * 10 + 1} to{" "}
+  {(currentPage - 1) * 10 + clients.length} of {totalCount} results
+
+  <Pagination className="mt-4">
+    <PaginationContent>
+      {/* Previous */}
+      <PaginationItem>
+        <PaginationPrevious
+          onClick={handlePreviousPage}
+          className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+        />
+      </PaginationItem>
+
+      {/* Page Numbers */}
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+        <PaginationItem key={page}>
+          <PaginationLink
+            isActive={page === currentPage}
+            onClick={() => setCurrentPage(page)}
+          >
+            {page}
+          </PaginationLink>
+        </PaginationItem>
+      ))}
+
+      {/* Ellipsis (only if many pages) */}
+      {totalPages > 5 && currentPage < totalPages - 2 && (
+        <PaginationItem>
+          <PaginationEllipsis />
+        </PaginationItem>
+      )}
+
+      {/* Next */}
+      <PaginationItem>
+        <PaginationNext
+          onClick={handleNextPage}
+          className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+        />
+      </PaginationItem>
+    </PaginationContent>
+  </Pagination>
+</div>
         </>
       )}
 

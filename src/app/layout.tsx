@@ -15,6 +15,8 @@ const ubuntu = Ubuntu({
   weight: ["300", "400", "500", "700"],
 });
 
+// If you want static metadata, you must export it 
+// from a separate server component (like layout.server.tsx) or use head.tsx
 // export const metadata: Metadata = {
 //   title: "Chat Supplies",
 //   description: "Chatbot management platform",
@@ -28,13 +30,13 @@ export default function RootLayout({
   const pathname = usePathname();
 
   return (
-    <html lang="en">
+    <html lang="en" className={ubuntu.className}>
       <head>
         <title>Chat Supplies</title>
         <meta name="theme-color" content="#5046E5" />
         <link rel="icon" href="/Frame.svg" type="image/svg+xml" />
       </head>
-      <body className={`${ubuntu.className} w-screen min-h-screen`}>
+      <body className="w-screen min-h-screen">
         <Provider>
           <Toaster />
           <AnimatePresence mode="wait">
@@ -45,7 +47,7 @@ export default function RootLayout({
               exit={{ opacity: 0, scale: 0.98, y: -20 }}
               transition={{
                 duration: 0.5,
-                ease: [0.25, 0.8, 0.25, 1], // smooth cubic bezier
+                ease: [0.25, 0.8, 0.25, 1],
               }}
               className="h-full"
             >
