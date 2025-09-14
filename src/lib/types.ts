@@ -4,4 +4,5 @@ export type DecodedToken = {
   role: string;
   iat: number;
   exp?: number;
+  username?: string; // Optional username field
 }

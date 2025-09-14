@@ -38,9 +38,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const router = useRouter()
 
   useEffect(() => {
-    // const role = localStorage.getItem("role") || "hhh"
+    const role = localStorage.getItem("role") || "hhh"
     const name = localStorage.getItem("username") || "hhh"
-    console.log("Fetched username:", name)
+
+    // console.log("Fetched username:", name)
     // console.log("Fetched email:", role)
     // setRole(role)
     setUsername(name)

@@ -38,15 +38,18 @@ export default function LoginPage() {
     try {
       const result = await login({ username, password }).unwrap();
       const user = result.user;
+      const name = user?.username || "User";
       const apikey = result.apikey || result.api_key;
       const token = result.token || result.access_token;
       const email = result?.user?.email || result.email;
 
       if (token && user?.role) {
-        dispatch(setLogin({ token, role: user.role, api_key: apikey }));
+        dispatch(setLogin({ token, role: user.role, api_key: apikey, username: user.username }));
         localStorage.setItem("token", token);
         localStorage.setItem("apikey", apikey);
         localStorage.setItem("email", email);
+        localStorage.setItem("username", username);
+       
 
         toast.success("Login successful!");
         setTimeout(() => router.push("/dashboard"), 700);
