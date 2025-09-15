@@ -14,7 +14,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/src/components/ui/select";
-import PhoneInput from "@/src/components/PhoneInput";
+import PhoneInput from "@/src/components/PhoneInput"; // ✅ fixed import
 
 import { useCreateClientMutation } from "@/src/hooks/useClients";
 
@@ -57,19 +57,19 @@ export default function SignupPage() {
     if (error) setError("");
   };
 
+  // ✅ Handle phone input
   const handlePhoneChange = (value: string | undefined) => {
     const phoneValue = value || "";
     setForm({ ...form, phone_number: phoneValue });
 
     if (phoneValue.trim() !== "" && missing.includes("phone_number")) {
-      setMissing((prev) =>
-        prev.filter((field) => field !== "phone_number")
-      );
+      setMissing((prev) => prev.filter((field) => field !== "phone_number"));
     }
 
     if (error) setError("");
   };
 
+  // ✅ Handle select input
   const handleSelectChange = (value: string, name: string) => {
     setForm((prev) => ({ ...prev, [name]: value }));
 
@@ -80,11 +80,12 @@ export default function SignupPage() {
     if (error) setError("");
   };
 
+  // ✅ Handle signup
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // Trim all values
+    // Trim values
     const trimmedForm = {
       first_name: form.first_name.trim(),
       last_name: form.last_name.trim(),
@@ -94,12 +95,12 @@ export default function SignupPage() {
       industry: form.industry.trim(),
     };
 
-    // Check for empty fields
+    // Check empty fields
     const emptyFields = Object.entries(trimmedForm)
       .filter(([_, val]) => val === "")
       .map(([key]) => key);
 
-    // Check for invalid first/last names
+    // Check invalid names
     const invalidNameFields = ["first_name", "last_name"].filter(
       (key) => !/^[A-Za-z\s]+$/.test(trimmedForm[key as keyof typeof trimmedForm])
     );
@@ -115,7 +116,7 @@ export default function SignupPage() {
         toast.error("Please fill in all required fields");
         setError("Please fill in all required fields");
       }
-      return; // Prevent form submission
+      return;
     }
 
     try {
@@ -224,6 +225,7 @@ export default function SignupPage() {
                 onChange={handlePhoneChange}
                 className="mt-1 w-full border border-gray-400 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 {...({ placeholder: "Enter Phone Number" } as any)}
+                {...({ name: "phone_number" } as any)}
               />
 
               {/* Company */}
@@ -242,9 +244,7 @@ export default function SignupPage() {
                 >
                   <SelectTrigger
                     className={`mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                      missing.includes("industry")
-                        ? "border-red-500"
-                        : "border-gray-400"
+                      missing.includes("industry") ? "border-red-500" : "border-gray-400"
                     }`}
                   >
                     <SelectValue placeholder="Select Industry" />

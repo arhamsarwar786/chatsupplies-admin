@@ -38,18 +38,19 @@ export default function LoginPage() {
     try {
       const result = await login({ username, password }).unwrap();
       const user = result.user;
-      const name = user?.username || "User";
+            const name = user?.username || "User";
+
       const apikey = result.apikey || result.api_key;
       const token = result.token || result.access_token;
       const email = result?.user?.email || result.email;
 
       if (token && user?.role) {
-        dispatch(setLogin({ token, role: user.role, api_key: apikey, username: user.username }));
+        dispatch(setLogin({ token, role: user.role, api_key: apikey }));
         localStorage.setItem("token", token);
         localStorage.setItem("apikey", apikey);
         localStorage.setItem("email", email);
-        localStorage.setItem("username", username);
-       
+                localStorage.setItem("username", username);
+
 
         toast.success("Login successful!");
         setTimeout(() => router.push("/dashboard"), 700);
@@ -108,49 +109,48 @@ export default function LoginPage() {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-             <Input
-  type="text"
-  placeholder="Username"
-  value={username}
-  onChange={(e) => {
-    setUsername(e.target.value);
-    if (error && e.target.value.trim()) {
-      setError("");
-    }
-  }}
-  disabled={isLoading}
-  className={`bg-[#f3f0ff] ${
-    error && !username ? "border border-red-500" : ""
-  }`}
-/>
+              <Input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  if (error && e.target.value.trim()) {
+                    setError("");
+                  }
+                }}
+                disabled={isLoading}
+                className={`bg-[#f3f0ff] ${
+                  error && !username ? "border border-red-500" : ""
+                }`}
+              />
 
-<div className="relative">
-  <Input
-    type={showPassword ? "text" : "password"}
-    placeholder="Password"
-    value={password}
-    onChange={(e) => {
-      setPassword(e.target.value);
-      if (error && e.target.value.trim()) {
-        setError("");
-      }
-    }}
-    disabled={isLoading}
-    className={`bg-[#f3f0ff] ${
-      error && !password ? "border border-red-500" : ""
-    }`}
-/>
-  <Button
-    type="button"
-    variant="ghost"
-    size="sm"
-    className="absolute bg-gray-100 right-2 top-1/2 -translate-y-1/2 cursor-pointer"
-    onClick={() => setShowPassword(!showPassword)}
-  >
-    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-  </Button>
-</div>
-
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error && e.target.value.trim()) {
+                      setError("");
+                    }
+                  }}
+                  disabled={isLoading}
+                  className={`bg-[#f3f0ff] ${
+                    error && !password ? "border border-red-500" : ""
+                  }`}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute bg-gray-100 right-2 top-1/2 -translate-y-1/2 cursor-pointer"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </Button>
+              </div>
 
               {/* ✅ Single Login button */}
               <Button
@@ -183,8 +183,9 @@ export default function LoginPage() {
                 </span>{" "}
                 is a modern AI-powered platform designed to enhance customer
                 interactions through intelligent chat solutions. It empowers
-                businesses to automate conversations, improve support efficiency,
-                and drive user engagement with smart, responsive chatbots.
+                businesses to automate conversations, improve support
+                efficiency, and drive user engagement with smart, responsive
+                chatbots.
               </p>
             </div>
           </div>
@@ -209,5 +210,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }
