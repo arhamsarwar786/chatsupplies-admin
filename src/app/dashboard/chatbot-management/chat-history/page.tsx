@@ -67,12 +67,17 @@ const ChatHistoryPage = () => {
   const [selectedBotId, setSelectedBotId] = useState<number | null>(null);
 
   const {
-    data = [],
+    data: chatbotResponse,
     isLoading,
     isError,
   } = useGetChatbotQuery({ page: currentPage });
 
-  const selectedBot = data?.find((bot: Chatbot) => bot.id === selectedBotId);
+  // ✅ normalize data to always be an array
+  const chatbotList: Chatbot[] = Array.isArray(chatbotResponse)
+    ? chatbotResponse
+    : chatbotResponse?.results ?? [];
+
+  const selectedBot = chatbotList.find((bot: Chatbot) => bot.id === selectedBotId);
   const CHAT_PAGE_LIMIT = 2;
   const languageMap: Record<string, string> = {
     en: "English",
@@ -93,14 +98,13 @@ const ChatHistoryPage = () => {
   );
 
   const chatList = chatData?.results ?? [];
-  // console.log("All Chats:", chatList);
 
   const handlePreviousPage = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
 
   const handleNextPage = () => {
-    if (data.length < 10) return;
+    if (chatbotList.length < 10) return;
     setCurrentPage((prev) => prev + 1);
   };
 
@@ -124,7 +128,7 @@ const ChatHistoryPage = () => {
           <div className="mt-8 text-center text-red-500">
             Failed to load chatbots.
           </div>
-        ) : data.length === 0 ? (
+        ) : chatbotList.length === 0 ? (
           <div className="text-center h-[80vh] flex flex-col items-center justify-center">
             <Player
               autoplay
@@ -137,7 +141,7 @@ const ChatHistoryPage = () => {
         ) : !selectedBotId ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-8">
-              {data.map((bot: Chatbot) => (
+              {chatbotList.map((bot: Chatbot) => (
                 <Card
                   key={bot.id}
                   onClick={() => setSelectedBotId(bot.id)}
@@ -307,7 +311,7 @@ const ChatHistoryPage = () => {
                       <PaginationNext
                         onClick={() => setChatPage((prev) => prev + 1)}
                         className={
-                          !chatData || chatData.length < CHAT_PAGE_LIMIT
+                          !chatData || chatList.length < CHAT_PAGE_LIMIT
                             ? "pointer-events-none opacity-50"
                             : ""
                         }
