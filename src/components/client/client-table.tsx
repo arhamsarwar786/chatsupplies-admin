@@ -327,7 +327,6 @@ export default function ClientTable() {
           </Table>
 
           {/* Pagination */}
-<<<<<<<<< Temporary merge branch 1
           <div className="p-4 text-sm text-gray-600">
             Showing {clients.length > 0 ? `1 to ${clients.length}` : "0"} of{" "}
             {clients.length} results
@@ -357,7 +356,6 @@ export default function ClientTable() {
               </button>
             </div>
           </div>
-=========
         {/* Pagination */}
 <div className="p-4 text-sm text-gray-600">
   Showing {(currentPage - 1) * 10 + 1} to{" "}
@@ -402,7 +400,6 @@ export default function ClientTable() {
     </PaginationContent>
   </Pagination>
 </div>
->>>>>>>>> Temporary merge branch 2
         </>
       )}
 
