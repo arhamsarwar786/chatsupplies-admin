@@ -327,7 +327,37 @@ export default function ClientTable() {
           </Table>
 
           {/* Pagination */}
-
+<<<<<<<<< Temporary merge branch 1
+          <div className="p-4 text-sm text-gray-600">
+            Showing {clients.length > 0 ? `1 to ${clients.length}` : "0"} of{" "}
+            {clients.length} results
+            <div className="flex justify-end mt-2 gap-2">
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className={`px-2 py-1 rounded ${currentPage === 1
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700 cursor-pointer"
+                  }`}
+              >
+                Previous
+              </button>
+              <button className="px-3 py-1 bg-purple-600 text-white rounded cursor-pointer">
+                {currentPage}
+              </button>
+              <button
+                onClick={handleNextPage}
+                disabled={clients.length < 10}
+                className={`px-2 py-1 rounded ${clients.length < 10
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700 cursor-pointer"
+                  }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+=========
         {/* Pagination */}
 <div className="p-4 text-sm text-gray-600">
   Showing {(currentPage - 1) * 10 + 1} to{" "}
@@ -372,36 +402,7 @@ export default function ClientTable() {
     </PaginationContent>
   </Pagination>
 </div>
-
-          <div className="p-4 text-sm text-gray-600">
-            Showing {clients.length > 0 ? `1 to ${clients.length}` : "0"} of{" "}
-            {clients.length} results
-            <div className="flex justify-end mt-2 gap-2">
-              <button
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-                className={`px-2 py-1 rounded ${currentPage === 1
-                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-100 text-gray-700 cursor-pointer"
-                  }`}
-              >
-                Previous
-              </button>
-              <button className="px-3 py-1 bg-purple-600 text-white rounded cursor-pointer">
-                {currentPage}
-              </button>
-              <button
-                onClick={handleNextPage}
-                disabled={clients.length < 10}
-                className={`px-2 py-1 rounded ${clients.length < 10
-                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-100 text-gray-700 cursor-pointer"
-                  }`}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+>>>>>>>>> Temporary merge branch 2
         </>
       )}
 
