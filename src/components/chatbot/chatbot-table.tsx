@@ -301,7 +301,8 @@ const handleNextPage = () => {
                   </Tooltip>
 
                   {(bot.progress_status === "ready" ||
-                    bot.progress_status === "just_created") && (
+                    bot.progress_status === "just_created" ||
+                  bot.progress_status === "failed") && (
                     <>
                       <Tooltip>
                         <TooltipTrigger>

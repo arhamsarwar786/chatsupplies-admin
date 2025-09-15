@@ -79,7 +79,7 @@ const items = [
     icon: Bot,
     subItems: [
       { title: "Chat History", url: "/dashboard/chatbot-management/chat-history", icon: Home },
-      { title: "Chat Creation", url: "/dashboard/chatbot-management/create-chatbot", icon: Home },
+      // { title: "Chat Creation", url: "/dashboard/chatbot-management/create-chatbot", icon: Home },
     ],
   },
 
@@ -91,7 +91,7 @@ const items = [
           url: "/dashboard/client-management",
           icon: User,
           subItems: [
-            { title: "Create Client", url: "/dashboard/client-management/create-client", icon: Home },
+            // { title: "Create Client", url: "/dashboard/client-management/create-client", icon: Home },
           ],
         },
       ]

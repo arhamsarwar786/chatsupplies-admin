@@ -64,7 +64,7 @@ const UploadURL = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {(status == "ready" || status == "just_created") ? (
+      {(status == "ready" || status == "just_created" || status == "failed") ? (
         <DialogTrigger asChild>
           <button
             type="button"
