@@ -133,7 +133,7 @@ export default function ClientTable() {
                 <TableHead className="text-center py-4 px-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="min-h-[400px]">
               {clients.length === 0 ? (
                 <TableRow>
                   <TableCell
@@ -393,6 +393,7 @@ export default function ClientTable() {
               variant="outline"
               onClick={() => setConfirmDialogOpen(false)}
               disabled={isDeleting}
+              className="cursor-pointer"
             >
               Cancel
             </Button>
@@ -400,10 +401,12 @@ export default function ClientTable() {
               variant="destructive"
               onClick={confirmDelete}
               disabled={isDeleting}
+              className="cursor-pointer"
             >
               {isDeleting ? "Deleting..." : "Confirm"}
             </Button>
           </div>
+
         </DialogContent>
       </Dialog>
     </div>
