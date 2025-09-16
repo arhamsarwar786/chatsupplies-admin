@@ -14,7 +14,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/src/components/ui/select";
-import PhoneInput from "@/src/components/PhoneInput"; // ✅ fixed import
+import PhoneInput from "@/src/components/PhoneInput";
 
 import { useCreateClientMutation } from "@/src/hooks/useClients";
 
@@ -57,19 +57,19 @@ export default function SignupPage() {
     if (error) setError("");
   };
 
-  // ✅ Handle phone input
   const handlePhoneChange = (value: string | undefined) => {
     const phoneValue = value || "";
     setForm({ ...form, phone_number: phoneValue });
 
     if (phoneValue.trim() !== "" && missing.includes("phone_number")) {
-      setMissing((prev) => prev.filter((field) => field !== "phone_number"));
+      setMissing((prev) =>
+        prev.filter((field) => field !== "phone_number")
+      );
     }
 
     if (error) setError("");
   };
 
-  // ✅ Handle select input
   const handleSelectChange = (value: string, name: string) => {
     setForm((prev) => ({ ...prev, [name]: value }));
 
@@ -80,12 +80,11 @@ export default function SignupPage() {
     if (error) setError("");
   };
 
-  // ✅ Handle signup
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // Trim values
+    // Trim all values
     const trimmedForm = {
       first_name: form.first_name.trim(),
       last_name: form.last_name.trim(),
@@ -95,12 +94,12 @@ export default function SignupPage() {
       industry: form.industry.trim(),
     };
 
-    // Check empty fields
+    // Check for empty fields
     const emptyFields = Object.entries(trimmedForm)
       .filter(([_, val]) => val === "")
       .map(([key]) => key);
 
-    // Check invalid names
+    // Check for invalid first/last names
     const invalidNameFields = ["first_name", "last_name"].filter(
       (key) => !/^[A-Za-z\s]+$/.test(trimmedForm[key as keyof typeof trimmedForm])
     );
@@ -116,7 +115,7 @@ export default function SignupPage() {
         toast.error("Please fill in all required fields");
         setError("Please fill in all required fields");
       }
-      return;
+      return; // Prevent form submission
     }
 
     try {
@@ -217,15 +216,16 @@ export default function SignupPage() {
                 value={form.email}
                 onChange={handleChange}
                 placeholder="Email Address"
+                className={missing.includes("email") ? "border-red-500" : "border-gray-400"}
               />
 
               {/* Phone */}
               <PhoneInput
                 value={form.phone_number}
                 onChange={handlePhoneChange}
-                className="mt-1 w-full border border-gray-400 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                {...({ placeholder: "Enter Phone Number" } as any)}
-                {...({ name: "phone_number" } as any)}
+                className={`mt-1 w-full border rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  missing.includes("phone_number") ? "border-red-500" : "border-gray-400"
+                }`}
               />
 
               {/* Company */}
@@ -234,6 +234,7 @@ export default function SignupPage() {
                 value={form.company_name}
                 onChange={handleChange}
                 placeholder="Company Name"
+                className={missing.includes("company_name") ? "border-red-500" : "border-gray-400"}
               />
 
               {/* Industry */}
@@ -244,7 +245,9 @@ export default function SignupPage() {
                 >
                   <SelectTrigger
                     className={`mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                      missing.includes("industry") ? "border-red-500" : "border-gray-400"
+                      missing.includes("industry")
+                        ? "border-red-500"
+                        : "border-gray-400"
                     }`}
                   >
                     <SelectValue placeholder="Select Industry" />
