@@ -120,211 +120,205 @@ export default function ClientTable() {
       {error && <div className="p-4 text-red-500">Failed to load clients.</div>}
       {!isLoading && !error && (
         <>
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-100 dark:bg-zinc-800">
-                <TableHead className="py-4 px-6">Client</TableHead>
-                <TableHead className="py-4 px-6">Company</TableHead>
-                <TableHead className="py-4 px-6">Status</TableHead>
-                <TableHead className="py-4 px-6">Chatbots</TableHead>
-                <TableHead className="py-4 px-6">Payment</TableHead>
-                <TableHead className="py-4 px-6">Activity</TableHead>
-                <TableHead className="py-4 px-6">Add Chatbot</TableHead>
-                <TableHead className="text-center py-4 px-6">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="min-h-[400px]">
-              {clients.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={8}
-                    className="text-center py-6 text-gray-500"
-                  >
-                    No clients found.
-                  </TableCell>
+          <div className="w-full max-w-full overflow-x-auto">
+            <Table className="min-w-full table-auto">
+              <TableHeader>
+                <TableRow className="bg-gray-100 dark:bg-zinc-800">
+                  <TableHead className="py-4 px-6">Client</TableHead>
+                  <TableHead className="py-4 px-6">Company</TableHead>
+                  <TableHead className="py-4 px-6">Status</TableHead>
+                  <TableHead className="py-4 px-6">Chatbots</TableHead>
+                  <TableHead className="py-4 px-6">Payment</TableHead>
+                  <TableHead className="py-4 px-6">Activity</TableHead>
+                  <TableHead className="py-4 px-6">Add Chatbot</TableHead>
+                  <TableHead className="text-center py-4 px-6">Actions</TableHead>
                 </TableRow>
-              ) : (
-                clients.map((client) => {
-                  const isDisabled = !client.is_active;
-
-                  return (
-                    <TableRow
-                      key={client.id}
-                      className={`group transition-all ${
-                        isDisabled
-                          ? "opacity-50 bg-gray-50"
-                          : "hover:bg-gray-50"
-                      }`}
+              </TableHeader>
+              <TableBody className="min-h-[400px]">
+                {clients.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className="text-center py-6 text-gray-500"
                     >
-                      {/* Client Info */}
-                      <TableCell className="py-3 px-6">
-                        <div className="flex flex-col">
-                          <span className="font-medium">
-                            {client.first_name}
+                      No clients found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  clients.map((client) => {
+                    const isDisabled = !client.is_active;
+
+                    return (
+                      <TableRow
+                        key={client.id}
+                        className={`group transition-all ${isDisabled
+                            ? "opacity-50 bg-gray-50"
+                            : "hover:bg-gray-50"
+                          }`}
+                      >
+                        {/* Client Info */}
+                        <TableCell className="py-3 px-6">
+                          <div className="flex flex-col">
+                            <span className="font-medium">
+                              {client.first_name}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {client.email}
+                            </span>
+                          </div>
+                        </TableCell>
+
+                        {/* Company */}
+                        <TableCell className="py-3 px-6">
+                          <div className="flex flex-col">
+                            <span>{client.company}</span>
+                            <span className="text-xs text-gray-500">
+                              {client.company_name}
+                            </span>
+                          </div>
+                        </TableCell>
+
+                        {/* Payment Status */}
+                        <TableCell className="py-3 px-6">
+                          <Badge
+                            variant="outline"
+                            className={`text-xs px-3 py-1 rounded-full ${client.payment_status === "paid"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                              }`}
+                          >
+                            {client.payment_status}
+                          </Badge>
+                        </TableCell>
+
+                        {/* Chatbots */}
+                        <TableCell className="py-3 px-6">
+                          <span className="text-sm font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                            {client.max_chatbots}
                           </span>
-                          <span className="text-xs text-gray-500">
-                            {client.email}
-                          </span>
-                        </div>
-                      </TableCell>
+                        </TableCell>
 
-                      {/* Company */}
-                      <TableCell className="py-3 px-6">
-                        <div className="flex flex-col">
-                          <span>{client.company}</span>
-                          <span className="text-xs text-gray-500">
-                            {client.company_name}
-                          </span>
-                        </div>
-                      </TableCell>
+                        {/* Payment Verification */}
+                        <TableCell className="py-3 px-6">
+                          <Badge
+                            className={`text-xs px-3 py-1 rounded-full ${client.payment_status === "paid"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-red-100 text-red-700"
+                              }`}
+                          >
+                            {client.payment_status === "paid"
+                              ? "✓ Verified"
+                              : "✗ Unverified"}
+                          </Badge>
+                        </TableCell>
 
-                      {/* Payment Status */}
-                      <TableCell className="py-3 px-6">
-                        <Badge
-                          variant="outline"
-                          className={`text-xs px-3 py-1 rounded-full ${
-                            client.payment_status === "paid"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {client.payment_status}
-                        </Badge>
-                      </TableCell>
+                        {/* Activity */}
+                        <TableCell className="py-3 px-6">
+                          <Badge
+                            className={`text-xs px-3 py-1 rounded-full ${client.is_active
+                                ? "bg-green-100 text-green-700"
+                                : "bg-gray-200 text-gray-500"
+                              }`}
+                          >
+                            {client.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
 
-                      {/* Chatbots */}
-                      <TableCell className="py-3 px-6">
-                        <span className="text-sm font-semibold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-                          {client.max_chatbots}
-                        </span>
-                      </TableCell>
+                        {/* Add Chatbot */}
+                        <TableCell className="py-3 px-6">
+                          <Button
+                            className={`p-2 ${!client.is_active
+                                ? "opacity-50 cursor-not-allowed"
+                                : ""
+                              }`}
+                            onClick={() => {
+                              if (client.is_active) {
+                                router.push(
+                                  `/dashboard/chatbot-management/create-chatbot?clientEmail=${encodeURIComponent(
+                                    client.email
+                                  )}`
+                                );
+                              }
+                            }}
+                            disabled={!client.is_active}
+                          >
+                            Add Chatbot
+                          </Button>
+                        </TableCell>
 
-                      {/* Payment Verification */}
-                      <TableCell className="py-3 px-6">
-                        <Badge
-                          className={`text-xs px-3 py-1 rounded-full ${
-                            client.payment_status === "paid"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {client.payment_status === "paid"
-                            ? "✓ Verified"
-                            : "✗ Unverified"}
-                        </Badge>
-                      </TableCell>
+                        {/* Actions */}
+                        <TableCell className="py-3 px-6">
+                          <div className="flex items-center justify-center gap-3">
+                            {/* Deactivate */}
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <ShieldMinus
+                                  title="Deactivate"
+                                  className={`w-4 h-4 transition-transform hover:scale-110 ${!client.is_active
+                                      ? "text-gray-400 cursor-not-allowed"
+                                      : "text-red-500 cursor-pointer"
+                                    }`}
+                                  onClick={() =>
+                                    client.is_active &&
+                                    handleUpdateStatusClick(client)
+                                  }
+                                />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Deactivate</p>
+                              </TooltipContent>
+                            </Tooltip>
 
-                      {/* Activity */}
-                      <TableCell className="py-3 px-6">
-                        <Badge
-                          className={`text-xs px-3 py-1 rounded-full ${
-                            client.is_active
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-200 text-gray-500"
-                          }`}
-                        >
-                          {client.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
+                            {/* Edit */}
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Pencil
+                                  title="Edit"
+                                  className={`w-4 h-4 transition-transform hover:scale-110 ${!client.is_active
+                                      ? "text-gray-400 cursor-not-allowed"
+                                      : "text-green-600 cursor-pointer"
+                                    }`}
+                                  onClick={() =>
+                                    client.is_active &&
+                                    router.push(
+                                      `/dashboard/client-management/edit-client/${client.id}`
+                                    )
+                                  }
+                                />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Edit Client</p>
+                              </TooltipContent>
+                            </Tooltip>
 
-                      {/* Add Chatbot */}
-                      <TableCell className="py-3 px-6">
-                        <Button
-                          className={`p-2 ${
-                            !client.is_active
-                              ? "opacity-50 cursor-not-allowed"
-                              : ""
-                          }`}
-                          onClick={() => {
-                            if (client.is_active) {
-                              router.push(
-                                `/dashboard/chatbot-management/create-chatbot?clientEmail=${encodeURIComponent(
-                                  client.email
-                                )}`
-                              );
-                            }
-                          }}
-                          disabled={!client.is_active}
-                        >
-                          Add Chatbot
-                        </Button>
-                      </TableCell>
-
-                      {/* Actions */}
-                      <TableCell className="py-3 px-6">
-                        <div className="flex items-center justify-center gap-3">
-                          {/* Deactivate */}
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <ShieldMinus
-                                title="Deactivate"
-                                className={`w-4 h-4 transition-transform hover:scale-110 ${
-                                  !client.is_active
-                                    ? "text-gray-400 cursor-not-allowed"
-                                    : "text-red-500 cursor-pointer"
-                                }`}
-                                onClick={() =>
-                                  client.is_active &&
-                                  handleUpdateStatusClick(client)
-                                }
-                              />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Deactivate</p>
-                            </TooltipContent>
-                          </Tooltip>
-
-                          {/* Edit */}
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <Pencil
-                                title="Edit"
-                                className={`w-4 h-4 transition-transform hover:scale-110 ${
-                                  !client.is_active
-                                    ? "text-gray-400 cursor-not-allowed"
-                                    : "text-green-600 cursor-pointer"
-                                }`}
-                                onClick={() =>
-                                  client.is_active &&
-                                  router.push(
-                                    `/dashboard/client-management/edit-client/${client.id}`
-                                  )
-                                }
-                              />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Edit Client</p>
-                            </TooltipContent>
-                          </Tooltip>
-
-                          {/* Resend Email */}
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <MailPlus
-                                title="Resend Welcome Email"
-                                onClick={() =>
-                                  client.is_active &&
-                                  handleResendEmail(client.id)
-                                }
-                                className={`w-4 h-4 transition-transform hover:scale-110 ${
-                                  client.is_active
-                                    ? "text-blue-600 cursor-pointer"
-                                    : "text-gray-400 cursor-not-allowed"
-                                } ${isSending ? "opacity-50" : ""}`}
-                              />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Resend Email</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
+                            {/* Resend Email */}
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <MailPlus
+                                  title="Resend Welcome Email"
+                                  onClick={() =>
+                                    client.is_active &&
+                                    handleResendEmail(client.id)
+                                  }
+                                  className={`w-4 h-4 transition-transform hover:scale-110 ${client.is_active
+                                      ? "text-blue-600 cursor-pointer"
+                                      : "text-gray-400 cursor-not-allowed"
+                                    } ${isSending ? "opacity-50" : ""}`}
+                                />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Resend Email</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
 
           {/* Pagination */}
           <div className="p-4 text-sm text-gray-600">
@@ -335,8 +329,8 @@ export default function ClientTable() {
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
                 className={`px-2 py-1 rounded ${currentPage === 1
-                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-100 text-gray-700 cursor-pointer"
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-100 text-gray-700 cursor-pointer"
                   }`}
               >
                 Previous
@@ -348,58 +342,58 @@ export default function ClientTable() {
                 onClick={handleNextPage}
                 disabled={clients.length < 10}
                 className={`px-2 py-1 rounded ${clients.length < 10
-                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-100 text-gray-700 cursor-pointer"
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-100 text-gray-700 cursor-pointer"
                   }`}
               >
                 Next
               </button>
             </div>
           </div>
-        {/* Pagination */}
-<div className="p-4 text-sm text-gray-600">
-  Showing {(currentPage - 1) * 10 + 1} to{" "}
-  {(currentPage - 1) * 10 + clients.length} of {totalCount} results
+          {/* Pagination */}
+          <div className="p-4 text-sm text-gray-600">
+            Showing {(currentPage - 1) * 10 + 1} to{" "}
+            {(currentPage - 1) * 10 + clients.length} of {totalCount} results
 
-  <Pagination className="mt-4">
-    <PaginationContent>
-      {/* Previous */}
-      <PaginationItem>
-        <PaginationPrevious
-          onClick={handlePreviousPage}
-          className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-        />
-      </PaginationItem>
+            <Pagination className="mt-4">
+              <PaginationContent>
+                {/* Previous */}
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={handlePreviousPage}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
 
-      {/* Page Numbers */}
-      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-        <PaginationItem key={page}>
-          <PaginationLink
-            isActive={page === currentPage}
-            onClick={() => setCurrentPage(page)}
-          >
-            {page}
-          </PaginationLink>
-        </PaginationItem>
-      ))}
+                {/* Page Numbers */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      isActive={page === currentPage}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
 
-      {/* Ellipsis (only if many pages) */}
-      {totalPages > 5 && currentPage < totalPages - 2 && (
-        <PaginationItem>
-          <PaginationEllipsis />
-        </PaginationItem>
-      )}
+                {/* Ellipsis (only if many pages) */}
+                {totalPages > 5 && currentPage < totalPages - 2 && (
+                  <PaginationItem>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                )}
 
-      {/* Next */}
-      <PaginationItem>
-        <PaginationNext
-          onClick={handleNextPage}
-          className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-        />
-      </PaginationItem>
-    </PaginationContent>
-  </Pagination>
-</div>
+                {/* Next */}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={handleNextPage}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
         </>
       )}
 
