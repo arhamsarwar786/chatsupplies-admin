@@ -957,4 +957,5 @@ const ChatbotSetup = () => {
     </div>
   );
 };
+
 export default ChatbotSetup;
