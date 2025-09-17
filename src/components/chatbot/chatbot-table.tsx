@@ -27,23 +27,23 @@ import {
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/src/components/ui/pagination"
+} from "@/src/components/ui/pagination";
 import {
   useGetChatbotQuery,
   useCreateChatbotMutation,
 } from "@/src/hooks/useChatbot";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import UploadPDF from "./upload-pdf";
-import UploadURL from "./upload-url";
 import ActionsDropdown from "./uploaded-files";
 import CopyScript from "./copy-script";
 import { SquarePen } from "lucide-react";
+import ChatbotCrawlingStatus from "./chatbot-crawling-status";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/src/components/ui/dialog";
+import UploadUrlPdf from "./upload-url-pdf";
 
 const Player = dynamic(
   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
@@ -75,18 +75,10 @@ interface Chatbot {
 
 const getStatusStyle = (status: string) => {
   switch (status.toLowerCase()) {
-    // case "pending":
-    //   return "bg-yellow-100 text-yellow-800";
     case "just_created":
       return "bg-red-100 text-red-800";
-    // case "knowledge_base_ready":
-    //   return "bg-green-100 text-green-800";
     case "in_progress":
       return "bg-orange-100 text-orange-800";
-    // case "building_knowledge_base":
-    //   return "bg-blue-100 text-blue-800";
-    // case "training":
-    //   return "bg-purple-100 text-purple-800";
     case "ready":
       return "bg-green-100 text-green-800";
     default:
@@ -94,7 +86,6 @@ const getStatusStyle = (status: string) => {
   }
 };
 
-// Utility: relative time like "5 sec ago"
 const getRelativeTime = (dateString: string) => {
   if (!dateString) return "N/A";
   const now = new Date();
@@ -117,50 +108,18 @@ const getRelativeTime = (dateString: string) => {
 export default function ChatbotTable() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
-  const [uploadedFilesDialogOpen, setUploadedFilesDialogOpen] = useState(false);
-const {
-  data,
-  isLoading,
-  error,
-  refetch,
-} = useGetChatbotQuery({ page: currentPage, sort_desc: true });
+  const [selectedBotId, setSelectedBotId] = useState<number | null>(null);
+  const {
+    data,
+    isLoading,
+    error,
+  } = useGetChatbotQuery({ page: currentPage, sort_desc: true });
 
-const chatbots = data?.chatbots ?? [];
-const totalPages = data?.total_pages ?? 1;
-const totalCount = data?.total_count ?? 0;
+  const chatbots = data?.chatbots ?? [];
+  const totalPages = data?.total_pages ?? 1;
+  const totalCount = data?.total_count ?? 0;
 
-  console.log(chatbots);
   const [createChatbot, { isLoading: isCreating }] = useCreateChatbotMutation();
-const handlePreviousPage = () => {
-  setCurrentPage((prev) => Math.max(prev - 1, 1));
-};
-
-const handleNextPage = () => {
-  setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-};
-
-  const handleAddChatbot = async () => {
-    try {
-      const newBot = {
-        name: "New Chatbot",
-        description: "Auto-created bot",
-      };
-      await createChatbot(newBot).unwrap();
-      toast.success("Chatbot created!");
-      refetch();
-    } catch (err: any) {
-      toast.error(err?.data?.message || "Failed to create chatbot");
-    }
-  };
-
-  // const handlePreviousPage = () => {
-  //   setCurrentPage((prev) => Math.max(prev - 1, 1));
-  // };
-
-  // const handleNextPage = () => {
-  //   if (data.length < 10) return; // adjust this limit as per your backend pagination
-  //   setCurrentPage((prev) => prev + 1);
-  // };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -172,225 +131,242 @@ const handleNextPage = () => {
         <h1 className="text-2xl font-semibold">Chatbots</h1>
       </div>
 
-      <Table className="w-full border border-gray-200 rounded-md shadow-sm">
-        <TableHeader className="bg-gray-50">
-          <TableRow>
-            <TableHead className="px-4 py-3 text-left font-semibold text-gray-700">
-              Chatbot Name
-            </TableHead>
-            <TableHead className="px-4 py-3 text-left">Client</TableHead>
-            <TableHead className="px-4 py-3 text-left">Status</TableHead>
-            <TableHead className="px-4 py-3 text-left">Interactions</TableHead>
-            <TableHead className="px-4 py-3 text-left">Edit</TableHead>
-            <TableHead className="px-4 py-3 text-left">Created</TableHead>
-            <TableHead className="px-4 py-3 text-left">Last Response</TableHead>
-            <TableHead className="px-4 py-3 text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          {isLoading && (
+      {/* ✅ Responsive wrapper for table */}
+      <div className="overflow-x-auto w-full">
+        <Table className="min-w-[500px] sm:min-w-full w-full border border-gray-200 rounded-md shadow-sm">
+          <TableHeader className="bg-gray-50">
             <TableRow>
-              <TableCell colSpan={8} className="text-center py-6 text-gray-500">
-                Loading...
-              </TableCell>
+              <TableHead className="px-4 py-3 text-left font-semibold text-gray-700">
+                Chatbot Name
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left hidden md:table-cell">
+                Client
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left">
+                Status
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left hidden md:table-cell">
+                Interactions
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left hidden md:table-cell">
+                Edit
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left hidden md:table-cell">
+                Created
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left hidden md:table-cell">
+                Last Response
+              </TableHead>
+              <TableHead className="px-4 py-3 text-right">
+                Actions
+              </TableHead>
             </TableRow>
-          )}
+          </TableHeader>
 
-          {error && (
-            <TableRow>
-              <TableCell colSpan={8} className="text-center py-6 text-red-500">
-                Failed to load chatbots.
-              </TableCell>
-            </TableRow>
-          )}
+          <TableBody>
+            {isLoading && (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-6 text-gray-500">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            )}
 
-          {chatbots.length === 0 && !isLoading && !error && (
-            <TableRow>
-              <TableCell colSpan={8}>
-                <div className="w-full flex flex-col items-center py-10 text-muted-foreground">
-                  <Player
-                    autoplay
-                    loop
-                    src="NoDataFoundAnimation"
-                    style={{ height: "200px", width: "200px" }}
-                  />
-                  <p className="mt-4 text-sm">No chatbots found.</p>
-                </div>
-              </TableCell>
-            </TableRow>
-          )}
+            {error && (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-6 text-red-500">
+                  Failed to load chatbots.
+                </TableCell>
+              </TableRow>
+            )}
 
-         {chatbots.map((bot: Chatbot, idx: number) => (
-            <TableRow
-              key={idx}
-              className="hover:bg-gray-50 transition-colors duration-150"
-            >
-              {/* Chatbot Name & Description */}
-              <TableCell className="px-4 py-3">
-                <div className="flex flex-col">
-                  <span className="font-medium text-gray-800">{bot.name}</span>
-                  <span className="text-sm text-gray-500">
-                    {bot.description}
+            {chatbots.length === 0 && !isLoading && !error && (
+              <TableRow>
+                <TableCell colSpan={8}>
+                  <div className="w-full flex flex-col items-center py-10 text-muted-foreground">
+                    <Player
+                      autoplay
+                      loop
+                      src="NoDataFoundAnimation"
+                      style={{ height: "200px", width: "200px" }}
+                    />
+                    <p className="mt-4 text-sm">No chatbots found.</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+
+            {chatbots.map((bot: Chatbot, idx: number) => (
+              <TableRow
+                key={idx}
+                onClick={() => setSelectedBotId(bot.id)}
+                className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+              >
+                <TableCell className="px-4 py-3">
+                  <div className="flex flex-col">
+                    <span className="font-medium text-gray-800">{bot.name}</span>
+                    <span className="text-sm text-gray-500">
+                      {bot.description}
+                    </span>
+                  </div>
+                </TableCell>
+
+                <TableCell className="px-4 py-3 hidden md:table-cell">
+                  <span>{bot.client_name}</span>
+                </TableCell>
+
+                <TableCell className="px-4 py-3">
+                  <span
+                    className={`text-xs font-semibold uppercase px-2 py-1 rounded-full ${getStatusStyle(
+                      bot.progress_status
+                    )}`}
+                  >
+                    {bot.progress_status.replace(/_/g, " ")}
                   </span>
-                </div>
-              </TableCell>
+                </TableCell>
 
-              {/* Client Name */}
-              <TableCell className="px-4 py-3">
-                <span>{bot.client_name}</span>
-              </TableCell>
+                <TableCell className="px-4 py-3 hidden md:table-cell">
+                  <span className="font-medium text-gray-700">
+                    {bot.total_interactions ?? "N/A"}
+                  </span>
+                </TableCell>
 
-              {/* Status Badge */}
-              <TableCell className="px-4 py-3">
-                <span
-                  className={`text-xs font-semibold uppercase px-2 py-1 rounded-full ${getStatusStyle(
-                    bot.progress_status
-                  )}`}
-                >
-                  {bot.progress_status.replace(/_/g, " ")}
-                </span>
-              </TableCell>
+                <TableCell className="px-4 py-3 hidden md:table-cell">
+                  <SquarePen
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(
+                        `/dashboard/chatbot-management/update-chatbot/${bot.id}`
+                      );
+                    }}
+                    className="cursor-pointer text-blue-600 hover:text-blue-500 transition"
+                  />
+                </TableCell>
 
-              {/* Interactions */}
-              <TableCell className="px-4 py-3">
-                <span className="font-medium text-gray-700">
-                  {bot.total_interactions ?? "N/A"}
-                </span>
-              </TableCell>
+                <TableCell className="px-4 py-3 hidden md:table-cell">
+                  {bot.created_at
+                    ? new Date(bot.created_at).toLocaleString(undefined, {
+                      year: "numeric",
+                      month: "short",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })
+                    : "N/A"}
+                </TableCell>
 
-              {/* Edit Icon */}
-              <TableCell className="px-4 py-3">
-                <SquarePen
-                  onClick={() =>
-                    router.push(
-                      `/dashboard/chatbot-management/update-chatbot/${bot.id}`
-                    )
-                  }
-                  className="cursor-pointer text-blue-600 hover:text-blue-500 transition"
-                />
-              </TableCell>
+                <TableCell className="px-4 py-3 hidden md:table-cell">
+                  {bot.created_at ? getRelativeTime(bot.created_at) : "N/A"}
+                </TableCell>
 
-              {/* Creation Date */}
-              <TableCell className="px-4 py-3">
-                {bot.created_at
-                  ? new Date(bot.created_at).toLocaleDateString()
-                  : "N/A"}
-              </TableCell>
+                <TableCell className="px-4 py-3 text-right">
+                  <div
+                    className="flex justify-end items-center gap-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <UploadUrlPdf
+                          chatbotId={bot.id}
+                          status={bot.progress_status}
+                          client_email={bot.client_email}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Upload URL & PDF</p>
+                      </TooltipContent>
+                    </Tooltip>
 
-              {/* Relative Time for Last Response */}
-              <TableCell className="px-4 py-3">
-                {bot.created_at ? getRelativeTime(bot.created_at) : "N/A"}
-              </TableCell>
-
-              {/* Actions */}
-              <TableCell className="px-4 py-3 text-right">
-                <div className="flex justify-end items-center gap-2">
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <UploadURL
-                        chatbotId={bot.id}
-                        status={bot.progress_status}
-                        client_email={bot.client_email}
-
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Upload URL</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  {(bot.progress_status === "ready" ||
-                    bot.progress_status === "just_created") && (
-                    <>
+                    {bot.progress_status === "ready" && (
                       <Tooltip>
                         <TooltipTrigger>
-                          <UploadPDF
+                          <CopyScript
                             chatbotId={bot.id}
-                            
+                            client_api_key={bot.client_api_key}
                             status={bot.progress_status}
                           />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Upload PDF</p>
+                          <p>Copy Script</p>
                         </TooltipContent>
                       </Tooltip>
+                    )}
 
-                      {bot.progress_status === "ready" && (
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <CopyScript
-                              chatbotId={bot.id}
-                              client_api_key={bot.client_api_key}
-                              status={bot.progress_status}
-                            />
-                            
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Copy Script</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
+                    <ActionsDropdown chatbotId={bot.id} />
+                  </div>
+                </TableCell>
 
-                      <ActionsDropdown chatbotId={bot.id} />
-                    </>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
-    <div className="flex w-full justify-between text-sm text-muted-foreground pt-4">
- <span>
-  Showing {chatbots.length > 0 ? `1 to ${chatbots.length}` : "0"} of {totalCount} results (Page {currentPage} of {totalPages})
-</span>
-<Pagination>
-  <PaginationContent>
-    {/* Previous */}
-    <PaginationItem>
-      <PaginationPrevious
-        href="#"
-        onClick={(e) => {
-          e.preventDefault();
-          if (currentPage > 1) setCurrentPage((p) => p - 1);
-        }}
-        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-      />
-    </PaginationItem>
+      <div className="flex w-full justify-between text-sm text-muted-foreground pt-4">
+        <span>
+          Showing {chatbots.length > 0 ? `1 to ${chatbots.length}` : "0"} of{" "}
+          {totalCount} results (Page {currentPage} of {totalPages})
+        </span>
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (currentPage > 1) setCurrentPage((p) => p - 1);
+                }}
+                className={
+                  currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                }
+              />
+            </PaginationItem>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <PaginationItem key={i}>
+                <PaginationLink
+                  href="#"
+                  isActive={currentPage === i + 1}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage(i + 1);
+                  }}
+                >
+                  {i + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (currentPage < totalPages) setCurrentPage((p) => p + 1);
+                }}
+                className={
+                  currentPage === totalPages
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
 
-    {/* Page numbers */}
-    {Array.from({ length: totalPages }, (_, i) => (
-      <PaginationItem key={i}>
-        <PaginationLink
-          href="#"
-          isActive={currentPage === i + 1}
-          onClick={(e) => {
-            e.preventDefault();
-            setCurrentPage(i + 1);
-          }}
-        >
-          {i + 1}
-        </PaginationLink>
-      </PaginationItem>
-    ))}
-
-    {/* Next */}
-    <PaginationItem>
-      <PaginationNext
-        href="#"
-        onClick={(e) => {
-          e.preventDefault();
-          if (currentPage < totalPages) setCurrentPage((p) => p + 1);
-        }}
-        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-      />
-    </PaginationItem>
-  </PaginationContent>
-</Pagination>
-</div>
-
+      <Dialog
+        open={!!selectedBotId}
+        onOpenChange={(open) => setSelectedBotId(open ? selectedBotId : null)}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Crawling Status</DialogTitle>
+          </DialogHeader>
+          {selectedBotId && (
+            <ChatbotCrawlingStatus chatbotId={selectedBotId} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
