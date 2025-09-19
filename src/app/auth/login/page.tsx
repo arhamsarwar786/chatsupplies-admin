@@ -38,7 +38,7 @@ export default function LoginPage() {
     try {
       const result = await login({ username, password }).unwrap();
       const user = result.user;
-            const name = user?.username || "User";
+      const name = user?.username || "User";
 
       const apikey = result.apikey || result.api_key;
       const token = result.token || result.access_token;
@@ -49,7 +49,7 @@ export default function LoginPage() {
         localStorage.setItem("token", token);
         localStorage.setItem("apikey", apikey);
         localStorage.setItem("email", email);
-                localStorage.setItem("username", username);
+        localStorage.setItem("username", username);
 
 
         toast.success("Login successful!");
@@ -120,9 +120,8 @@ export default function LoginPage() {
                   }
                 }}
                 disabled={isLoading}
-                className={`bg-[#f3f0ff] ${
-                  error && !username ? "border border-red-500" : ""
-                }`}
+                className={`bg-[#f3f0ff] ${error && !username ? "border border-red-500" : ""
+                  }`}
               />
 
               <div className="relative">
@@ -137,9 +136,8 @@ export default function LoginPage() {
                     }
                   }}
                   disabled={isLoading}
-                  className={`bg-[#f3f0ff] ${
-                    error && !password ? "border border-red-500" : ""
-                  }`}
+                  className={`bg-[#f3f0ff] ${error && !password ? "border border-red-500" : ""
+                    }`}
                 />
                 <Button
                   type="button"
@@ -176,7 +174,7 @@ export default function LoginPage() {
             <div className="text-center max-w-xl mx-auto sm:mt-1">
               <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
                 <span
-                  onClick={() => router.push("chatsupplies.com")}
+                  onClick={() => window.location.href = "https://chatsupplies.com"}
                   className="text-primary font-bold cursor-pointer"
                 >
                   ChatSupplies
