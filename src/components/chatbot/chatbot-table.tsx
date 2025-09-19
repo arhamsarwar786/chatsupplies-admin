@@ -81,6 +81,8 @@ const getStatusStyle = (status: string) => {
       return "bg-orange-100 text-orange-800";
     case "ready":
       return "bg-green-100 text-green-800";
+    case "failed":
+      return "bg-red-100 text-red-800";
     default:
       return "bg-gray-100 text-gray-800";
   }
@@ -109,6 +111,8 @@ export default function ChatbotTable() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBotId, setSelectedBotId] = useState<number | null>(null);
+  const [recrawlBotId, setRecrawlBotId] = useState<number | null>(null);
+
   const {
     data,
     isLoading,
@@ -124,6 +128,16 @@ export default function ChatbotTable() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentPage]);
+
+  const handleRecrawlClick = (e: React.MouseEvent, botId: number) => {
+    e.stopPropagation(); // crucial fix
+    setRecrawlBotId(botId);
+  };
+
+  const handleModalRecrawl = (botId: number) => {
+    setSelectedBotId(null); // Close the status modal
+    setRecrawlBotId(botId); // Open the recrawl modal
+  };
 
   return (
     <div className="space-y-4">
@@ -246,13 +260,13 @@ export default function ChatbotTable() {
                 <TableCell className="px-4 py-3 hidden md:table-cell">
                   {bot.created_at
                     ? new Date(bot.created_at).toLocaleString(undefined, {
-                      year: "numeric",
-                      month: "short",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    })
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      })
                     : "N/A"}
                 </TableCell>
 
@@ -265,22 +279,32 @@ export default function ChatbotTable() {
                     className="flex justify-end items-center gap-2"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <UploadUrlPdf
-                          chatbotId={bot.id}
-                          status={bot.progress_status}
-                          client_email={bot.client_email}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Upload URL & PDF</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    {bot.progress_status === "failed" ? (
+                      <Button
+                        onClick={(e) => handleRecrawlClick(e, bot.id)}
+                        variant="outline"
+                        className="text-red-500 hover:text-red-600 border-red-500 hover:border-red-600"
+                      >
+                        Recrawl
+                      </Button>
+                    ) : (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <UploadUrlPdf
+                            chatbotId={bot.id}
+                            status={bot.progress_status}
+                            client_email={bot.client_email}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Upload URL & PDF</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
 
                     {bot.progress_status === "ready" && (
                       <Tooltip>
-                        <TooltipTrigger>
+                        <TooltipTrigger asChild>
                           <CopyScript
                             chatbotId={bot.id}
                             client_api_key={bot.client_api_key}
@@ -296,7 +320,6 @@ export default function ChatbotTable() {
                     <ActionsDropdown chatbotId={bot.id} />
                   </div>
                 </TableCell>
-
               </TableRow>
             ))}
           </TableBody>
@@ -363,7 +386,25 @@ export default function ChatbotTable() {
             <DialogTitle>Crawling Status</DialogTitle>
           </DialogHeader>
           {selectedBotId && (
-            <ChatbotCrawlingStatus chatbotId={selectedBotId} />
+            <ChatbotCrawlingStatus
+              chatbotId={selectedBotId}
+              onRecrawlClick={handleModalRecrawl}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={!!recrawlBotId} onOpenChange={(open) => setRecrawlBotId(open ? recrawlBotId : null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Upload Content for Recrawl</DialogTitle>
+          </DialogHeader>
+          {recrawlBotId && (
+            <UploadUrlPdf
+              chatbotId={recrawlBotId}
+              status={"failed"}
+              client_email={chatbots.find(bot => bot.id === recrawlBotId)?.client_email || ''}
+            />
           )}
         </DialogContent>
       </Dialog>

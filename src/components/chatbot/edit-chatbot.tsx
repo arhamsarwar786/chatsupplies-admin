@@ -13,6 +13,16 @@ import {
   Send,
   BotIcon,
   ImageIcon,
+  Settings,
+  ChevronUp,
+  ChevronDown,
+  Upload,
+  FileText,
+  CheckCircle,
+  Trash,
+  Palette,
+  MessageSquare, // Added MessageSquare import
+  Check, // Added Check import
 } from "lucide-react";
 
 const tones = [
@@ -26,9 +36,12 @@ const EditChatbot = () => {
   const chatbotId = params?.id ? Number(params.id) : undefined;
 
   // API Hooks
-  const { data: chatbotData, isLoading: isFetching } = useGetChatbotByIdQuery(chatbotId!, {
-    skip: !chatbotId,
-  });
+  const { data: chatbotData, isLoading: isFetching } = useGetChatbotByIdQuery(
+    chatbotId!,
+    {
+      skip: !chatbotId,
+    }
+  );
   const [updateChatbot, { isLoading }] = useUpdateChatbotMutation();
 
   // Form State
@@ -36,7 +49,8 @@ const EditChatbot = () => {
   const [description, setDescription] = useState("");
   const [industry, setIndustry] = useState("");
   const [language, setLanguage] = useState("English");
-  const [tone, setTone] = useState("Friendly");
+  // Correctly initialize tone state with a value from the `tones` array's `value` property
+  const [tone, setTone] = useState("friendly");
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [businessHoursStart, setBusinessHoursStart] = useState("");
   const [businessHoursEnd, setBusinessHoursEnd] = useState("");
@@ -58,6 +72,22 @@ const EditChatbot = () => {
   // Message preview
   const [message, setMessage] = useState("");
 
+  // Placeholder for uploaded files to fix the reference error in the summary section
+  const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+
+  // Section toggling
+  const [openSections, setOpenSections] = useState({
+    appearance: true,
+    preview: true, // Added a default state for the preview section
+  });
+
+  const toggleSection = (section: string) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [section]: !prev[section as keyof typeof prev],
+    }));
+  };
+
   // Pre-fill data when chatbot loads
   useEffect(() => {
     if (chatbotData) {
@@ -65,7 +95,12 @@ const EditChatbot = () => {
       setDescription(chatbotData.description || "");
       setIndustry(chatbotData.industry || "");
       setLanguage(chatbotData.language || "English");
-      setTone(chatbotData.personality_tone || "Friendly");
+      // Set the tone state using the 'value' from the tones array, not the 'name'
+      const initialTone =
+        tones.find((t) => t.value === chatbotData.personality_tone)?.value ||
+        "friendly";
+      setTone(initialTone);
+
       setWelcomeMessage(chatbotData.welcome_message || "");
       setBusinessHoursStart(chatbotData.business_hours_start || "");
       setBusinessHoursEnd(chatbotData.business_hours_end || "");
@@ -100,7 +135,6 @@ const EditChatbot = () => {
     }
   }, [chatbotData]);
 
-
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -131,7 +165,7 @@ const EditChatbot = () => {
     const chatbotForm = {
       name,
       description,
-      personality_tone: tone,
+      personality_tone: tone, // The value of tone is now correct
       industry,
       language,
       welcome_message: welcomeMessage,
@@ -150,16 +184,6 @@ const EditChatbot = () => {
       window_background_color: windowBgColor,
     };
 
-
-    const formData = new FormData();
-    console.log("Updating chatbot with data:", JSON.stringify(chatbotForm, null, 2));
-    formData.append("chatbot_form", JSON.stringify(chatbotForm));
-
-
-    if (logoFile) {
-      formData.append("logo", logoFile);
-    }
-
     try {
       await updateChatbot({
         chatbotId,
@@ -170,6 +194,12 @@ const EditChatbot = () => {
       console.error("Error updating chatbot:", error);
       toast.error("Error updating chatbot");
     }
+  };
+
+  // Added a placeholder function to fix reference error
+  const resetForm = () => {
+    // Implement form reset logic here
+    console.log("Form reset initiated");
   };
 
   if (isFetching) {
@@ -183,132 +213,133 @@ const EditChatbot = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      {/* ... (First form section for Basic Setup remains the same) ... */}
       <div className="flex-col space-y-6 items-center w-full justify-between ">
         <div className="mb-6">
-          <h2 className="text-2xl font-semibold text-gray-900">Chatbot Creation Process</h2>
-          <p className="text-gray-500 text-sm">Follow these steps to create your chatbot from start to finish</p>
+          <h2 className="text-2xl font-semibold text-gray-900">Edit Chatbot</h2>
+          <p className="text-gray-500 text-sm">Update your chatbot settings</p>
         </div>
       </div>
-      {/* Form Section */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Left Side Form */}
-        <div className="md:col-span-2 space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Basic Setup & Configuration</h3>
-          <div>
-            <label className="text-sm font-medium text-gray-700">Chatbot Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Enter chatbot name"
-              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700">Description</label>
-            <textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder="Describe your chatbot's purpose"
-              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              required
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700">Industry</label>
-              <select
-                value={industry}
-                onChange={e => setIndustry(e.target.value)}
-                className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
-              >
-                <option value="string">Select Industry</option>
-                <option value="Healthcare">Healthcare</option>
-                <option value="Finance">Finance</option>
-                <option value="Education">Education</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Language</label>
-              <select
-                value={language}
-                onChange={e => setLanguage(e.target.value)}
-                className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
-              >
-                <option value="English">English</option>
-                <option value="French">French</option>
-                <option value="Urdu">Urdu</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700">Welcome Message</label>
-            <input
-              type="text"
-              value={welcomeMessage}
-              onChange={e => setWelcomeMessage(e.target.value)}
-              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700">Business Hours Start</label>
-              <input
-                type="text"
-                value={businessHoursStart}
-                onChange={e => setBusinessHoursStart(e.target.value)}
-                className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Business Hours End</label>
-              <input
-                type="text"
-                value={businessHoursEnd}
-                onChange={e => setBusinessHoursEnd(e.target.value)}
-                className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-          </div> */}
-          {/* <div className="flex items-center gap-2 mt-2">
-            <input
-              type="checkbox"
-              checked={isActive}
-              onChange={e => setIsActive(e.target.checked)}
-              id="isActive"
-              className="form-checkbox"
-            />
-            <label htmlFor="isActive" className="text-sm text-gray-700">Active</label>
-          </div> */}
-        </div>
-        {/* Right Side Avatar & Personality */}
-        <div className="space-y-4">
 
-          {/* <h3 className="text-sm font-semibold text-gray-700">Bot Avatar & Personality</h3> */}
-          <div>
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Upload Logo (PNG, JPG, JPEG)
+      {/* Basic Information Section */}
+      <div className="bg-white w-full rounded-xl shadow-md border border-gray-200 overflow-hidden mb-6">
+        <div className="flex items-center justify-between p-5 bg-gray-50">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-card rounded-lg">
+              <Settings className="w-5 h-5 text-blue-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Basic Information
+            </h2>
+          </div>
+        </div>
+
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Chatbot Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g., Customer Support Bot"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What does your chatbot do?"
+                rows={3}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Industry <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  required
+                >
+                  <option value="">Select Industry</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Education">Education</option>
+                  <option value="E-commerce">E-commerce</option>
+                  <option value="Technology">Technology</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Language <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  required
+                >
+                  <option value="English">English</option>
+                  <option value="French">French</option>
+                  <option value="Spanish">Spanish</option>
+                  <option value="German">German</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Welcome Message <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={welcomeMessage}
+                onChange={(e) => setWelcomeMessage(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Upload Logo
               </label>
               <div
-                className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-primary transition-all cursor-pointer bg-white shadow-sm"
-                onClick={() => document.getElementById('logoInput')?.click()}
+                className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-400 transition-all cursor-pointer bg-white"
+                onClick={() => document.getElementById("logoInput")?.click()}
               >
                 {logoPreview ? (
-                  <img
-                    src={logoPreview}
-                    alt="Logo Preview"
-                    className="h-20 w-20 object-contain rounded-full shadow-md"
-                  />
+                  <div className="text-center">
+                    <img
+                      src={logoPreview}
+                      alt="Logo Preview"
+                      className="h-24 w-24 object-contain rounded-lg mx-auto shadow-md"
+                    />
+                    <p className="text-sm text-blue-600 mt-2">
+                      Click to change image
+                    </p>
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center text-gray-400">
-                    <ImageIcon className="w-8 h-8 mb-2" />
-                    <p className="text-sm">Click to upload image</p>
-                    <p className="text-xs mt-1">PNG, JPG, JPEG only</p>
+                    <div className="p-3 bg-blue-50 rounded-full mb-3">
+                      <Upload className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <p className="text-sm font-medium">Click to upload logo</p>
+                    <p className="text-xs mt-1">PNG, JPG, JPEG (Max 5MB)</p>
                   </div>
                 )}
               </div>
@@ -320,188 +351,466 @@ const EditChatbot = () => {
                 className="hidden"
               />
             </div>
-            <RadioGroup value={tone} onChange={setTone}>
-              <RadioGroup.Label className="text-sm font-medium text-gray-700">Personality Tone</RadioGroup.Label>
-              <div className="mt-2 space-y-1">
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Personality Tone
+              </label>
+              <RadioGroup value={tone} onChange={setTone} className="grid grid-cols-1 gap-2">
                 {tones.map((item) => (
-                  <RadioGroup.Option key={item.value} value={item.name}>
-                    {({ checked }) => (
-                      <div className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          checked={tone === item.name}
-                          onChange={() => setTone(item.name)}
-                          className="form-radio text-indigo-600"
-                        />
-                        <span className="text-sm text-gray-800">{item.name}</span>
+                  <RadioGroup.Option
+                    key={item.value}
+                    value={item.value}
+                    className={({ active, checked }) =>
+                      `border rounded-lg p-3 cursor-pointer transition-all ${checked ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                      }`
+                    }
+                  >
+                    {({ active, checked }) => (
+                      <div className="flex items-center">
+                        <div
+                          className={`h-4 w-4 rounded-full border flex items-center justify-center mr-3 ${checked ? "border-blue-500 bg-blue-500" : "border-gray-400"
+                          }`}
+                        >
+                          {checked && (
+                            <div className="h-2 w-2 rounded-full bg-white"></div>
+                          )}
+                        </div>
+                        <p className="font-medium text-gray-800">{item.name}</p>
                       </div>
                     )}
                   </RadioGroup.Option>
                 ))}
-              </div>
-            </RadioGroup>
+              </RadioGroup>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 grid-cols-1 w-full  bg-white border border-gray-200 rounded-xl shadow-sm p-6 gap-6">
-        <div className="w-full space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Testing & Preview</h3>
+      {/* Appearance Section */}
+      <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+        <div
+          className="flex items-center justify-between p-5 bg-gray-50 cursor-pointer"
+          onClick={() => toggleSection("appearance")}
+        >
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <Palette className="w-5 h-5 text-purple-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Appearance & Styling
+            </h2>
+          </div>
+          {openSections.appearance ? (
+            <ChevronUp className="text-gray-500" />
+          ) : (
+            <ChevronDown className="text-gray-500" />
+          )}
+        </div>
 
-          <div
-            className="border rounded-xl overflow-hidden shadow"
-            style={{ backgroundColor: windowBgColor }}
-          >
-            {/* Chat Header */}
-            <div
-              className="text-white p-4 flex items-center space-x-3"
-              style={{ backgroundColor: primaryColor }}
-            >
-              <div className="bg-white/20 p-1.5 rounded-full">
-                <BotIcon className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="font-medium">Customer Support Bot</p>
-                <p className="text-xs text-white/80">Online</p>
-              </div>
+        {openSections.appearance && (
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-5 w-full">
+              {[
+                {
+                  label: "Primary Color",
+                  description: "Header, buttons, and accents",
+                  value: primaryColor,
+                  setter: setPrimaryColor,
+                },
+                {
+                  label: "Window Background",
+                  description: "Chat window background color",
+                  value: windowBgColor,
+                  setter: setWindowBgColor,
+                },
+                {
+                  label: "User Bubble Color",
+                  description: "Color of messages sent by users",
+                  value: userBubbleColor,
+                  setter: setUserBubbleColor,
+                },
+                {
+                  label: "Bot Bubble Color",
+                  description: "Color of messages sent by the bot",
+                  value: botBubbleColor,
+                  setter: setBotBubbleColor,
+                },
+                {
+                  label: "User Text Color",
+                  description: "Text color in user messages",
+                  value: userTextColor,
+                  setter: setUserTextColor,
+                },
+                {
+                  label: "Bot Text Color",
+                  description: "Text color in bot messages",
+                  value: botTextColor,
+                  setter: setBotTextColor,
+                },
+              ].map(({ label, description, value, setter }) => (
+                <div
+                  key={label}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-800 mb-1">
+                      {label}
+                    </label>
+                    <p className="text-xs text-gray-500">{description}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded-full border border-gray-300 shadow-sm"
+                      style={{ backgroundColor: value }}
+                    ></div>
+                    <input
+                      type="color"
+                      value={value}
+                      onChange={(e) => setter(e.target.value)}
+                      className="w-8 h-8 cursor-pointer rounded-md border border-gray-300 shadow-sm"
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {/* Chat Messages */}
-            <div className="p-4 space-y-4 h-64 overflow-y-auto text-sm">
-              {/* Bot Message */}
-              <div className="flex items-start space-x-2">
-                <BotIcon className="w-4 h-4 mt-0.5" style={{ color: primaryColor }} />
-                <div
-                  className="border rounded-md px-3 py-2 max-w-md"
-                  style={{ backgroundColor: botBubbleColor, borderColor: "#e5e7eb", color: botTextColor }}
-                >
-                  Hello! How can I help you today?
-                </div>
-              </div>
-
-              {/* User Message */}
-              <div className="flex justify-end">
-                <div
-                  className="text-white rounded-md px-3 py-2 max-w-md"
-                  style={{ backgroundColor: userBubbleColor, color: userTextColor, borderColor: "#e5e7eb" }}
-                >
-                  What are your business hours?
-                </div>
-              </div>
-
-              {/* Bot Response */}
-              <div className="flex items-start space-x-2">
-                <BotIcon className="w-4 h-4 mt-0.5" style={{ color: primaryColor }} />
-                <div
-                  className="border rounded-md px-3 py-2 max-w-md"
-                  style={{ backgroundColor: botBubbleColor, borderColor: "#e5e7eb", color: botTextColor }}
-                >
-                  We&apos;re open Monday to Friday, 9 AM to 6 PM EST. Is there anything specific I can help you with?
-                </div>
-              </div>
-            </div>
-
-            {/* Chat Input */}
-            <div className="flex items-center p-3 border-t bg-white">
-              <input
-                type="text"
-                placeholder="Type your message..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault(); // ⬅️ stop form submit
-                    handleSend();       // ⬅️ instead, trigger preview send
-                  }
-                }}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2"
-              />
-
-              <button
-                onClick={handleSend}
-                className="text-white px-4 py-2 rounded-r-md flex items-center justify-center"
-                style={{ backgroundColor: primaryColor }}
+            {/* Live Preview */}
+            <div className="space-y-4 w-full">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
+                Live Preview
+              </h3>
+              <div
+                className="border flex flex-col justify-between rounded-xl overflow-hidden shadow-lg w-full h-[450px]"
+                style={{ backgroundColor: windowBgColor }}
               >
-                <Send className="w-4 h-4" />
-              </button>
+                <div>
+                  {/* Chat Header */}
+                  <div
+                    className="text-white p-4 flex items-center space-x-3"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {logoPreview ? (
+                      <img
+                        src={logoPreview}
+                        alt="Logo"
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="bg-white/20 p-1.5 rounded-full">
+                        <BotIcon className="w-5 h-5 text-white" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-medium">
+                        {name || "Customer Support"}
+                      </p>
+                      <p className="text-xs text-white/80">Online</p>
+                    </div>
+                  </div>
+
+                  {/* Chat Messages */}
+                  <div className="p-4 space-y-4 h-64 overflow-y-auto">
+                    {/* Bot Message */}
+                    <div className="flex items-start space-x-2">
+                      {logoPreview ? (
+                        <img
+                          src={logoPreview}
+                          alt="Logo"
+                          className="w-6 h-6 rounded-full mt-0.5 object-cover"
+                        />
+                      ) : (
+                        <BotIcon
+                          className="w-5 h-5 mt-0.5"
+                          style={{ color: primaryColor }}
+                        />
+                      )}
+                      <div
+                        className="rounded-lg px-3 py-2 max-w-xs"
+                        style={{
+                          backgroundColor: botBubbleColor,
+                          color: botTextColor,
+                        }}
+                      >
+                        {welcomeMessage}
+                      </div>
+                    </div>
+
+                    {/* User Message */}
+                    <div className="flex justify-end">
+                      <div
+                        className="rounded-lg px-3 py-2 max-w-xs"
+                        style={{
+                          backgroundColor: userBubbleColor,
+                          color: userTextColor,
+                        }}
+                      >
+                        What are your business hours?
+                      </div>
+                    </div>
+
+                    {/* Bot Response */}
+                    <div className="flex items-start space-x-2">
+                      {logoPreview ? (
+                        <img
+                          src={logoPreview}
+                          alt="Logo"
+                          className="w-6 h-6 rounded-full mt-0.5 object-cover"
+                        />
+                      ) : (
+                        <BotIcon
+                          className="w-5 h-5 mt-0.5"
+                          style={{ color: primaryColor }}
+                        />
+                      )}
+                      <div
+                        className="rounded-lg px-3 py-2 max-w-xs"
+                        style={{
+                          backgroundColor: botBubbleColor,
+                          color: botTextColor,
+                        }}
+                      >
+                        We're open Monday to Friday, 9 AM to 6 PM EST.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Chat Input */}
+                <div className="flex items-center p-3 border-t  bg-white">
+                  <input
+                    type="text"
+                    placeholder="Type your message..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault(); // stop form submission
+                        handleSend(); // just send preview message
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
             </div>
           </div>
+        )}
+      </div>
+      {/* Final Preview Section */}
+      <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden mt-6">
+        <div
+          className="flex items-center justify-between p-5 bg-gray-50 cursor-pointer"
+          onClick={() => toggleSection("preview")}
+        >
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-amber-100 rounded-lg">
+              <MessageSquare className="w-5 h-5 text-amber-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Preview & Create
+            </h2>
+          </div>
+          {openSections.preview ? (
+            <ChevronUp className="text-gray-500" />
+          ) : (
+            <ChevronDown className="text-gray-500" />
+          )}
         </div>
 
-        <div className="grid grid-cols-1 gap-6 bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-xl">
-          {[
-            {
-              label: "Window Background Color",
-              description: "Sets the background color of your chatbot window.",
-              value: windowBgColor,
-              setter: setWindowBgColor,
-            },
-            {
-              label: "Primary Theme Color",
-              description: "Highlights buttons and important elements.",
-              value: primaryColor,
-              setter: setPrimaryColor,
-            },
-            {
-              label: "User Bubble Color",
-              description: "Color of messages sent by the user.",
-              value: userBubbleColor,
-              setter: setUserBubbleColor,
-            },
-            {
-              label: "Bot Bubble Color",
-              description: "Color of messages sent by the bot.",
-              value: botBubbleColor,
-              setter: setBotBubbleColor,
-            },
-            {
-              label: "Bot Text Color",
-              description: "Color of messages text sent by the bot.",
-              value: botTextColor,
-              setter: setBotTextColor,
-            },
-            {
-              label: "User Text Color",
-              description: "Color of messages text sent by the user.",
-              value: userTextColor,
-              setter: setUserTextColor,
-            },
-          ].map(({ label, description, value, setter }) => (
-            <div
-              key={label}
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 transition hover:shadow-md"
-            >
-              <div className="flex-1">
-                <label className="block text-sm font-semibold text-gray-800 dark:text-white">
-                  {label}
-                </label>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
+        {openSections.preview && (
+          <div className="p-6">
+            <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+              <div className="flex-1 space-y-4">
+                <h3 className="text-lg font-medium text-gray-800">
+                  Chatbot Summary
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500">Name</p>
+                    <p className="font-medium">{name || "Not specified"}</p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500">Industry</p>
+                    <p className="font-medium">{industry || "Not specified"}</p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500">Personality</p>
+                    {/* Display the tone name, not the value */}
+                    <p className="font-medium">
+                      {tones.find((t) => t.value === tone)?.name || "N/A"}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-500">Training Files</p>
+                    <p className="font-medium">
+                      {uploadedFiles.length} PDF(s)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-200">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition flex items-center justify-center shadow-md ${!isLoading ? "cursor-pointer" : "cursor-not-allowed"
+                    }`}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="animate-spin w-5 h-5 mr-2 cursor-pointer" />
+                        Updating Chatbot...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-5 h-5 mr-2 cursor-pointer" />
+                        Update Chatbot
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="mt-3 text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer"
+                  >
+                    Reset form
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center gap-3 mt-2 sm:mt-0">
+              <div className="w-full md:w-96">
+                <h3 className="text-lg font-medium text-gray-800 mb-4">
+                  Final Preview
+                </h3>
                 <div
-                  className="w-8 h-8 rounded-full border border-gray-300 shadow-inner"
-                  style={{ backgroundColor: value }}
-                ></div>
-                <input
-                  type="color"
-                  value={value}
-                  onChange={e => setter(e.target.value)}
-                  className="w-14 h-10 cursor-pointer rounded-md border border-gray-300 dark:border-gray-600 shadow-sm transition-all hover:scale-105 focus:ring-2 focus:ring-primary focus:outline-none"
-                />
+                  className="border rounded-xl overflow-hidden shadow-lg mx-auto"
+                  style={{
+                    backgroundColor: windowBgColor,
+                    maxWidth: "320px",
+                    transform: "scale(0.9)",
+                    transformOrigin: "top",
+                  }}
+                >
+                  {/* Chat Header */}
+                  <div
+                    className="text-white p-4 flex items-center space-x-3"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {logoPreview ? (
+                      <img
+                        src={logoPreview}
+                        alt="Logo"
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="bg-white/20 p-1.5 rounded-full">
+                        <BotIcon className="w-5 h-5 text-white" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-medium text-sm">
+                        {name || "Customer Support"}
+                      </p>
+                      <p className="text-xs text-white/80">Online</p>
+                    </div>
+                  </div>
+
+                  {/* Chat Messages */}
+                  <div className="p-3 space-y-3 h-56 overflow-y-auto">
+                    {/* Bot Message */}
+                    <div className="flex items-start space-x-2">
+                      {logoPreview ? (
+                        <img
+                          src={logoPreview}
+                          alt="Logo"
+                          className="w-5 h-5 rounded-full mt-0.5 object-cover"
+                        />
+                      ) : (
+                        <BotIcon
+                          className="w-4 h-4 mt-0.5"
+                          style={{ color: primaryColor }}
+                        />
+                      )}
+                      <div
+                        className="rounded-lg px-3 py-2 text-sm max-w-xs"
+                        style={{
+                          backgroundColor: botBubbleColor,
+                          color: botTextColor,
+                        }}
+                      >
+                        {welcomeMessage}
+                      </div>
+                    </div>
+
+                    {/* User Message */}
+                    <div className="flex justify-end">
+                      <div
+                        className="rounded-lg px-3 py-2 text-sm max-w-xs"
+                        style={{
+                          backgroundColor: userBubbleColor,
+                          color: userTextColor,
+                        }}
+                      >
+                        Hi, how can you help me?
+                      </div>
+                    </div>
+
+                    {/* Bot Response */}
+                    <div className="flex items-start space-x-2">
+                      {logoPreview ? (
+                        <img
+                          src={logoPreview}
+                          alt="Logo"
+                          className="w-5 h-5 rounded-full mt-0.5 object-cover"
+                        />
+                      ) : (
+                        <BotIcon
+                          className="w-4 h-4 mt-0.5"
+                          style={{ color: primaryColor }}
+                        />
+                      )}
+                      <div
+                        className="rounded-lg px-3 py-2 text-sm max-w-xs"
+                        style={{
+                          backgroundColor: botBubbleColor,
+                          color: botTextColor,
+                        }}
+                      >
+                        I can answer questions about our products and services.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chat Input */}
+                  <div className="flex items-center p-2 border-t bg-white">
+                    <input
+                      type="text"
+                      placeholder="Type your message..."
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault(); // stop form submission
+                          handleSend(); // just send preview message
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+
+                    <button
+                      className="text-white px-3 py-1.5 rounded-r-lg flex items-center justify-center text-sm"
+                      style={{ backgroundColor: primaryColor }}
+                    >
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          ))}
-        </div>
-        <div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="mt-6 px-6 py-2 bg-primary hover:bg-primary/80 text-white rounded-md font-semibold transition"
-          >
-            {isLoading ? "Updating..." : "Update Chatbot"}
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </form>
   );

@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { CheckCircle, Loader2 } from "lucide-react";
+import { Button } from "@/src/components/ui/button";
 
 interface Log {
   id: number;
@@ -11,7 +12,15 @@ interface Log {
   timestamp: string;
 }
 
-export default function ChatbotCrawlingStatus({ chatbotId }: { chatbotId: number }) {
+interface ChatbotCrawlingStatusProps {
+  chatbotId: number;
+  onRecrawlClick: (id: number) => void;
+}
+
+export default function ChatbotCrawlingStatus({
+  chatbotId,
+  onRecrawlClick,
+}: ChatbotCrawlingStatusProps) {
   const [logs, setLogs] = useState<Log[]>([]);
 
   // Simulate fetching logs (replace with your API later)
@@ -82,12 +91,21 @@ export default function ChatbotCrawlingStatus({ chatbotId }: { chatbotId: number
           )}`}
         >
           <div className="flex items-center gap-2">
-            {/* show spinner when in progress, tick when done */}
+            {/* show spinner when in progress, tick when done, or a button when failed */}
             {log.status === "completed" && (
               <CheckCircle className="w-5 h-5 text-green-600" />
             )}
             {log.status === "in_progress" && (
               <Loader2 className="w-5 h-5 text-yellow-600 animate-spin" />
+            )}
+            {log.status === "failed" && (
+              <Button
+                onClick={() => onRecrawlClick(chatbotId)}
+                variant="outline"
+                className="text-red-500 hover:text-red-600 border-red-500 hover:border-red-600 px-3 py-1"
+              >
+                Recrawl
+              </Button>
             )}
             <span className="font-medium">{log.message}</span>
           </div>
