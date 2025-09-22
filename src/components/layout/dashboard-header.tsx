@@ -16,9 +16,10 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/src/components/ui/tooltip";
-import { Avatar, AvatarFallback } from "@/src/components/ui/avatar"
-import { Bell, Plus, User, LogOut, Settings, CircleUserRound } from "lucide-react"
+} from "@/src/components/ui/tooltip"
+import { Dialog, DialogContent } from "@/src/components/ui/dialog"
+import ProfileCard from "./profileCard"
+import { Bell, LogOut, CircleUserRound, User } from "lucide-react"
 
 type DashboardHeaderProps = {
   title?: string
@@ -35,15 +36,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 }) => {
   const [role, setRole] = useState("")
   const [username, setUsername] = useState("")
+  const [showProfile, setShowProfile] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    const role = localStorage.getItem("role") || "hhh"
+    const storedRole = localStorage.getItem("role") || "hhh"
     const name = localStorage.getItem("username") || "hhh"
-
-    // console.log("Fetched username:", name)
-    // console.log("Fetched email:", role)
-    // setRole(role)
+    setRole(storedRole)
     setUsername(name)
   }, [])
 
@@ -52,17 +51,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     router.push("/")
   }
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((word) => word[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
-  }
-
   return (
-    <header className="flex items-center  justify-between border-b bg-gray-100  px-6 py-4 shadow-sm">
+    <header className="flex items-center justify-between border-b bg-gray-100 px-6 py-4 shadow-sm">
       <div className="flex items-center gap-4">
         <SidebarTrigger className="-ml-1" />
         <div>
@@ -75,34 +65,34 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         {buttonText && (
           <Button
             onClick={onButtonClick}
-            className="flex gap-2  text-white bg-primary hover:bg-primary/80"
+            className="flex gap-2 text-white bg-primary hover:bg-primary/80"
           >
             {buttonText}
           </Button>
         )}
 
-        {/* Notification Icon (Optional) */}
-        <Button variant="ghost" className="relative p-2 ">
+        {/* Notification Icon */}
+        <Button variant="ghost" className="relative p-2">
           <Bell className="w-5 h-5 text-muted-foreground" />
           <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary hover:bg-primary/80"></span>
         </Button>
 
         {/* Avatar Dropdown */}
         <DropdownMenu>
-         <DropdownMenuTrigger asChild>
-  <div>
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button className="rounded-full">
-          <CircleUserRound size={30} className="text-muted-foreground" />
-        </button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>Profile</p>
-      </TooltipContent>
-    </Tooltip>
-  </div>
-</DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild>
+            <div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="rounded-full">
+                    <CircleUserRound size={30} className="text-muted-foreground" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Profile</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </DropdownMenuTrigger>
 
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
@@ -111,21 +101,18 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 <p className="text-xs text-muted-foreground">{role}</p>
               </div>
             </DropdownMenuLabel>
-            {/* 
+
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem>
+            {/* Show Profile Card */}
+            <DropdownMenuItem onClick={() => setShowProfile(true)}>
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
 
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </DropdownMenuItem> */}
-
             <DropdownMenuSeparator />
 
+            {/* Logout */}
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4 text-red-500" />
               <span className="text-red-500">Log out</span>
@@ -133,6 +120,17 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Profile Modal */}
+      <Dialog open={showProfile} onOpenChange={setShowProfile}>
+        <DialogContent className="bg-transparent border-none shadow-none flex justify-center">
+          <ProfileCard
+            email={role}
+            name={username}
+            onClose={() => setShowProfile(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </header>
   )
 }

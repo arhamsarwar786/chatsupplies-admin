@@ -10,7 +10,8 @@ import { useSearchClientsQuery } from "@/src/hooks/useClients";
 import axios from "axios";
 import { CheckCircle, Loader2, Trash, Send, BotIcon, ImageIcon, Check, ChevronDown, ChevronUp, Upload, Palette, Settings, FileText, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation"; // Add this import at the top
-
+import Reset from "./set"
+import useExitPrompt from "./restriction";
 const tones = [
   { name: "Professional", value: "professional", description: "Formal and business-appropriate" },
   { name: "Friendly", value: "friendly", description: "Warm and approachable" },
@@ -22,8 +23,12 @@ interface UploadedFile {
   status: "uploaded" | "processing";
 }
 
+
 const ChatbotSetup = () => {
   const [createChatbot, { isLoading }] = useCreateChatbotMutation();
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showCreateConfirm, setShowCreateConfirm] = useState(false);
+  const { markDirty } = useExitPrompt();
   const role = useSelector((state: RootState) => state.authSlice.role);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmail, setSelectedEmail] = useState('');
@@ -263,13 +268,20 @@ const ChatbotSetup = () => {
 
   return (
     <div className="w-full relative">
+       <input
+      value={name}
+      onChange={(e) => {
+        setName(e.target.value);
+        markDirty(); // Mark form as dirty whenever input changes
+      }}
+    />
       {/* Loading Overlay */}
       {showLoadingOverlay && (
         <div className="fixed inset-0 z-50 flex items-center justify-center"
-             style={{
-               backdropFilter: "blur(8px)",
-               backgroundColor: "rgba(0,0,0,0.35)"
-             }}>
+          style={{
+            backdropFilter: "blur(8px)",
+            backgroundColor: "rgba(0,0,0,0.35)"
+          }}>
           <div className="flex flex-col items-center">
             <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
             <span className="text-lg font-semibold text-white">Creating Chatbot...</span>
@@ -844,11 +856,21 @@ const ChatbotSetup = () => {
 
                     <button
                       type="button"
-                      onClick={resetForm}
+                      onClick={() => setShowResetConfirm(true)}
                       className="mt-3 text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer"
                     >
                       Reset form
                     </button>
+                    <Reset
+                      isOpen={showResetConfirm}
+                      onCancel={() => setShowResetConfirm(false)}
+                      onConfirm={() => {
+                        resetForm();
+                        setShowResetConfirm(false);
+                      }}
+                    />
+
+
                   </div>
                 </div>
 
