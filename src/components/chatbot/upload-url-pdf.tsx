@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Play, Loader, Upload } from "lucide-react";
+import { Play, Loader } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,10 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Checkbox } from "@/src/components/ui/checkbox";
-import { useUploadUrlMutation, useUploadRequirementMutation } from "@/src/hooks/useTraining";
+import {
+  useUploadUrlMutation,
+  useUploadRequirementMutation,
+} from "@/src/hooks/useTraining";
 import { toast } from "sonner";
 
 // Define the maximum file size (10MB)
@@ -35,7 +38,8 @@ const UploadUrlWithPDF = ({
   const [files, setFiles] = useState<File[]>([]);
 
   const [uploadUrl, { isLoading }] = useUploadUrlMutation();
-  const [uploadRequirement, { isLoading: isUploadingPDF }] = useUploadRequirementMutation();
+  const [uploadRequirement, { isLoading: isUploadingPDF }] =
+    useUploadRequirementMutation();
 
   // Handle PDF selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +63,8 @@ const UploadUrlWithPDF = ({
       }
 
       const updatedFiles = [...files, ...validFiles].filter(
-        (file, index, self) => index === self.findIndex((f) => f.name === file.name)
+        (file, index, self) =>
+          index === self.findIndex((f) => f.name === file.name)
       );
 
       setFiles(updatedFiles);
@@ -107,7 +112,7 @@ const UploadUrlWithPDF = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {status == "ready" || status == "just_created" ? (
+      {status === "ready" || status === "just_created" ? (
         <DialogTrigger asChild>
           <button
             type="button"
@@ -117,8 +122,23 @@ const UploadUrlWithPDF = ({
             <Play className="h-4 w-4 text-green-600" />
           </button>
         </DialogTrigger>
+      ) : status === "failed" ? (
+        <DialogTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className="text-red-500 hover:text-red-600 border-red-500 hover:border-red-600"
+            onClick={() => setOpen(true)}
+          >
+            Recrawl
+          </Button>
+        </DialogTrigger>
       ) : (
-        <button type="button" disabled className="p-1 rounded cursor-not-allowed">
+        <button
+          type="button"
+          disabled
+          className="p-1 rounded cursor-not-allowed"
+        >
           <Loader className="h-4 w-4 animate-spin" />
         </button>
       )}
@@ -127,7 +147,8 @@ const UploadUrlWithPDF = ({
         <DialogHeader>
           <DialogTitle>Start Website Crawling & Upload Files</DialogTitle>
           <DialogDescription>
-            Enter the website URL (required). You may also upload PDF files (optional).
+            Enter the website URL (required). You may also upload PDF files
+            (optional).
           </DialogDescription>
         </DialogHeader>
 
@@ -203,8 +224,6 @@ const UploadUrlWithPDF = ({
               ? "Starting..."
               : `Start Crawling${files.length > 0 ? " & Upload PDFs" : ""}`}
           </Button>
-
-
         </div>
       </DialogContent>
     </Dialog>

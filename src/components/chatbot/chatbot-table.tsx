@@ -17,7 +17,6 @@ import {
   TooltipTrigger,
 } from "@/src/components/ui/tooltip";
 import { Button } from "@/src/components/ui/button";
-import { Input } from "@/src/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -111,7 +110,7 @@ export default function ChatbotTable() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBotId, setSelectedBotId] = useState<number | null>(null);
-  const [recrawlBotId, setRecrawlBotId] = useState<number | null>(null);
+  const [recrawlBot, setRecrawlBot] = useState<Chatbot | null>(null); // store bot for recrawl popup
 
   const {
     data,
@@ -128,11 +127,6 @@ export default function ChatbotTable() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentPage]);
-
-  const handleRecrawlClick = (e: React.MouseEvent, botId: number) => {
-    e.stopPropagation(); // crucial fix
-    setRecrawlBotId(botId);
-  };
 
   return (
     <div className="space-y-4">
@@ -255,13 +249,13 @@ export default function ChatbotTable() {
                 <TableCell className="px-4 py-3 hidden md:table-cell">
                   {bot.created_at
                     ? new Date(bot.created_at).toLocaleString(undefined, {
-                      year: "numeric",
-                      month: "short",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    })
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      })
                     : "N/A"}
                 </TableCell>
 
@@ -276,7 +270,10 @@ export default function ChatbotTable() {
                   >
                     {bot.progress_status === "failed" ? (
                       <Button
-                        onClick={(e) => handleRecrawlClick(e, bot.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRecrawlBot(bot); // ✅ Open recrawl popup
+                        }}
                         variant="outline"
                         className="text-red-500 hover:text-red-600 border-red-500 hover:border-red-600"
                       >
@@ -372,6 +369,7 @@ export default function ChatbotTable() {
         </Pagination>
       </div>
 
+      {/* Crawling Status Popup */}
       <Dialog
         open={!!selectedBotId}
         onOpenChange={(open) => setSelectedBotId(open ? selectedBotId : null)}
@@ -386,21 +384,21 @@ export default function ChatbotTable() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!recrawlBotId} onOpenChange={(open) => setRecrawlBotId(open ? recrawlBotId : null)}>
+      {/* ✅ Recrawl Popup (same UploadUrlPdf form) */}
+      <Dialog open={!!recrawlBot} onOpenChange={(open) => setRecrawlBot(open ? recrawlBot : null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Upload Content for Recrawl</DialogTitle>
+            <DialogTitle>Start again Website Crawling & Upload Files</DialogTitle>
           </DialogHeader>
-          {recrawlBotId && (
+          {recrawlBot && (
             <UploadUrlPdf
-              chatbotId={recrawlBotId}
-              status={"failed"}
-              client_email={chatbots.find(bot => bot.id === recrawlBotId)?.client_email || ''}
+              chatbotId={recrawlBot.id}
+              status={recrawlBot.progress_status}
+              client_email={recrawlBot.client_email}
             />
           )}
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }
