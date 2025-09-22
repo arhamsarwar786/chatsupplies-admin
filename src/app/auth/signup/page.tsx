@@ -26,6 +26,8 @@ export default function SignupPage() {
     phone_number: "",
     company_name: "",
     industry: "",
+    send_welcome_email: true,
+    auto_activate_account: true
   });
 
   const [error, setError] = useState("");
@@ -190,22 +192,20 @@ export default function SignupPage() {
                   value={form.first_name}
                   onChange={handleChange}
                   placeholder="First Name"
-                  className={`${
-                    missing.includes("first_name") || invalidNames.includes("first_name")
+                  className={`${missing.includes("first_name") || invalidNames.includes("first_name")
                       ? "border-red-500"
                       : "border-gray-400"
-                  }`}
+                    }`}
                 />
                 <Input
                   name="last_name"
                   value={form.last_name}
                   onChange={handleChange}
                   placeholder="Last Name"
-                  className={`${
-                    missing.includes("last_name") || invalidNames.includes("last_name")
+                  className={`${missing.includes("last_name") || invalidNames.includes("last_name")
                       ? "border-red-500"
                       : "border-gray-400"
-                  }`}
+                    }`}
                 />
               </div>
 
@@ -223,9 +223,8 @@ export default function SignupPage() {
               <PhoneInput
                 value={form.phone_number}
                 onChange={handlePhoneChange}
-                className={`mt-1 w-full border rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                  missing.includes("phone_number") ? "border-red-500" : "border-gray-400"
-                }`}
+                className={`mt-1 w-full border rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${missing.includes("phone_number") ? "border-red-500" : "border-gray-400"
+                  }`}
               />
 
               {/* Company */}
@@ -244,11 +243,10 @@ export default function SignupPage() {
                   onValueChange={(val) => handleSelectChange(val, "industry")}
                 >
                   <SelectTrigger
-                    className={`mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                      missing.includes("industry")
+                    className={`mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${missing.includes("industry")
                         ? "border-red-500"
                         : "border-gray-400"
-                    }`}
+                      }`}
                   >
                     <SelectValue placeholder="Select Industry" />
                   </SelectTrigger>

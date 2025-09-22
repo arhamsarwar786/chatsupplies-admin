@@ -134,11 +134,6 @@ export default function ChatbotTable() {
     setRecrawlBotId(botId);
   };
 
-  const handleModalRecrawl = (botId: number) => {
-    setSelectedBotId(null); // Close the status modal
-    setRecrawlBotId(botId); // Open the recrawl modal
-  };
-
   return (
     <div className="space-y-4">
       <div>
@@ -260,13 +255,13 @@ export default function ChatbotTable() {
                 <TableCell className="px-4 py-3 hidden md:table-cell">
                   {bot.created_at
                     ? new Date(bot.created_at).toLocaleString(undefined, {
-                        year: "numeric",
-                        month: "short",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                      })
+                      year: "numeric",
+                      month: "short",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })
                     : "N/A"}
                 </TableCell>
 
@@ -386,14 +381,11 @@ export default function ChatbotTable() {
             <DialogTitle>Crawling Status</DialogTitle>
           </DialogHeader>
           {selectedBotId && (
-            <ChatbotCrawlingStatus
-              chatbotId={selectedBotId}
-              onRecrawlClick={handleModalRecrawl}
-            />
+            <ChatbotCrawlingStatus chatbotId={selectedBotId} />
           )}
         </DialogContent>
       </Dialog>
-      
+
       <Dialog open={!!recrawlBotId} onOpenChange={(open) => setRecrawlBotId(open ? recrawlBotId : null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -408,6 +400,7 @@ export default function ChatbotTable() {
           )}
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }
