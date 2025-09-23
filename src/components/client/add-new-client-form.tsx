@@ -17,8 +17,13 @@ import { useState } from "react"
 import { useCreateClientMutation } from "@/src/hooks/useClients"
 import { toast } from "sonner"
 import PhoneInput from "../PhoneInput"
+import useExitPrompt from "../chatbot/restriction"
+import ConfirmationPopup from "../chatbot/confirmationPopup"
+import { useRouter } from "next/navigation"
 
 export default function AddNewClientForm() {
+  const router = useRouter();
+
   const initialFormState = {
     first_name: "",
     last_name: "",
@@ -39,6 +44,9 @@ export default function AddNewClientForm() {
 
   const [createClient, { isLoading }] = useCreateClientMutation();
 
+  // 🔹 exit prompt hook
+  const { markDirty, showPrompt, confirmLeave, cancelLeave } = useExitPrompt();
+
   const validateName = (name: string) => /^[A-Za-z\s]+$/.test(name);
   const validateNumber = (val: string) => /^\d+$/.test(val);
 
@@ -50,7 +58,6 @@ export default function AddNewClientForm() {
       [name]: type === "checkbox" ? checked : value,
     }));
 
-    // live validation for names
     if (name === "first_name" || name === "last_name") {
       setFormErrors((prev) => ({
         ...prev,
@@ -58,7 +65,6 @@ export default function AddNewClientForm() {
       }));
     }
 
-    // live validation for max_chatbots
     if (name === "max_chatbots") {
       setFormErrors((prev) => ({
         ...prev,
@@ -73,37 +79,38 @@ export default function AddNewClientForm() {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    setShowLoadingOverlay(true); // Show loading overlay
+    setShowLoadingOverlay(true);
 
     if (!isFormComplete()) {
       toast.warning("Please fill in all required fields.");
+      setShowLoadingOverlay(false);
       return;
     }
 
-    // check for live validation errors
     if (formErrors.first_name || formErrors.last_name || formErrors.max_chatbots) {
       toast.warning("Please fix validation errors before submitting.");
+      setShowLoadingOverlay(false);
       return;
     }
 
     try {
       const response = await createClient({
         ...form,
-        max_chatbots: Number(form.max_chatbots), // ensure number
+        max_chatbots: Number(form.max_chatbots),
       }).unwrap();
 
       if (response?.success === false) {
         toast.error(response.detail || "Something went wrong.");
+        setShowLoadingOverlay(false);
         return;
       }
 
       toast.success(response.detail || "Client created successfully!");
       setForm(initialFormState);
-      setShowLoadingOverlay(false); // Hide loading overlay
+      setShowLoadingOverlay(false);
       window.location.href = "/dashboard/client-management";
     } catch (err: any) {
-        setShowLoadingOverlay(false); // Hide loading overlay
-      // If API call failed (non-200 status)
+      setShowLoadingOverlay(false);
       const errorMessage =
         err?.status === 400 && err?.data?.detail ||
         err?.data?.message ||
@@ -130,180 +137,221 @@ export default function AddNewClientForm() {
       form.company_name.trim() &&
       form.industry.trim() &&
       form.max_chatbots.trim() &&
-      form.notes.trim() // ✅ now required
+      form.notes.trim()
     );
   };
 
   return (
-    <div className="rounded-xl border shadow-sm overflow-hidden bg-card relative">
-      {/* Blury Loading Overlay */}
-      {showLoadingOverlay && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{
-            backdropFilter: "blur(8px)",
-            backgroundColor: "rgba(0,0,0,0.35)",
-          }}
-        >
-          <div className="flex flex-col items-center">
-            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
-            <span className="text-lg font-semibold text-white">
-              Creating Client...
-            </span>
-          </div>
-        </div>
-      )}
+    <>
+      {/* 🔹 Confirmation popup */}
+      <ConfirmationPopup
+        open={showPrompt}
+        onCancel={cancelLeave}
+        onConfirm={confirmLeave}
+      />
 
-      <div className="bg-indigo-600 text-white px-6 py-4 flex items-center gap-2">
-        <UserPlus className="w-5 h-5" />
-        <h3 className="font-semibold text-lg">Step 1: Add New Client</h3>
+      <div className="rounded-xl border shadow-sm overflow-hidden bg-card relative">
+        {/* Loading Overlay */}
+        {showLoadingOverlay && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{
+              backdropFilter: "blur(8px)",
+              backgroundColor: "rgba(0,0,0,0.35)",
+            }}
+          >
+            <div className="flex flex-col items-center">
+              <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
+              <span className="text-lg font-semibold text-white">
+                Creating Client...
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-indigo-600 text-white px-6 py-4 flex items-center gap-2">
+          <UserPlus className="w-5 h-5" />
+          <h3 className="font-semibold text-lg">Step 1: Add New Client</h3>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Client Info */}
+            <div>
+              <h4 className="font-medium mb-4">Client Information</h4>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="mb-2 text-md">
+                      First Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      name="first_name"
+                      value={form.first_name}
+                      onChange={(e) => {
+                        handleChange(e);   // update form + validation
+                        markDirty();       // mark form dirty
+                      }}
+                      className={`mt-1 w-full rounded-md px-3 py-2 focus:outline-none focus:ring-2 
+                        ${formErrors.first_name
+                          ? "border border-red-500 focus:ring-red-500"
+                          : "border border-gray-400 focus:ring-indigo-500"}`}
+                      placeholder="Enter First Name"
+                    />
+
+                  </div>
+                  <div>
+                    <Label className="mb-2 text-md">
+                      Last Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      name="last_name"
+                      value={form.last_name}
+                      onChange={(e) => {
+                        handleChange(e);
+                        markDirty();   // ✅ correctly marks form as dirty
+                      }}
+                      className={`mt-1 w-full rounded-md px-3 py-2 focus:outline-none focus:ring-2 
+    ${formErrors.last_name
+                          ? "border border-red-500 focus:ring-red-500"
+                          : "border border-gray-400 focus:ring-indigo-500"}`}
+                      placeholder="Enter Last Name"
+                    />
+
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="mb-2 text-md">
+                    Email Address <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => {
+                      handleChange(e);   // update form state
+                      markDirty();       // mark form dirty
+                    }}
+                    className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Enter Email Address"
+                  />
+
+                </div>
+
+                <div>
+                  <Label className="mb-2 text-md">
+                    Phone Number <span className="text-red-500">*</span>
+                  </Label>
+                  <PhoneInput
+                    name="phone_number"
+                    value={form.phone_number}
+                    onChange={(value) => {
+                      handlePhoneChange(value); // update phone number
+                      markDirty();              // mark form dirty
+                    }}
+                    className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Enter Phone Number"
+                  />
+
+                </div>
+
+                <div>
+                  <Label className="mb-2 text-md">
+                    Company Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    name="company_name"
+                    value={form.company_name}
+                    onChange={(e) => {
+                      handleChange(e);   // update form state
+                      markDirty();       // mark form dirty
+                    }}
+                    className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Enter Company Name"
+                  />
+
+                </div>
+
+                <div>
+                  <Label className="mb-2 text-md">
+                    Industry <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={form.industry}
+                    onValueChange={(val) => {
+                      handleSelectChange(val, "industry"); // update form
+                      markDirty();                         // mark form dirty
+                    }}
+                  >
+                    <SelectTrigger className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      <SelectValue placeholder="Select Industry" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tech">Technology</SelectItem>
+                      <SelectItem value="finance">Finance</SelectItem>
+                      <SelectItem value="health">Healthcare</SelectItem>
+                      <SelectItem value="education">Education</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Account Settings */}
+            <div>
+              <h4 className="font-medium mb-4">Account Settings</h4>
+              <div className="space-y-4">
+                <div>
+                  <Label className="mb-2 text-md">
+                    Max Chatbots <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    name="max_chatbots"
+                    value={form.max_chatbots}
+                    onChange={(e) => {
+                      handleChange(e);   // update form state
+                      markDirty();       // mark form dirty
+                    }}
+                    className={`mt-1 w-full rounded-md px-3 py-2 focus:outline-none focus:ring-2 
+    ${formErrors.max_chatbots
+                        ? "border border-red-500 focus:ring-red-500"
+                        : "border border-gray-400 focus:ring-indigo-500"}`}
+                    placeholder="Enter Max Chatbots"
+                  />
+
+                </div>
+
+                <div>
+                  <Label className="mb-2 text-md">
+                    Notes <span className="text-red-500">*</span>
+                  </Label>
+                  <Textarea
+                    name="notes"
+                    value={form.notes}
+                    onChange={(e) => {
+                      handleChange(e);   // update form state
+                      markDirty();       // mark form dirty
+                    }}
+                    className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Additional notes about the client..."
+                  />
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex justify-end gap-4 pt-4 border-t">
+            <Button variant="outline" type="button">Cancel</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Creating..." : "Create Client"}
+            </Button>
+          </div>
+        </form>
       </div>
-
-      <form onSubmit={handleSubmit} className="p-6 space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Client Info */}
-          <div>
-            <h4 className="font-medium mb-4">Client Information</h4>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="mb-2 text-md">
-                    First Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    name="first_name"
-                    value={form.first_name}
-                    onChange={handleChange}
-                    className={`mt-1 w-full rounded-md px-3 py-2 focus:outline-none focus:ring-2 
-                      ${formErrors.first_name
-                        ? "border border-red-500 focus:ring-red-500"
-                        : "border border-gray-400 focus:ring-indigo-500"}`}
-                    placeholder="Enter First Name"
-                  />
-                </div>
-                <div>
-                  <Label className="mb-2 text-md">
-                    Last Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    name="last_name"
-                    value={form.last_name}
-                    onChange={handleChange}
-                    className={`mt-1 w-full rounded-md px-3 py-2 focus:outline-none focus:ring-2 
-                      ${formErrors.last_name
-                        ? "border border-red-500 focus:ring-red-500"
-                        : "border border-gray-400 focus:ring-indigo-500"}`}
-                    placeholder="Enter Last Name"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label className="mb-2 text-md">
-                  Email Address <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Enter Email Address"
-                />
-              </div>
-
-              <div>
-                <Label className="mb-2 text-md">
-                  Phone Number <span className="text-red-500">*</span>
-                </Label>
-                <PhoneInput
-                  name="phone_number"
-                  value={form.phone_number}
-                  onChange={handlePhoneChange}
-                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Enter Phone Number"
-                />
-              </div>
-
-              <div>
-                <Label className="mb-2 text-md">
-                  Company Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  name="company_name"
-                  value={form.company_name}
-                  onChange={handleChange}
-                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Enter Company Name"
-                />
-              </div>
-
-              <div>
-                <Label className="mb-2 text-md">
-                  Industry <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={form.industry}
-                  onValueChange={(val) => handleSelectChange(val, "industry")}
-                >
-                  <SelectTrigger className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <SelectValue placeholder="Select Industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tech">Technology</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="health">Healthcare</SelectItem>
-                    <SelectItem value="education">Education</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* Account Settings */}
-          <div>
-            <h4 className="font-medium mb-4">Account Settings</h4>
-            <div className="space-y-4">
-              <div>
-                <Label className="mb-2 text-md">
-                  Max Chatbots <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  name="max_chatbots"
-                  value={form.max_chatbots}
-                  onChange={handleChange}
-                  className={`mt-1 w-full rounded-md px-3 py-2 focus:outline-none focus:ring-2 
-                    ${formErrors.max_chatbots
-                      ? "border border-red-500 focus:ring-red-500"
-                      : "border border-gray-400 focus:ring-indigo-500"}`}
-                  placeholder="Enter Max Chatbots"
-                />
-              </div>
-
-              <div>
-                <Label className="mb-2 text-md">
-                  Notes <span className="text-red-500">*</span>
-                </Label>
-                <Textarea
-                  name="notes"
-                  value={form.notes}
-                  onChange={handleChange}
-                  className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Additional notes about the client..."
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end gap-4 pt-4 border-t">
-          <Button variant="outline" type="button">Cancel</Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Creating..." : "Create Client"}
-          </Button>
-        </div>
-      </form>
-    </div>
+    </>
   )
 }

@@ -1,55 +1,139 @@
+// restriction.tsx
 "use client";
-import { useEffect, useState } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
+type RouterFn = (url: string, ...args: any[]) => Promise<any>;
+
 const useExitPrompt = () => {
+  const [isDirty, setIsDirty] = useState(false);
+  const [pendingPath, setPendingPath] = useState<string | null>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+
   const router = useRouter();
-  const [isFormDirty, setIsFormDirty] = useState(false);
 
-  // Mark the form as dirty from outside
-  const markDirty = () => setIsFormDirty(true);
+  // store original methods (bound) so we can call them later
+  const origPushRef = useRef<RouterFn | null>(null);
+  const origReplaceRef = useRef<RouterFn | null>(null);
 
+  const markDirty = () => setIsDirty(true);
+
+  // Confirm / Cancel handlers used by your modal
+  const confirmLeave = () => {
+    if (!pendingPath) {
+      setShowPrompt(false);
+      return;
+    }
+
+    // Restore original router methods before navigating to avoid recursion
+    if (origPushRef.current) (router as any).push = origPushRef.current;
+    if (origReplaceRef.current) (router as any).replace = origReplaceRef.current;
+
+    // call original push (they were bound to router)
+    origPushRef.current?.(pendingPath);
+
+    // clear state
+    setPendingPath(null);
+    setShowPrompt(false);
+    // optionally mark not dirty; keep current behavior (we don't change isDirty)
+  };
+
+  const cancelLeave = () => {
+    setPendingPath(null);
+    setShowPrompt(false);
+    // keep isDirty true so further edits still prompt
+  };
+
+  // Handle browser refresh / close
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!isFormDirty) return;
+    if (!isDirty) return;
+
+    const handleWindowClose = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = ""; // Required for Chrome
-      return "";
+      e.returnValue = "";
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [isFormDirty]);
+    window.addEventListener("beforeunload", handleWindowClose);
+    return () => window.removeEventListener("beforeunload", handleWindowClose);
+  }, [isDirty]);
 
+  // Patch router.push & router.replace while dirty (store originals bound to router)
   useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      if (isFormDirty) {
-        const confirmLeave = window.confirm("Are you sure you want to exit?");
-        if (!confirmLeave) {
-          // Prevent navigation by throwing error
-          throw "Route change aborted by user";
-        }
-      }
+    if (!isDirty) return;
+
+    // store originals only once
+    if (!origPushRef.current) {
+      const originalPush = (router as any).push;
+      const originalReplace = (router as any).replace;
+      // bind them to router so `this` works if needed
+      origPushRef.current = originalPush ? originalPush.bind(router) : null;
+      origReplaceRef.current = originalReplace ? originalReplace.bind(router) : null;
+    }
+
+    // patch
+    (router as any).push = (url: string, ..._args: any[]) => {
+      setPendingPath(url);
+      setShowPrompt(true);
+      return Promise.resolve(false); // prevent immediate navigation
     };
 
-    // Next.js router.events is not available in App Router; use workaround
-    const beforePopState = (e: PopStateEvent) => {
-      if (isFormDirty) {
-        const confirmLeave = window.confirm("Are you sure you want to exit?");
-        if (!confirmLeave) {
-          e.preventDefault();
-        }
-      }
+    (router as any).replace = (url: string, ..._args: any[]) => {
+      setPendingPath(url);
+      setShowPrompt(true);
+      return Promise.resolve(false);
     };
 
-    window.addEventListener("popstate", beforePopState);
-
+    // cleanup: restore originals when component unmounts or when dirty toggles off
     return () => {
-      window.removeEventListener("popstate", beforePopState);
+      if (origPushRef.current) (router as any).push = origPushRef.current;
+      if (origReplaceRef.current) (router as any).replace = origReplaceRef.current;
     };
-  }, [isFormDirty]);
+  }, [isDirty, router]);
 
-  return { markDirty };
+  // Intercept ALL <a> clicks in capture phase to catch links (sidebar, header, next/link)
+  useEffect(() => {
+    if (!isDirty) return;
+
+    const handleClickCapture: EventListener = (event) => {
+      // use Event here (capture phase). cast to HTMLElement for closest()
+      const ev = event as Event;
+      const targetEl = (ev.target as HTMLElement)?.closest?.("a") as HTMLAnchorElement | null;
+      if (!targetEl) return;
+
+      const href = targetEl.getAttribute("href");
+      if (!href) return;
+      // ignore anchors, external links, mailto/tel and full URLs
+      if (href.startsWith("#") || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("tel:")) {
+        return;
+      }
+
+      // prevent native/default navigation and stop other handlers
+      event.preventDefault();
+      // stop other listeners (React synthetic handlers run in bubble; this prevents them)
+      // stopImmediatePropagation may not always exist on Event, so guard
+      try {
+        (event as any).stopImmediatePropagation?.();
+      } catch (err) {
+        /* ignore */
+      }
+
+      // show modal and remember target
+      setPendingPath(href);
+      setShowPrompt(true);
+    };
+
+    // capture = true to run before other handlers / React synthetic listeners
+    document.addEventListener("click", handleClickCapture, true);
+    return () => document.removeEventListener("click", handleClickCapture, true);
+  }, [isDirty]);
+
+  return {
+    markDirty,
+    showPrompt,
+    confirmLeave,
+    cancelLeave,
+  };
 };
 
 export default useExitPrompt;
