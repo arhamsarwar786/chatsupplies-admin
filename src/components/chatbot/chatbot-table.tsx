@@ -252,18 +252,16 @@ export default function ChatbotTable() {
                 }}
                 className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
               >
-               <TableCell className="px-4 py-3">
-  <div className="flex flex-col">
-    <span className="font-medium text-gray-800">{bot.name}</span>
-    <span className="text-sm text-gray-500">
-      {bot.description
-        ? bot.description.length > 25
-          ? bot.description.slice(0, 25) + " ..."
-          : bot.description
-        : "No description"}
-    </span>
-  </div>
-</TableCell>
+                <TableCell className="px-4 py-3">
+                  <div className="flex flex-col">
+                    <span className="font-medium text-gray-800">{bot.name}</span>
+                    <span className="text-sm text-gray-500 max-w-[250px] truncate">
+                      {bot.description ? bot.description : "No description"}
+                    </span>
+                  </div>
+                </TableCell>
+
+
 
 
 
