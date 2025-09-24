@@ -69,6 +69,10 @@ interface Chatbot {
   interaction_change_percent: number;
   client_api_key: string;
   client_email: string;
+  website_name?: string;
+  user_name?: string;
+  pages_crawled?: number;
+  total_pages?: number;
 }
 
 const getStatusStyle = (status: string) => {
@@ -105,14 +109,13 @@ const getRelativeTime = (dateString: string) => {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 };
 
-// ✅ Updated ActionsDropdown with all old options plus Recrawl as third option
-const ActionsDropdown = ({ 
-  chatbotId, 
-  onRecrawl, 
-  onDelete, 
-  onUploadFiles 
-}: { 
-  chatbotId: number; 
+const ActionsDropdown = ({
+  chatbotId,
+  onRecrawl,
+  onDelete,
+  onUploadFiles,
+}: {
+  chatbotId: number;
   onRecrawl?: (id: number) => void;
   onDelete?: (id: number) => void;
   onUploadFiles?: (id: number) => void;
@@ -134,7 +137,6 @@ const ActionsDropdown = ({
         <DropdownMenuItem onClick={() => onRecrawl?.(chatbotId)}>
           Recrawl
         </DropdownMenuItem>
-        {/* Add other existing options here if needed */}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -145,38 +147,33 @@ export default function ChatbotTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBotId, setSelectedBotId] = useState<number | null>(null);
   const [recrawlBot, setRecrawlBot] = useState<Chatbot | null>(null);
+  const [detailBot, setDetailBot] = useState<Chatbot | null>(null);
 
-  const {
-    data,
-    isLoading,
-    error,
-  } = useGetChatbotQuery({ page: currentPage, sort_desc: true });
+  const { data, isLoading, error } = useGetChatbotQuery({
+    page: currentPage,
+    sort_desc: true,
+  });
 
   const chatbots = data?.chatbots ?? [];
   const totalPages = data?.total_pages ?? 1;
   const totalCount = data?.total_count ?? 0;
 
-  const [createChatbot, { isLoading: isCreating }] = useCreateChatbotMutation();
+  const [createChatbot] = useCreateChatbotMutation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentPage]);
 
-  // Handler functions for dropdown menu items
   const handleDelete = (chatbotId: number) => {
-    // Add your delete logic here
-    console.log("Delete chatbot:", chatbotId);
     toast.info("Delete functionality would be implemented here");
   };
 
   const handleUploadFiles = (chatbotId: number) => {
-    // Find the chatbot and open the upload modal
     const botToUpload = chatbots.find((b) => b.id === chatbotId);
     if (botToUpload) setRecrawlBot(botToUpload);
   };
 
   const handleRecrawl = (chatbotId: number) => {
-    // Find the chatbot and open the recrawl modal
     const botToRecrawl = chatbots.find((b) => b.id === chatbotId);
     if (botToRecrawl) setRecrawlBot(botToRecrawl);
   };
@@ -197,9 +194,7 @@ export default function ChatbotTable() {
               <TableHead className="px-4 py-3 text-left hidden md:table-cell">
                 Client
               </TableHead>
-              <TableHead className="px-4 py-3 text-left">
-                Status
-              </TableHead>
+              <TableHead className="px-4 py-3 text-left">Status</TableHead>
               <TableHead className="px-4 py-3 text-left hidden md:table-cell">
                 Interactions
               </TableHead>
@@ -212,9 +207,7 @@ export default function ChatbotTable() {
               <TableHead className="px-4 py-3 text-left hidden md:table-cell">
                 Last Response
               </TableHead>
-              <TableHead className="px-4 py-3 text-right">
-                Actions
-              </TableHead>
+              <TableHead className="px-4 py-3 text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -254,27 +247,51 @@ export default function ChatbotTable() {
             {chatbots.map((bot: Chatbot, idx: number) => (
               <TableRow
                 key={idx}
-                onClick={() => setSelectedBotId(bot.id)}
+                onClick={() => {
+                  setSelectedBotId(bot.id);
+                }}
                 className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
               >
-                <TableCell className="px-4 py-3">
-                  <div className="flex flex-col">
-                    <span className="font-medium text-gray-800">{bot.name}</span>
-                    <span className="text-sm text-gray-500">{bot.description}</span>
-                  </div>
-                </TableCell>
+               <TableCell className="px-4 py-3">
+  <div className="flex flex-col">
+    <span className="font-medium text-gray-800">{bot.name}</span>
+    <span className="text-sm text-gray-500">
+      {bot.description
+        ? bot.description.length > 25
+          ? bot.description.slice(0, 25) + " ..."
+          : bot.description
+        : "No description"}
+    </span>
+  </div>
+</TableCell>
+
+
 
                 <TableCell className="px-4 py-3 hidden md:table-cell">
                   <span>{bot.client_name}</span>
                 </TableCell>
 
-                <TableCell className="px-4 py-3">
+                <TableCell
+                  className="px-4 py-3 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (bot.progress_status === "ready") {
+                      router.push(`/dashboard/chatbot-management/chat-details/${bot.id}`);
+                    } else {
+                      // Keep existing popup behavior
+                      setDetailBot(bot);
+                    }
+                  }}
+                >
                   <span
-                    className={`text-xs font-semibold uppercase px-2 py-1 rounded-full ${getStatusStyle(bot.progress_status)}`}
+                    className={`text-xs font-semibold uppercase px-2 py-1 rounded-full ${getStatusStyle(
+                      bot.progress_status
+                    )}`}
                   >
                     {bot.progress_status.replace(/_/g, " ")}
                   </span>
                 </TableCell>
+
 
                 <TableCell className="px-4 py-3 hidden md:table-cell">
                   <span className="font-medium text-gray-700">{bot.total_interactions ?? "N/A"}</span>
@@ -293,13 +310,13 @@ export default function ChatbotTable() {
                 <TableCell className="px-4 py-3 hidden md:table-cell">
                   {bot.created_at
                     ? new Date(bot.created_at).toLocaleString(undefined, {
-                        year: "numeric",
-                        month: "short",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                      })
+                      year: "numeric",
+                      month: "short",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })
                     : "N/A"}
                 </TableCell>
 
@@ -353,7 +370,6 @@ export default function ChatbotTable() {
                       </Tooltip>
                     )}
 
-                    {/* ✅ Three-dots dropdown with all options: Delete, Upload Files, Recrawl */}
                     <ActionsDropdown
                       chatbotId={bot.id}
                       onRecrawl={handleRecrawl}
@@ -368,6 +384,7 @@ export default function ChatbotTable() {
         </Table>
       </div>
 
+      {/* Pagination */}
       <div className="flex w-full justify-between text-sm text-muted-foreground pt-4">
         <span>
           Showing {chatbots.length > 0 ? `1 to ${chatbots.length}` : "0"} of {totalCount} results (Page {currentPage} of {totalPages})

@@ -212,7 +212,7 @@ export default function AddNewClientForm() {
                         markDirty();   // ✅ correctly marks form as dirty
                       }}
                       className={`mt-1 w-full rounded-md px-3 py-2 focus:outline-none focus:ring-2 
-    ${formErrors.last_name
+                       ${formErrors.last_name
                           ? "border border-red-500 focus:ring-red-500"
                           : "border border-gray-400 focus:ring-indigo-500"}`}
                       placeholder="Enter Last Name"
@@ -238,7 +238,6 @@ export default function AddNewClientForm() {
                   />
 
                 </div>
-
                 <div>
                   <Label className="mb-2 text-md">
                     Phone Number <span className="text-red-500">*</span>
@@ -253,9 +252,7 @@ export default function AddNewClientForm() {
                     className="mt-1 w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     placeholder="Enter Phone Number"
                   />
-
                 </div>
-
                 <div>
                   <Label className="mb-2 text-md">
                     Company Name <span className="text-red-500">*</span>

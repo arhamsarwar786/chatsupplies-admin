@@ -72,10 +72,13 @@ const ChatHistoryPage = () => {
     isError,
   } = useGetChatbotQuery({ page: currentPage });
 
-  // ✅ normalize data to always be an array
+  // ✅ Fix: normalize data (support chatbots key from API)
   const chatbotList: Chatbot[] = Array.isArray(chatbotResponse)
     ? chatbotResponse
-    : chatbotResponse?.results ?? [];
+    : chatbotResponse?.results ??
+    chatbotResponse?.data ??
+    chatbotResponse?.chatbots ??
+    [];
 
   const selectedBot = chatbotList.find((bot: Chatbot) => bot.id === selectedBotId);
   const CHAT_PAGE_LIMIT = 2;
@@ -90,21 +93,22 @@ const ChatHistoryPage = () => {
   } = useGetAllChatsQuery(
     selectedBotId !== null
       ? {
-          chatbot_id: selectedBotId,
-          limit: CHAT_PAGE_LIMIT,
-          offset: chatPage * CHAT_PAGE_LIMIT,
-        }
+        chatbot_id: selectedBotId,
+        limit: CHAT_PAGE_LIMIT,
+        offset: chatPage * CHAT_PAGE_LIMIT,
+      }
       : skipToken
   );
 
-  const chatList = chatData?.results ?? [];
+  // ✅ Normalize chat data
+  const chatList = chatData?.results ?? chatData?.data ?? [];
 
   const handlePreviousPage = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
 
   const handleNextPage = () => {
-    if (chatbotList.length < 10) return;
+    if (chatbotResponse?.page >= chatbotResponse?.total_pages) return; // ✅ use API pagination
     setCurrentPage((prev) => prev + 1);
   };
 
@@ -156,9 +160,11 @@ const ChatHistoryPage = () => {
                         {bot.name}
                       </h2>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {bot.description}
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {bot.description ? bot.description : "No description"}
                     </p>
+
+
                   </CardContent>
                 </Card>
               ))}
@@ -213,7 +219,7 @@ const ChatHistoryPage = () => {
                       <CardContent className="p-4 space-y-4">
                         {/* Metadata */}
                         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                          {/* 🌐 Language */}
+                          {/*Language */}
                           <div className="bg-white rounded-xl shadow-md border p-4">
                             <h4 className="text-sm font-medium text-gray-500 mb-1">
                               🌐 Language
@@ -223,7 +229,7 @@ const ChatHistoryPage = () => {
                             </p>
                           </div>
 
-                          {/* 🕒 Timestamp */}
+                          {/*Timestamp */}
                           <div className="bg-white rounded-xl shadow-md border p-4">
                             <h4 className="text-sm font-medium text-gray-500 mb-1">
                               🕒 Timestamp
@@ -233,7 +239,7 @@ const ChatHistoryPage = () => {
                             </p>
                           </div>
 
-                          {/* 📍 IP Address */}
+                          {/* IP Address */}
                           <div className="bg-white rounded-xl shadow-md border p-4">
                             <h4 className="text-sm font-medium text-gray-500 mb-1">
                               📍 IP Address
@@ -243,7 +249,7 @@ const ChatHistoryPage = () => {
                             </p>
                           </div>
 
-                          {/* 🎯 Intent */}
+                          {/*Intent */}
                           <div className="bg-white rounded-xl shadow-md border p-4">
                             <h4 className="text-sm font-medium text-gray-500 mb-1">
                               🎯 Intent
@@ -272,12 +278,10 @@ const ChatHistoryPage = () => {
                         )}
 
                         {/* Bot Message */}
-                        {chat.bot_response && (
+                        {chat.bot_response && chat.bot_response.toLowerCase() !== "general" && (
                           <div className="flex items-start gap-3 justify-end">
                             <div className="bg-primary text-white rounded-xl p-3 shadow-sm max-w-[80%]">
-                              <div className="text-xs text-white/70 font-medium mb-1">
-                                Bot
-                              </div>
+                              <div className="text-xs text-white/70 font-medium mb-1">Bot</div>
                               <p className="text-sm">{chat.bot_response}</p>
                             </div>
                             <div className="w-10 h-10 rounded-full bg-primary text-white font-bold flex items-center justify-center">
@@ -285,6 +289,7 @@ const ChatHistoryPage = () => {
                             </div>
                           </div>
                         )}
+
                       </CardContent>
                     </Card>
                   ))}
@@ -297,9 +302,7 @@ const ChatHistoryPage = () => {
                         onClick={() =>
                           setChatPage((prev) => Math.max(prev - 1, 0))
                         }
-                        className={
-                          chatPage === 0 ? "pointer-events-none opacity-50" : ""
-                        }
+                        className={chatPage === 0 ? "pointer-events-none opacity-50" : ""}
                       />
                     </PaginationItem>
 
