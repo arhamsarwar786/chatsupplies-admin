@@ -4,67 +4,43 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useGetChatbotQuery } from "@/src/hooks/useChatbot";
 import { DashboardHeader } from "@/src/components/layout/dashboard-header";
-import { Card, CardContent } from "@/src/components/ui/card";
 import { Button } from "@/src/components/ui/button";
+import { skipToken } from "@reduxjs/toolkit/query";
+import { MessageCircle, ArrowLeft } from "lucide-react";
+import noDataAnimation from "@/public/lottie/nodata.json";
+import { useGetAllChatsQuery } from "@/src/hooks/useChat";
 
 const Player = dynamic(
   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
   { ssr: false }
 );
 
-import { skipToken } from "@reduxjs/toolkit/query";
-import { MessageCircle } from "lucide-react";
-import NoResultsAnimation from "@/public/lottie/no-result-found.json";
-import noDataAnimation from "@/public/lottie/nodata.json";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationPrevious,
-  PaginationNext,
-  PaginationLink,
-} from "@/src/components/ui/pagination";
-import { useGetAllChatsQuery } from "@/src/hooks/useChat";
-
 interface Chatbot {
   id: number;
   name: string;
   description: string;
-  client_name: string;
-  created_at: string;
-  personality_tone: string;
-  bot_avatar: string;
-  industry: string;
-  language: string;
-  welcome_message: string;
-  business_hours_start: string;
-  business_hours_end: string;
-  updated_at: string;
-  is_active: boolean;
-  progress_status: string;
-  user_id: number;
-  total_interactions: number;
-  interaction_change_percent: number;
 }
 
 interface ChatData {
   id: number;
-  created_at: string;
-  updated_at: string;
-  language: string;
   user_message: string;
   bot_response: string;
   timestamp: string;
   user_id: number;
-  ip_address: string;
   chatbot_id: number;
   intent_detected: string;
+  username?: string; // ✅ added username support
 }
 
 const ChatHistoryPage = () => {
-  const [chatPage, setChatPage] = useState(0); // For offset pagination
-  const [currentPage, setCurrentPage] = useState(1); // For chatbot pagination
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedBotId, setSelectedBotId] = useState<number | null>(null);
+
+  // ✅ selectedUser holds both id + name
+  const [selectedUser, setSelectedUser] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
 
   const {
     data: chatbotResponse,
@@ -72,19 +48,12 @@ const ChatHistoryPage = () => {
     isError,
   } = useGetChatbotQuery({ page: currentPage });
 
-  // ✅ Fix: normalize data (support chatbots key from API)
   const chatbotList: Chatbot[] = Array.isArray(chatbotResponse)
     ? chatbotResponse
     : chatbotResponse?.results ??
     chatbotResponse?.data ??
     chatbotResponse?.chatbots ??
     [];
-
-  const selectedBot = chatbotList.find((bot: Chatbot) => bot.id === selectedBotId);
-  const CHAT_PAGE_LIMIT = 2;
-  const languageMap: Record<string, string> = {
-    en: "English",
-  };
 
   const {
     data: chatData,
@@ -94,36 +63,51 @@ const ChatHistoryPage = () => {
     selectedBotId !== null
       ? {
         chatbot_id: selectedBotId,
-        limit: CHAT_PAGE_LIMIT,
-        offset: chatPage * CHAT_PAGE_LIMIT,
       }
       : skipToken
   );
 
-  // ✅ Normalize chat data
-  const chatList = chatData?.results ?? chatData?.data ?? [];
-
-  const handlePreviousPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleNextPage = () => {
-    if (chatbotResponse?.page >= chatbotResponse?.total_pages) return; // ✅ use API pagination
-    setCurrentPage((prev) => prev + 1);
-  };
+  const chatList: ChatData[] = chatData?.results ?? chatData?.data ?? [];
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-    document.body.style.backgroundColor = "white";
-  }, [currentPage]);
+    if (chatbotList.length > 0 && !selectedBotId) {
+      setSelectedBotId(chatbotList[0].id);
+    }
+  }, [chatbotList, selectedBotId]);
+
+  useEffect(() => {
+    if (chatList.length > 0 && !selectedUser) {
+      const firstUser = chatList[0];
+      setSelectedUser({
+        id: firstUser.user_id,
+        name: firstUser.username || `User ${firstUser.user_id}`,
+      });
+    }
+  }, [chatList, selectedUser]);
+
+  const formatTime = (timestamp: string) =>
+    new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
   return (
     <>
+
       <DashboardHeader
         title="Chat History"
-        description="Create, manage and monitor your chatbots"
+        description="View and manage your chatbot conversations"
       />
-      <div className="p-4 md:p-5">
+      <div className="p-4">
+        <button
+          onClick={() => history.back()}
+          className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 !cursor-pointer"
+        >
+          Back to list
+        </button>
+      </div>
+
+      <div className="p-4 md:p-5 ">
         {isLoading ? (
           <div className="mt-8 text-center text-muted-foreground">
             Loading chatbots...
@@ -133,197 +117,141 @@ const ChatHistoryPage = () => {
             Failed to load chatbots.
           </div>
         ) : chatbotList.length === 0 ? (
-          <div className="text-center h-[80vh] flex flex-col items-center justify-center">
+          <div className="h-[80vh] flex flex-col items-center justify-center text-center">
             <Player
               autoplay
               loop
               src={noDataAnimation}
-              style={{ height: "200px", width: "200px" }}
+              style={{ height: 200, width: 200 }}
             />
             <p className="mt-4 text-muted-foreground">No chatbot found.</p>
           </div>
-        ) : !selectedBotId ? (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-8">
-              {chatbotList.map((bot: Chatbot) => (
-                <Card
-                  key={bot.id}
-                  onClick={() => setSelectedBotId(bot.id)}
-                  className="cursor-pointer border border-primary/30 hover:shadow-xl transition duration-300"
-                >
-                  <CardContent className="p-6 space-y-3">
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 rounded-full bg-primary/10 text-primary">
-                        <MessageCircle className="w-5 h-5" />
-                      </div>
-                      <h2 className="text-lg font-semibold text-gray-800">
-                        {bot.name}
-                      </h2>
-                    </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {bot.description ? bot.description : "No description"}
-                    </p>
-
-
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            <div className="mt-6 flex justify-between">
-              <Button onClick={handlePreviousPage} disabled={currentPage === 1}>
-                Previous
-              </Button>
-              <Button onClick={handleNextPage}>Next</Button>
-            </div>
-          </>
         ) : (
-          <div className="mt-8 space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                {selectedBot?.name} - Chat History
-              </h2>
-              <Button variant="outline" onClick={() => setSelectedBotId(null)}>
-                Back to All Bots
-              </Button>
-            </div>
-
-            {chatLoading ? (
-              <div className="text-center text-muted-foreground">
-                Loading chat history...
-              </div>
-            ) : chatError ? (
-              <div className="text-center text-red-500">
-                Failed to load chat history.
-              </div>
-            ) : chatList.length === 0 ? (
-              <div className="text-center h-[80vh] flex flex-col items-center justify-center">
-                <Player
-                  autoplay
-                  loop
-                  src={NoResultsAnimation}
-                  style={{ height: "200px", width: "200px" }}
-                />
-                <p className="mt-4 text-muted-foreground">
-                  No chat history found for this bot.
+          <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-200px)]">
+            {/* Left Sidebar */}
+            <div className="w-full lg:w-[320px] flex-shrink-0 flex flex-col border rounded-lg bg-gray-50">
+              {/* Chatbots */}
+              <div className="p-4 border-b bg-white rounded-t-lg">
+                <h3 className="font-semibold text-lg">Chatbots List</h3>
+                <p className="text-sm text-muted-foreground">
+                  {chatbotList.length} bots
                 </p>
               </div>
-            ) : (
-              <>
-                <div className="flex flex-col gap-6 mt-6">
-                  {chatList.map((chat: any) => (
-                    <Card
-                      key={chat.id}
-                      className="bg-gray-200 border border-amber-200 shadow-sm"
+              <div className="flex-1 overflow-y-auto">
+                {chatbotList.map((bot) => {
+                  // 🔹 Find the latest message for this bot
+                  const botChats = chatList.filter(
+                    (chat) => chat.chatbot_id === bot.id
+                  );
+                  const lastMessage =
+                    botChats.length > 0 ? botChats[botChats.length - 1] : null;
+
+                  return (
+                    <div
+                      key={bot.id}
+                      onClick={() => {
+                        setSelectedBotId(bot.id);
+                        setSelectedUser(null);
+                      }}
+                      className={`p-4 border-b cursor-pointer hover:bg-gray-100 transition-colors ${selectedBotId === bot.id
+                        ? "bg-blue-50 border-l-4 border-l-blue-500"
+                        : "bg-white"
+                        }`}
                     >
-                      <CardContent className="p-4 space-y-4">
-                        {/* Metadata */}
-                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                          {/*Language */}
-                          <div className="bg-white rounded-xl shadow-md border p-4">
-                            <h4 className="text-sm font-medium text-gray-500 mb-1">
-                              🌐 Language
-                            </h4>
-                            <p className="text-base font-semibold text-gray-800">
-                              {languageMap[chat.language] || chat.language}
-                            </p>
-                          </div>
+                      {/* 🔹 Name (left) + Last message time (right) */}
+                      <div className="flex justify-between items-center">
+                        <p className="font-medium text-sm truncate">{bot.name}</p>
+                        {lastMessage && (
+                          <span className="text-xs text-muted-foreground ml-2 whitespace-nowrap">
+                            {formatTime(lastMessage.timestamp)}
+                          </span>
+                        )}
+                      </div>
 
-                          {/*Timestamp */}
-                          <div className="bg-white rounded-xl shadow-md border p-4">
-                            <h4 className="text-sm font-medium text-gray-500 mb-1">
-                              🕒 Timestamp
-                            </h4>
-                            <p className="text-base font-semibold text-gray-800">
-                              {new Date(chat.timestamp).toLocaleString()}
-                            </p>
-                          </div>
+                      {/* 🔹 Description */}
+                      <p className="text-xs text-muted-foreground truncate">
+                        {bot.description}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
-                          {/* IP Address */}
-                          <div className="bg-white rounded-xl shadow-md border p-4">
-                            <h4 className="text-sm font-medium text-gray-500 mb-1">
-                              📍 IP Address
-                            </h4>
-                            <p className="text-base font-semibold text-gray-800">
-                              {chat.ip_address}
-                            </p>
-                          </div>
+            {/* Right Chat Area */}
+            <div className="flex-1 flex flex-col border rounded-lg bg-gray-50">
+              {selectedUser ? (
+                <>
+                  {/* Chat Header */}
+                  <div className="p-4 border-b bg-white rounded-t-lg flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setSelectedUser(null)}
+                      className="lg:hidden"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </Button>
+                    <h3 className="font-semibold">
+                      Chat with{" "}
+                      {chatbotList.find((bot) => bot.id === selectedBotId)
+                        ?.name || "Chatbot"}
+                    </h3>
+                  </div>
 
-                          {/*Intent */}
-                          <div className="bg-white rounded-xl shadow-md border p-4">
-                            <h4 className="text-sm font-medium text-gray-500 mb-1">
-                              🎯 Intent
-                            </h4>
-                            <p className="text-base font-semibold text-primary">
-                              {chat.intent_detected}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* User Message */}
-                        {chat.user_message && (
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-300 text-gray-800 font-bold flex items-center justify-center">
-                              U
-                            </div>
-                            <div className="bg-white rounded-xl p-3 shadow-sm max-w-[80%]">
-                              <div className="text-xs text-gray-500 font-medium mb-1">
-                                User
+                  {/* Chat Messages */}
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    {chatLoading ? (
+                      <div className="flex items-center justify-center h-full text-muted-foreground">
+                        Loading chats...
+                      </div>
+                    ) : chatList.length === 0 ? (
+                      <div className="flex items-center justify-center h-full text-muted-foreground">
+                        No chats found.
+                      </div>
+                    ) : (
+                      chatList
+                        .filter((chat: ChatData) => chat.user_id === selectedUser.id)
+                        .map((chat: ChatData) => (
+                          <div key={chat.id} className="space-y-2">
+                            {/* User bubble */}
+                            {chat.user_message && (
+                              <div className="flex justify-end">
+                                <div className="bg-blue-500 text-white rounded-2xl rounded-br-none px-4 py-2 max-w-[70%] shadow">
+                                  <p className="text-sm">{chat.user_message}</p>
+                                  <span className="text-xs opacity-70 block text-right mt-1">
+                                    {formatTime(chat.timestamp)}
+                                  </span>
+                                </div>
                               </div>
-                              <p className="text-sm text-gray-800">
-                                {chat.user_message}
-                              </p>
-                            </div>
-                          </div>
-                        )}
+                            )}
 
-                        {/* Bot Message */}
-                        {chat.bot_response && chat.bot_response.toLowerCase() !== "general" && (
-                          <div className="flex items-start gap-3 justify-end">
-                            <div className="bg-primary text-white rounded-xl p-3 shadow-sm max-w-[80%]">
-                              <div className="text-xs text-white/70 font-medium mb-1">Bot</div>
-                              <p className="text-sm">{chat.bot_response}</p>
-                            </div>
-                            <div className="w-10 h-10 rounded-full bg-primary text-white font-bold flex items-center justify-center">
-                              B
-                            </div>
+                            {/* Bot bubble */}
+                            {chat.bot_response &&
+                              chat.bot_response.toLowerCase() !== "general" && (
+                                <div className="flex justify-start">
+                                  <div className="bg-gray-200 text-gray-800 rounded-2xl rounded-bl-none px-4 py-2 max-w-[70%] shadow">
+                                    <p className="text-sm">{chat.bot_response}</p>
+                                    <span className="text-xs opacity-70 block text-right mt-1">
+                                      {formatTime(chat.timestamp)}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
                           </div>
-                        )}
-
-                      </CardContent>
-                    </Card>
-                  ))}
+                        ))
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center text-muted-foreground">
+                    <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>Select a conversation to view messages</p>
+                  </div>
                 </div>
-                {/* Chat Pagination */}
-                <Pagination className="mt-8">
-                  <PaginationContent className="justify-center gap-2">
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() =>
-                          setChatPage((prev) => Math.max(prev - 1, 0))
-                        }
-                        className={chatPage === 0 ? "pointer-events-none opacity-50" : ""}
-                      />
-                    </PaginationItem>
-
-                    <PaginationItem>
-                      <PaginationLink isActive>{chatPage + 1}</PaginationLink>
-                    </PaginationItem>
-
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() => setChatPage((prev) => prev + 1)}
-                        className={
-                          !chatData || chatList.length < CHAT_PAGE_LIMIT
-                            ? "pointer-events-none opacity-50"
-                            : ""
-                        }
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </>
-            )}
+              )}
+            </div>
           </div>
         )}
       </div>

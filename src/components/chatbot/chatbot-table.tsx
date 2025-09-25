@@ -38,9 +38,14 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import CopyScript from "./copy-script";
-import { SquarePen, MoreHorizontal } from "lucide-react";
+import { SquarePen, MoreHorizontal, ChevronDown } from "lucide-react";
 import ChatbotCrawlingStatus from "./chatbot-crawling-status";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/src/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/src/components/ui/dialog";
 import UploadUrlPdf from "./upload-url-pdf";
 
 const Player = dynamic(
@@ -142,12 +147,36 @@ const ActionsDropdown = ({
   );
 };
 
+// NEW: Crawling dropdown
+const CrawlingDropdown = ({
+  chatbotId,
+  isOpen,
+  onToggle,
+}: {
+  chatbotId: number;
+  isOpen: boolean;
+  onToggle: (id: number) => void;
+}) => {
+  return (
+    <DropdownMenu open={isOpen} onOpenChange={() => onToggle(chatbotId)}>
+      <DropdownMenuTrigger asChild>
+        <button className="px-2 py-1 rounded hover:bg-gray-100 flex items-center gap-1 text-sm">
+          <ChevronDown size={14} />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="p-2 w-[400px]">
+        <ChatbotCrawlingStatus chatbotId={chatbotId} />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 export default function ChatbotTable() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBotId, setSelectedBotId] = useState<number | null>(null);
   const [recrawlBot, setRecrawlBot] = useState<Chatbot | null>(null);
-  const [detailBot, setDetailBot] = useState<Chatbot | null>(null);
+  const [expandedBotId, setExpandedBotId] = useState<number | null>(null);
 
   const { data, isLoading, error } = useGetChatbotQuery({
     page: currentPage,
@@ -176,6 +205,10 @@ export default function ChatbotTable() {
   const handleRecrawl = (chatbotId: number) => {
     const botToRecrawl = chatbots.find((b) => b.id === chatbotId);
     if (botToRecrawl) setRecrawlBot(botToRecrawl);
+  };
+
+  const toggleExpand = (id: number) => {
+    setExpandedBotId(expandedBotId === id ? null : id);
   };
 
   return (
@@ -214,7 +247,10 @@ export default function ChatbotTable() {
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-6 text-gray-500">
+                <TableCell
+                  colSpan={8}
+                  className="text-center py-6 text-gray-500"
+                >
                   Loading...
                 </TableCell>
               </TableRow>
@@ -222,7 +258,10 @@ export default function ChatbotTable() {
 
             {error && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-6 text-red-500">
+                <TableCell
+                  colSpan={8}
+                  className="text-center py-6 text-red-500"
+                >
                   Failed to load chatbots.
                 </TableCell>
               </TableRow>
@@ -248,7 +287,13 @@ export default function ChatbotTable() {
               <TableRow
                 key={idx}
                 onClick={() => {
-                  setSelectedBotId(bot.id);
+                  if (bot.progress_status === "ready") {
+                    router.push(
+                      `/dashboard/chatbot-management/chat-details/${bot.id}`
+                    );
+                  } else {
+                    setSelectedBotId(bot.id);
+                  }
                 }}
                 className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
               >
@@ -261,26 +306,11 @@ export default function ChatbotTable() {
                   </div>
                 </TableCell>
 
-
-
-
-
                 <TableCell className="px-4 py-3 hidden md:table-cell">
                   <span>{bot.client_name}</span>
                 </TableCell>
 
-                <TableCell
-                  className="px-4 py-3 cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (bot.progress_status === "ready") {
-                      router.push(`/dashboard/chatbot-management/chat-details/${bot.id}`);
-                    } else {
-                      // Keep existing popup behavior
-                      setDetailBot(bot);
-                    }
-                  }}
-                >
+                <TableCell className="px-4 py-3">
                   <span
                     className={`text-xs font-semibold uppercase px-2 py-1 rounded-full ${getStatusStyle(
                       bot.progress_status
@@ -290,16 +320,19 @@ export default function ChatbotTable() {
                   </span>
                 </TableCell>
 
-
                 <TableCell className="px-4 py-3 hidden md:table-cell">
-                  <span className="font-medium text-gray-700">{bot.total_interactions ?? "N/A"}</span>
+                  <span className="font-medium text-gray-700">
+                    {bot.total_interactions ?? "N/A"}
+                  </span>
                 </TableCell>
 
                 <TableCell className="px-4 py-3 hidden md:table-cell">
                   <SquarePen
                     onClick={(e) => {
                       e.stopPropagation();
-                      router.push(`/dashboard/chatbot-management/update-chatbot/${bot.id}`);
+                      router.push(
+                        `/dashboard/chatbot-management/update-chatbot/${bot.id}`
+                      );
                     }}
                     className="cursor-pointer text-blue-600 hover:text-blue-500 transition"
                   />
@@ -374,6 +407,13 @@ export default function ChatbotTable() {
                       onDelete={handleDelete}
                       onUploadFiles={handleUploadFiles}
                     />
+
+                    {/* Crawling dropdown on right of actions */}
+                    <CrawlingDropdown
+                      chatbotId={bot.id}
+                      isOpen={expandedBotId === bot.id}
+                      onToggle={toggleExpand}
+                    />
                   </div>
                 </TableCell>
               </TableRow>
@@ -385,7 +425,8 @@ export default function ChatbotTable() {
       {/* Pagination */}
       <div className="flex w-full justify-between text-sm text-muted-foreground pt-4">
         <span>
-          Showing {chatbots.length > 0 ? `1 to ${chatbots.length}` : "0"} of {totalCount} results (Page {currentPage} of {totalPages})
+          Showing {chatbots.length > 0 ? `1 to ${chatbots.length}` : "0"} of{" "}
+          {totalCount} results (Page {currentPage} of {totalPages})
         </span>
         <Pagination>
           <PaginationContent>
@@ -396,7 +437,9 @@ export default function ChatbotTable() {
                   e.preventDefault();
                   if (currentPage > 1) setCurrentPage((p) => p - 1);
                 }}
-                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                className={
+                  currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                }
               />
             </PaginationItem>
             {Array.from({ length: totalPages }, (_, i) => (
@@ -420,7 +463,11 @@ export default function ChatbotTable() {
                   e.preventDefault();
                   if (currentPage < totalPages) setCurrentPage((p) => p + 1);
                 }}
-                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                className={
+                  currentPage === totalPages
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }
               />
             </PaginationItem>
           </PaginationContent>
@@ -447,7 +494,9 @@ export default function ChatbotTable() {
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Start again Website Crawling & Upload Files</DialogTitle>
+            <DialogTitle>
+              Start again Website Crawling & Upload Files
+            </DialogTitle>
           </DialogHeader>
           {recrawlBot && (
             <UploadUrlPdf
