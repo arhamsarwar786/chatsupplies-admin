@@ -9,6 +9,7 @@ import { skipToken } from "@reduxjs/toolkit/query";
 import { MessageCircle, ArrowLeft } from "lucide-react";
 import noDataAnimation from "@/public/lottie/nodata.json";
 import { useGetAllChatsQuery } from "@/src/hooks/useChat";
+import { Globe, Clock, MapPin, Target } from "lucide-react"; // Import Lucide icons for better visuals
 
 const Player = dynamic(
   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
@@ -19,6 +20,7 @@ interface Chatbot {
   id: number;
   name: string;
   description: string;
+  profile_image?: string; // added profile image field
 }
 
 interface ChatData {
@@ -29,14 +31,14 @@ interface ChatData {
   user_id: number;
   chatbot_id: number;
   intent_detected: string;
-  username?: string; // ✅ added username support
+  username?: string;
+  language_detected?: string;
+  ip_address?: string;
 }
 
 const ChatHistoryPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBotId, setSelectedBotId] = useState<number | null>(null);
-
-  // ✅ selectedUser holds both id + name
   const [selectedUser, setSelectedUser] = useState<{
     id: number;
     name: string;
@@ -91,20 +93,84 @@ const ChatHistoryPage = () => {
       minute: "2-digit",
     });
 
+  // Updated StatCard component
+  const StatCard: React.FC<{
+    icon: React.ElementType;
+    title: string;
+    value: string;
+    valueClass?: string;
+  }> = ({ icon: Icon, title, value, valueClass = "text-gray-800" }) => (
+    <div className="flex items-center space-x-2 border rounded-xl p-3 bg-white shadow-sm w-48 h-16">
+      <Icon className="w-5 h-5 text-blue-500 flex-shrink-0" />
+      <div className="flex flex-col text-xs overflow-hidden">
+        <span className="text-muted-foreground truncate">{title}</span>
+        <span className={`font-semibold ${valueClass} truncate`}>{value}</span>
+      </div>
+    </div>
+  );
+
+  // pick latest chat for stats
+  const latestChat = chatList.length > 0 ? chatList[chatList.length - 1] : null;
+
   return (
     <>
-
       <DashboardHeader
         title="Chat History"
         description="View and manage your chatbot conversations"
       />
-      <div className="p-4">
+
+      {/* Container for 'Back to Chatbot' and the Stat Cards */}
+      <div className="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        {/* 'Back to Chatbot' button */}
         <button
           onClick={() => history.back()}
-          className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 !cursor-pointer"
+          className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 !cursor-pointer flex-shrink-0"
+          title="Back to chatbot Management" // On Hover
         >
-          Back to list
+          Back to Chatbot
         </button>
+
+        {/* Stat Cards Row */}
+        <div className="flex flex-wrap justify-start gap-3 text-sm">
+          {latestChat ? (
+            <>
+              <StatCard
+                icon={Globe}
+                title="Language"
+                value={latestChat.language_detected || "—"}
+                valueClass="text-gray-600"
+              />
+              <StatCard
+                icon={Clock}
+                title="Timestamp"
+                value={
+                  latestChat.timestamp
+                    ? new Date(latestChat.timestamp).toLocaleString()
+                    : "—"
+                }
+                valueClass="text-gray-600"
+              />
+              <StatCard
+                icon={MapPin}
+                title="IP Address"
+                value={latestChat.ip_address || "—"}
+              />
+              <StatCard
+                icon={Target}
+                title="Intent"
+                value={latestChat.intent_detected || "—"}
+                valueClass="text-blue-600"
+              />
+            </>
+          ) : (
+            <>
+              <StatCard icon={Globe} title="Language" value="—" />
+              <StatCard icon={Clock} title="Timestamp" value="—" />
+              <StatCard icon={MapPin} title="IP Address" value="—" />
+              <StatCard icon={Target} title="Intent" value="—" />
+            </>
+          )}
+        </div>
       </div>
 
       <div className="p-4 md:p-5 ">
@@ -127,7 +193,7 @@ const ChatHistoryPage = () => {
             <p className="mt-4 text-muted-foreground">No chatbot found.</p>
           </div>
         ) : (
-          <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-200px)]">
+          <div className="flex flex-col lg:flex-row gap-6 -mt-5 shadow-4xl h-[calc(100vh-200px)]">
             {/* Left Sidebar */}
             <div className="w-full lg:w-[320px] flex-shrink-0 flex flex-col border rounded-lg bg-gray-50">
               {/* Chatbots */}
@@ -139,7 +205,6 @@ const ChatHistoryPage = () => {
               </div>
               <div className="flex-1 overflow-y-auto">
                 {chatbotList.map((bot) => {
-                  // 🔹 Find the latest message for this bot
                   const botChats = chatList.filter(
                     (chat) => chat.chatbot_id === bot.id
                   );
@@ -154,22 +219,35 @@ const ChatHistoryPage = () => {
                         setSelectedUser(null);
                       }}
                       className={`p-4 border-b cursor-pointer hover:bg-gray-100 transition-colors ${selectedBotId === bot.id
-                        ? "bg-blue-50 border-l-4 border-l-blue-500"
-                        : "bg-white"
+                          ? "bg-blue-50 border-l-4 border-l-blue-500"
+                          : "bg-white"
                         }`}
                     >
-                      {/* 🔹 Name (left) + Last message time (right) */}
+                      {/* Bot name + image */}
                       <div className="flex justify-between items-center">
-                        <p className="font-medium text-sm truncate">{bot.name}</p>
+                        <div className="flex items-center gap-2">
+                          {bot.profile_image ? (
+                            <img
+                              src={bot.profile_image}
+                              alt={bot.name}
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white text-xs">
+                              {bot.name.charAt(0)}
+                            </div>
+                          )}
+                          <p className="font-medium text-sm truncate">
+                            {bot.name}
+                          </p>
+                        </div>
                         {lastMessage && (
                           <span className="text-xs text-muted-foreground ml-2 whitespace-nowrap">
                             {formatTime(lastMessage.timestamp)}
                           </span>
                         )}
                       </div>
-
-                      {/* 🔹 Description */}
-                      <p className="text-xs text-muted-foreground truncate">
+                      <p className="text-xs ml-10 text-muted-foreground truncate">
                         {bot.description}
                       </p>
                     </div>
@@ -183,20 +261,39 @@ const ChatHistoryPage = () => {
               {selectedUser ? (
                 <>
                   {/* Chat Header */}
-                  <div className="p-4 border-b bg-white rounded-t-lg flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setSelectedUser(null)}
-                      className="lg:hidden"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                    </Button>
-                    <h3 className="font-semibold">
-                      Chat with{" "}
-                      {chatbotList.find((bot) => bot.id === selectedBotId)
-                        ?.name || "Chatbot"}
-                    </h3>
+                  <div className="p-4 border-b bg-white rounded-t-lg flex items-center justify-between">
+                    {/* Left side: back button, bot image, chatbot name */}
+                    <div className="flex items-center gap-3">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setSelectedUser(null)}
+                        className="lg:hidden"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                      </Button>
+
+                      {/* Bot image */}
+                      {selectedBotId && (
+                        <img
+                          src={
+                            chatbotList.find((bot) => bot.id === selectedBotId)
+                              ?.profile_image || ""
+                          }
+                          alt={
+                            chatbotList.find((bot) => bot.id === selectedBotId)
+                              ?.name || "Bot"
+                          }
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      )}
+
+                      <h3 className="font-semibold">
+                        Chat with{" "}
+                        {chatbotList.find((bot) => bot.id === selectedBotId)
+                          ?.name || "Chatbot"}
+                      </h3>
+                    </div>
                   </div>
 
                   {/* Chat Messages */}
@@ -211,7 +308,9 @@ const ChatHistoryPage = () => {
                       </div>
                     ) : (
                       chatList
-                        .filter((chat: ChatData) => chat.user_id === selectedUser.id)
+                        .filter(
+                          (chat: ChatData) => chat.user_id === selectedUser.id
+                        )
                         .map((chat: ChatData) => (
                           <div key={chat.id} className="space-y-2">
                             {/* User bubble */}
@@ -231,7 +330,9 @@ const ChatHistoryPage = () => {
                               chat.bot_response.toLowerCase() !== "general" && (
                                 <div className="flex justify-start">
                                   <div className="bg-gray-200 text-gray-800 rounded-2xl rounded-bl-none px-4 py-2 max-w-[70%] shadow">
-                                    <p className="text-sm">{chat.bot_response}</p>
+                                    <p className="text-sm">
+                                      {chat.bot_response}
+                                    </p>
                                     <span className="text-xs opacity-70 block text-right mt-1">
                                       {formatTime(chat.timestamp)}
                                     </span>
