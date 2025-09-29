@@ -34,6 +34,7 @@ import {
 import {
   useGetChatbotQuery,
   useCreateChatbotMutation,
+  useDeleteChatbotMutation,
 } from "@/src/hooks/useChatbot";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -178,6 +179,7 @@ export default function ChatbotTable() {
   const [recrawlBot, setRecrawlBot] = useState<Chatbot | null>(null);
   const [expandedBotId, setExpandedBotId] = useState<number | null>(null);
 
+  // We still need 'refetch' for pagination and other uses, but handleDelete will rely on RTK Query's optimistic update.
   const { data, isLoading, error } = useGetChatbotQuery({
     page: currentPage,
     sort_desc: true,
@@ -188,13 +190,23 @@ export default function ChatbotTable() {
   const totalCount = data?.total_count ?? 0;
 
   const [createChatbot] = useCreateChatbotMutation();
+  const [deleteChatbot] = useDeleteChatbotMutation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentPage]);
 
-  const handleDelete = (chatbotId: number) => {
-    toast.info("Delete functionality would be implemented here");
+  // FIX: Relying on RTK Query's definition in chatbot.ts to update the cache
+  const handleDelete = async (chatbotId: number) => {
+    try {
+      // The deletion and cache update logic is now inside the RTK Query file
+      await deleteChatbot(chatbotId).unwrap();
+      toast.success("Chatbot deleted successfully");
+    } catch (err) {
+      toast.error("Failed to delete chatbot");
+      // Logging the error is helpful for debugging the API response
+      console.error("Chatbot delete failed:", err);
+    }
   };
 
   const handleUploadFiles = (chatbotId: number) => {
@@ -287,13 +299,26 @@ export default function ChatbotTable() {
               <TableRow
                 key={idx}
                 onClick={() => {
-                  if (bot.progress_status === "ready") {
+                  const status = bot.progress_status;
+
+                  // If 'ready', navigate to chat details
+                  if (status === "ready") {
                     router.push(
                       `/dashboard/chatbot-management/chat-details/${bot.id}`
                     );
-                  } else {
-                    setSelectedBotId(bot.id);
+                    return;
                   }
+
+                  // FIX: If 'just_created' or 'in_progress', do nothing
+                  if (
+                    status === "just_created" ||
+                    status === "in_progress"
+                  ) {
+                    return; // Stop execution, no action taken on click.
+                  }
+
+                  // For any other status (e.g., 'failed'), show the status dialog
+                  setSelectedBotId(bot.id);
                 }}
                 className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
               >
@@ -341,13 +366,13 @@ export default function ChatbotTable() {
                 <TableCell className="px-4 py-3 hidden md:table-cell">
                   {bot.created_at
                     ? new Date(bot.created_at).toLocaleString(undefined, {
-                      year: "numeric",
-                      month: "short",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    })
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      })
                     : "N/A"}
                 </TableCell>
 

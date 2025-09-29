@@ -50,8 +50,6 @@ const useExitPrompt = () => {
     if (!isDirty) return;
 
     const handleWindowClose = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
     };
 
     window.addEventListener("beforeunload", handleWindowClose);

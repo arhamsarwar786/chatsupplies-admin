@@ -264,7 +264,6 @@ const ChatbotSetup = () => {
     setUploadedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index))
   }
 
-
   return (
     <>
 
@@ -282,7 +281,6 @@ const ChatbotSetup = () => {
             </div>
           </div>
         )}
-
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Create Your Chatbot</h1>
@@ -310,7 +308,6 @@ const ChatbotSetup = () => {
                   onConfirm={confirmLeave}
                   onCancel={cancelLeave}
                 />
-
                 {/* Dropdown results */}
                 {isDropdownOpen && searchTerm.length >= 2 && clientResults?.length > 0 && (
                   <ul className="absolute z-20 bg-white border border-gray-200 shadow-lg mt-1 w-full rounded-lg overflow-hidden max-h-60 overflow-y-auto">
@@ -340,7 +337,6 @@ const ChatbotSetup = () => {
 
                 )}
               </div>
-
               {/* Show selected email */}
               {/* {selectedEmail && (
       <div className="mt-3 text-sm text-purple-700 bg-purple-50 p-2 rounded-md shadow-sm border border-purple-200">
@@ -350,7 +346,6 @@ const ChatbotSetup = () => {
             </div>
           )}
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Setup Section */}
           <div className="bg-white w-full rounded-xl shadow-md border border-gray-200 overflow-hidden">
@@ -366,7 +361,6 @@ const ChatbotSetup = () => {
               </div>
               {openSections.basic ? <ChevronUp className="text-gray-500" /> : <ChevronDown className="text-gray-500" />}
             </div>
-
             {openSections.basic && (
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-5">
@@ -389,8 +383,7 @@ const ChatbotSetup = () => {
                       required
 
                     />
-
-                    {/* ✅ Modal moved OUTSIDE the input */}
+                    {/* Modal moved OUTSIDE the input */}
                     <ConfirmationPopup
                       open={showPrompt}
                       onConfirm={confirmLeave}
@@ -400,7 +393,6 @@ const ChatbotSetup = () => {
                       <p className="text-red-500 text-xs mt-1">Chatbot name is required</p>
                     )}
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Description <span className="text-red-500">*</span></label>
                     <textarea
@@ -423,7 +415,6 @@ const ChatbotSetup = () => {
                       <p className="text-red-500 text-xs mt-1">Description is required</p>
                     )}
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="w-full md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -440,8 +431,8 @@ const ChatbotSetup = () => {
                           }
                         }}
                         className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${formErrors.industry
-                            ? "border-red-500 ring-2 ring-red-200"
-                            : "border-gray-300"
+                          ? "border-red-500 ring-2 ring-red-200"
+                          : "border-gray-300"
                           }`}
                         required
                       >
@@ -453,7 +444,7 @@ const ChatbotSetup = () => {
                         <option value="Technology">Technology</option>
                       </select>
 
-                      {/* ✅ Popup correctly placed outside */}
+                      {/* Popup correctly placed outside */}
                       <ConfirmationPopup
                         open={showPrompt}
                         onConfirm={confirmLeave}
@@ -464,7 +455,6 @@ const ChatbotSetup = () => {
                       )}
                     </div>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Welcome Message <span className="text-red-500">*</span></label>
                     <input
@@ -483,7 +473,6 @@ const ChatbotSetup = () => {
                     />
                   </div>
                 </div>
-
                 <div className="space-y-5">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Upload Logo <span className="text-red-500">*</span></label>
@@ -532,7 +521,6 @@ const ChatbotSetup = () => {
                       onCancel={cancelLeave}
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Personality Tone</label>
                     <div className="grid grid-cols-1 gap-2">
@@ -559,7 +547,6 @@ const ChatbotSetup = () => {
               </div>
             )}
           </div>
-
           {/* Training Data Section */}
           <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
             <div
@@ -594,12 +581,10 @@ const ChatbotSetup = () => {
                       onConfirm={confirmLeave}
                       onCancel={cancelLeave}
                     />
-
                     <label htmlFor="includePdf" className="text-sm font-medium text-gray-700">
                       Add PDF documents to knowledge base
                     </label>
                   </div>
-
                   <div
                     className={`mt-4 border-2 border-dashed rounded-lg p-8 text-center transition-all ${includePdf
                       ? "cursor-pointer border-gray-300 hover:border-blue-400 bg-white"
@@ -623,7 +608,6 @@ const ChatbotSetup = () => {
                       onConfirm={confirmLeave}
                       onCancel={cancelLeave}
                     />
-
                     <div className="flex flex-col items-center space-y-3">
                       <div className="p-3 bg-blue-50 rounded-full">
                         <Upload className="w-6 h-6 text-blue-500" />
@@ -633,7 +617,6 @@ const ChatbotSetup = () => {
                     </div>
                   </div>
                 </div>
-
                 <div className="space-y-4">
                   <h3 className="text-sm font-medium text-gray-700">Uploaded Files</h3>
 
@@ -675,7 +658,6 @@ const ChatbotSetup = () => {
               </div>
             )}
           </div>
-
           {/* Appearance Section */}
           <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
             <div
@@ -690,7 +672,6 @@ const ChatbotSetup = () => {
               </div>
               {openSections.appearance ? <ChevronUp className="text-gray-500" /> : <ChevronDown className="text-gray-500" />}
             </div>
-
             {openSections.appearance && (
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-5 w-full">
@@ -758,7 +739,6 @@ const ChatbotSetup = () => {
                   ))}
 
                 </div>
-
                 {/* Live Preview */}
                 <div className="space-y-4 w-full">
                   <h3 className="text-sm font-medium text-gray-700 mb-2">Live Preview</h3>
@@ -784,7 +764,6 @@ const ChatbotSetup = () => {
                           <p className="text-xs text-white/80">Online</p>
                         </div>
                       </div>
-
                       {/* Chat Messages */}
                       <div className="p-4 space-y-4 h-64 overflow-y-auto">
                         {/* Bot Message */}
@@ -801,7 +780,6 @@ const ChatbotSetup = () => {
                             {welcomeMessage}
                           </div>
                         </div>
-
                         {/* User Message */}
                         <div className="flex justify-end">
                           <div
@@ -811,7 +789,6 @@ const ChatbotSetup = () => {
                             What are your business hours?
                           </div>
                         </div>
-
                         {/* Bot Response */}
                         <div className="flex items-start space-x-2">
                           {logoPreview ? (
@@ -828,7 +805,6 @@ const ChatbotSetup = () => {
                         </div>
                       </div>
                     </div>
-
                     {/* Chat Input */}
                     <div className="flex items-center p-3 border-t  bg-white">
                       <input
@@ -851,7 +827,6 @@ const ChatbotSetup = () => {
               </div>
             )}
           </div>
-
           {/* Final Preview Section */}
           <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
             <div
@@ -927,10 +902,8 @@ const ChatbotSetup = () => {
                         }}
                       />
 
-
                     </div>
                   </div>
-
                   <div className="w-full md:w-96">
                     <h3 className="text-lg font-medium text-gray-800 mb-4">Final Preview</h3>
                     <div
@@ -959,7 +932,6 @@ const ChatbotSetup = () => {
                           <p className="text-xs text-white/80">Online</p>
                         </div>
                       </div>
-
                       {/* Chat Messages */}
                       <div className="p-3 space-y-3 h-56 overflow-y-auto">
                         {/* Bot Message */}
