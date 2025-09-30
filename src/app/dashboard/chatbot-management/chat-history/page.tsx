@@ -127,7 +127,7 @@ const ChatHistoryPage = () => {
           className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 !cursor-pointer flex-shrink-0"
           title="Back to chatbot Management" // On Hover
         >
-          Back to Chatbot
+          Back to Previous
         </button>
 
         {/* Stat Cards Row */}

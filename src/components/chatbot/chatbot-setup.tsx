@@ -264,6 +264,17 @@ const ChatbotSetup = () => {
     setUploadedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index))
   }
 
+  // create Chatbot button disable condition
+  const isFormComplete =
+  name.trim() !== "" &&
+  description.trim() !== "" &&
+  industry.trim() !== "" &&
+  welcomeMessage.trim() !== "" &&
+  !!logoFile &&
+  selectedEmail.trim() !== "";
+
+
+
   return (
     <>
 
@@ -870,21 +881,25 @@ const ChatbotSetup = () => {
                     <div className="pt-4 border-t border-gray-200">
                       <button
                         type="submit"
-                        disabled={isLoading}
-                        className={`w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition flex items-center justify-center shadow-md ${!isLoading ? "cursor-pointer" : "cursor-not-allowed"}`}
+                        disabled={!isFormComplete || isLoading}
+                        className={`w-full md:w-auto px-6 py-3 text-white rounded-lg font-medium transition flex items-center justify-center shadow-md ${!isFormComplete || isLoading
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                          }`}
                       >
                         {isLoading ? (
                           <>
-                            <Loader2 className="animate-spin w-5 h-5 mr-2 cursor-pointer" />
+                            <Loader2 className="animate-spin w-5 h-5 mr-2" />
                             Creating Chatbot...
                           </>
                         ) : (
                           <>
-                            <Check className="w-5 h-5 mr-2 cursor-pointer" />
+                            <Check className="w-5 h-5 mr-2" />
                             Create Chatbot
                           </>
                         )}
                       </button>
+
 
                       <button
                         type="button"

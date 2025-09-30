@@ -22,7 +22,8 @@ export default function ConfirmationPopup({ open, onConfirm, onCancel }: Confirm
         </p>
         <DialogFooter className="flex justify-end gap-2">
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button variant="destructive" onClick={onConfirm}>Leave</Button>
+          <Button variant="destructive" onClick={onConfirm} className="bg-blue-600 hover:bg-blue-700 cursor-pointer"
+          >Leave</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

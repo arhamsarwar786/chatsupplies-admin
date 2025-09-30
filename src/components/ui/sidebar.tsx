@@ -4,7 +4,7 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, VariantProps } from "class-variance-authority"
 import { PanelLeftIcon } from "lucide-react"
-
+import Draggable from "react-draggable";
 import { useIsMobile } from "@/src/hooks/use-mobile"
 import { cn } from "@/src/lib/utils"
 import { Button } from "@/src/components/ui/button"
@@ -280,23 +280,95 @@ function SidebarTrigger({
 }
 
 function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, state, setOpen } = useSidebar()
+  const [isDragging, setIsDragging] = React.useState(false)
+  const [dragProgress, setDragProgress] = React.useState(0)
+  const dragStartX = React.useRef(0)
+  const dragStartOpen = React.useRef(false)
+  const railRef = React.useRef<HTMLButtonElement>(null)
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+    setDragProgress(0)
+    dragStartX.current = e.clientX
+    dragStartOpen.current = state === "expanded"
+    
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return
+
+    const deltaX = e.clientX - dragStartX.current
+    const maxDelta = 100 // Maximum drag distance
+    const normalizedDelta = Math.max(-maxDelta, Math.min(maxDelta, deltaX))
+    
+    // Calculate progress for visual feedback
+    const progress = Math.abs(normalizedDelta) / maxDelta
+    setDragProgress(progress)
+
+    // Determine direction based on sidebar side
+    const isLeftSide = railRef.current?.closest('[data-side="left"]')
+    const effectiveDelta = isLeftSide ? deltaX : -deltaX
+
+    // Auto-toggle when threshold is reached
+    const threshold = 30
+    
+    if (dragStartOpen.current && effectiveDelta < -threshold) {
+      setOpen(false)
+      endDrag()
+    } else if (!dragStartOpen.current && effectiveDelta > threshold) {
+      setOpen(true)
+      endDrag()
+    }
+  }
+
+  const handleMouseUp = () => {
+    endDrag()
+  }
+
+  const endDrag = () => {
+    setIsDragging(false)
+    setDragProgress(0)
+    cleanup()
+  }
+
+  const cleanup = () => {
+    document.removeEventListener('mousemove', handleMouseMove)
+    document.removeEventListener('mouseup', handleMouseUp)
+  }
+
+  React.useEffect(() => {
+    return cleanup
+  }, [])
 
   return (
     <button
+      ref={railRef}
       data-sidebar="rail"
       data-slot="sidebar-rail"
       aria-label="Toggle Sidebar"
       tabIndex={-1}
-      onClick={toggleSidebar}
+      onMouseDown={handleMouseDown}
+      onClick={(e) => {
+        if (!isDragging) {
+          toggleSidebar()
+        }
+      }}
       title="Toggle Sidebar"
+      style={{
+        '--drag-progress': dragProgress,
+      } as React.CSSProperties}
       className={cn(
         "hover:after:bg-sidebar-border absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] sm:flex",
-        "in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize",
-        "[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
+        "in-data-[side=left]:cursor-ew-resize in-data-[side=right]:cursor-ew-resize",
+        "[[data-side=left][data-state=collapsed]_&]:cursor-ew-resize [[data-side=right][data-state=collapsed]_&]:cursor-ew-resize",
         "hover:group-data-[collapsible=offcanvas]:bg-sidebar group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full",
         "[[data-side=left][data-collapsible=offcanvas]_&]:-right-2",
         "[[data-side=right][data-collapsible=offcanvas]_&]:-left-2",
+        isDragging && "after:bg-blue-500 after:scale-x-150 after:transition-none",
         className
       )}
       {...props}
