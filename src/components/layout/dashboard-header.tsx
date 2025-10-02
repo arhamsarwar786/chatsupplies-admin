@@ -12,14 +12,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/src/components/ui/dropdown-menu"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/src/components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/src/components/ui/tooltip"
 import { Dialog, DialogContent } from "@/src/components/ui/dialog"
 import ProfileCard from "./profileCard"
-import { Bell, LogOut, CircleUserRound, User } from "lucide-react"
+import { LogOut, CircleUserRound, User } from "lucide-react"
 
 type DashboardHeaderProps = {
   title?: string
@@ -37,6 +33,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const [role, setRole] = useState("")
   const [username, setUsername] = useState("")
   const [showProfile, setShowProfile] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -44,7 +41,27 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     const name = localStorage.getItem("username") || "hhh"
     setRole(storedRole)
     setUsername(name)
+    
+    // Initialize collapsed state from localStorage
+    const savedCollapsed = localStorage.getItem("sidebar-collapsed")
+    if (savedCollapsed) {
+      setCollapsed(savedCollapsed === "true")
+    }
   }, [])
+
+  // Sync collapsed state with localStorage and AppSidebar
+  useEffect(() => {
+    localStorage.setItem("sidebar-collapsed", String(collapsed))
+    
+    // Dispatch a custom event to notify AppSidebar about the state change
+    window.dispatchEvent(new CustomEvent('sidebar-toggle', { 
+      detail: { collapsed } 
+    }))
+  }, [collapsed])
+
+  const handleSidebarToggle = () => {
+    setCollapsed(prev => !prev)
+  }
 
   const handleLogout = () => {
     localStorage.clear()
@@ -54,7 +71,13 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   return (
     <header className="flex items-center justify-between border-b bg-gray-100 px-6 py-4 shadow-sm">
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="-ml-1" />
+        {/* Sidebar Trigger with toggle functionality */}
+        <button
+          onClick={handleSidebarToggle}
+          className="-ml-1 p-2 rounded-md hover:bg-gray-200 transition-colors"
+        >
+          <SidebarTrigger />
+        </button>
         <div>
           <h1 className="text-2xl font-bold text-black">{title}</h1>
           <p className="text-sm text-muted-foreground">{description}</p>
@@ -71,23 +94,20 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </Button>
         )}
 
-
         {/* Avatar Dropdown */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="rounded-full">
-                    <CircleUserRound size={30} className="text-muted-foreground" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Profile</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </DropdownMenuTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <button className="rounded-full">
+                  <CircleUserRound size={30} className="text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Profile</p>
+            </TooltipContent>
+          </Tooltip>
 
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">

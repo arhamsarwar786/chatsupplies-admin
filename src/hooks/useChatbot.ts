@@ -56,10 +56,10 @@ export const chatbot = createApi({
         method: "DELETE",
       }),
       // REMOVED: invalidatesTags: ["Chatbot"], 
-      
+
       async onQueryStarted(chatbotId, { dispatch, queryFulfilled, getState }) {
         // --- START OPTIMISTIC UPDATE ---
-        
+
         // This is a complex way to get the current list's query args. 
         // A simpler approach is to always use the default (page: 1, sort_desc: true) if the list doesn't change pages often, but we'll stick to the existing logic for now.
         const listQueryArg = { 
@@ -86,9 +86,9 @@ export const chatbot = createApi({
         }) || queryKeys[0]; // Fallback to the first available key
         
         if (activeQueryKey) {
-             try {
+              try {
                 foundQueryKey = JSON.parse(activeQueryKey.substring(11, activeQueryKey.length - 1));
-            } catch {}
+              } catch {}
         }
 
 

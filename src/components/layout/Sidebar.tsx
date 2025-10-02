@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import {
   Home, Bot, User, ChevronDown, ChevronUp,
   Book, PackagePlus, Package,
-  Menu, ChevronLeft // ✅ Added ChevronLeft for collapse button
 } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useSelector } from "react-redux"
@@ -26,6 +25,19 @@ export function AppSidebar() {
 
   const pathname = usePathname()
   const role = useSelector((state: RootState) => state.authSlice.role)
+
+  // ✅ Listen for toggle events from header
+  useEffect(() => {
+    const handleSidebarToggle = (event: CustomEvent) => {
+      setCollapsed(event.detail.collapsed)
+    }
+
+    window.addEventListener('sidebar-toggle', handleSidebarToggle as EventListener)
+    
+    return () => {
+      window.removeEventListener('sidebar-toggle', handleSidebarToggle as EventListener)
+    }
+  }, [])
 
   // ✅ keep collapsed state in sync with localStorage
   useEffect(() => {
@@ -72,15 +84,14 @@ export function AppSidebar() {
   ]
 
   return (
-   <aside
-  className={`left-0 bottom-0 sticky top-0 h-screen relative bg-white border-r shadow-sm flex flex-col justify-between transition-all duration-300 
-    ${collapsed 
-      ? "w-[70px]" 
-      : "w-[320px] md:w-[250px]"  // mobile = 320px, desktop = 250px
-    }`}
->
-
-      {/* Logo Header */}
+    <aside
+      className={`left-0 bottom-0 sticky top-0 h-screen relative bg-white border-r shadow-sm flex flex-col justify-between transition-all duration-300 
+        ${collapsed 
+          ? "w-[70px]" 
+          : "w-[320px] md:w-[250px]"
+        }`}
+    >
+      {/* Logo Header - Removed toggle buttons */}
       <div className="p-4 h-[85px] border-b flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Image src="/Frame.svg" alt="Logo" width={40} height={40} className="rounded-md" />
@@ -92,28 +103,10 @@ export function AppSidebar() {
           )}
         </div>
 
-        {/* ✅ ChevronLeft button when sidebar is EXPANDED */}
-        {!collapsed && (
-          <button
-            onClick={() => setCollapsed(true)}
-            className="p-1 rounded-md hover:bg-gray-100 text-gray-600"
-          >
-            <ChevronLeft size={18} />
-          </button>
-        )}
+        {/* Removed ChevronLeft button */}
       </div>
 
-      {/* ✅ Hamburger button when sidebar is COLLAPSED */}
-      {collapsed && (
-        <div className="flex justify-center mt-4 mb-2">
-          <button
-            onClick={() => setCollapsed(false)}
-            className="p-1 rounded-md hover:bg-gray-100 text-gray-600"
-          >
-            <Menu size={18} />
-          </button>
-        </div>
-      )}
+      {/* Removed Hamburger button */}
 
       {/* Sidebar Navigation */}
       <div className="flex-1 overflow-y-auto">

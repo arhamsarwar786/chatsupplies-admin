@@ -39,8 +39,7 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import CopyScript from "./copy-script";
-import { SquarePen, MoreHorizontal, ChevronDown } from "lucide-react";
-import ChatbotCrawlingStatus from "./chatbot-crawling-status";
+import { SquarePen, MoreHorizontal, Square } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -115,6 +114,53 @@ const getRelativeTime = (dateString: string) => {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 };
 
+// MODIFIED: Stop Crawling API call - Added Authentication Headers
+const stopCrawling = async (chatbotId: number): Promise<void> => {
+  // Retrieve authentication data from localStorage
+  const token = localStorage.getItem("token");
+  const apikey = localStorage.getItem("apikey");
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  if (apikey) {
+    headers['api-key'] = apikey;
+  }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  try {
+    const response = await fetch('https://api.chatsupplies.com/training/crawl/stop', {
+      method: 'POST',
+      headers: headers, // Use the updated headers object
+      body: JSON.stringify({ chatbot_id: chatbotId }),
+    });
+
+    if (!response.ok) {
+      // Attempt to read error message from response body if available
+      let errorMessage = 'Failed to stop crawling';
+      try {
+        const errorData = await response.json();
+        // Use a more specific error message from the backend if provided
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch (e) {
+        // Ignore if JSON parsing fails, use generic message
+      }
+      // Throw a new Error with the specific message
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error stopping crawling:', error);
+    // Re-throw the specific error for the StopCrawlingButton to handle the toast.
+    throw error;
+  }
+};
+
 const ActionsDropdown = ({
   chatbotId,
   onRecrawl,
@@ -148,27 +194,74 @@ const ActionsDropdown = ({
   );
 };
 
-// NEW: Crawling dropdown
-const CrawlingDropdown = ({
-  chatbotId,
-  isOpen,
-  onToggle,
-}: {
-  chatbotId: number;
-  isOpen: boolean;
-  onToggle: (id: number) => void;
+// NEW: Stop Crawling Button Component
+const StopCrawlingButton = ({ 
+  chatbotId, 
+  status,
+  onStopSuccess 
+}: { 
+  chatbotId: number; 
+  status: string;
+  onStopSuccess?: () => void;
 }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleStopCrawling = async () => {
+    if (status !== "in_progress") return;
+    
+    setIsLoading(true);
+    try {
+      await stopCrawling(chatbotId);
+      toast.success("Crawling stopped successfully");
+      onStopSuccess?.();
+    } catch (error) {
+      // FIX: Robust error message extraction to prevent "[object Object]"
+      let errorMessage = "An unknown error occurred.";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message; // Use message from Error instance
+      } else if (typeof error === 'object' && error !== null) {
+        // Try accessing common properties or converting to string
+        errorMessage = error.message || error.detail || String(error);
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      // Final fallback if the message is still generic
+      if (errorMessage === '[object Object]' || !errorMessage) {
+          errorMessage = "Failed to stop crawling due to an API error.";
+      }
+      
+      toast.error(errorMessage); 
+      console.error("Stop crawling error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Only show when status is in_progress
+  if (status !== "in_progress") {
+    return null;
+  }
+
   return (
-    <DropdownMenu open={isOpen} onOpenChange={() => onToggle(chatbotId)}>
-      <DropdownMenuTrigger asChild>
-        <button className="px-2 py-1 rounded hover:bg-gray-100 flex items-center gap-1 text-sm">
-          <ChevronDown size={14} />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="p-2 w-[400px]">
-        <ChatbotCrawlingStatus chatbotId={chatbotId} />
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          onClick={handleStopCrawling}
+          disabled={isLoading}
+          variant="outline"
+          size="sm"
+          className="text-red-500 hover:text-red-600 border-red-500 hover:border-red-600 hover:bg-red-50"
+        >
+          <Square size={16} className="mr-1" />
+          {isLoading ? "Stopping..." : "Stop"}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Stop Crawling</p>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -177,10 +270,9 @@ export default function ChatbotTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBotId, setSelectedBotId] = useState<number | null>(null);
   const [recrawlBot, setRecrawlBot] = useState<Chatbot | null>(null);
-  const [expandedBotId, setExpandedBotId] = useState<number | null>(null);
 
   // We still need 'refetch' for pagination and other uses, but handleDelete will rely on RTK Query's optimistic update.
-  const { data, isLoading, error } = useGetChatbotQuery({
+  const { data, isLoading, error, refetch } = useGetChatbotQuery({
     page: currentPage,
     sort_desc: true,
   });
@@ -195,6 +287,12 @@ export default function ChatbotTable() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentPage]);
+
+  // NEW: Handle stop crawling success
+  const handleStopCrawlingSuccess = () => {
+    // Refetch the data to update the status
+    refetch();
+  };
 
   // FIX: Relying on RTK Query's definition in chatbot.ts to update the cache
   const handleDelete = async (chatbotId: number) => {
@@ -217,10 +315,6 @@ export default function ChatbotTable() {
   const handleRecrawl = (chatbotId: number) => {
     const botToRecrawl = chatbots.find((b) => b.id === chatbotId);
     if (botToRecrawl) setRecrawlBot(botToRecrawl);
-  };
-
-  const toggleExpand = (id: number) => {
-    setExpandedBotId(expandedBotId === id ? null : id);
   };
 
   return (
@@ -385,7 +479,15 @@ export default function ChatbotTable() {
                     className="flex justify-end items-center gap-2"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    {bot.progress_status === "failed" && (
+                    {/* NEW: Stop Crawling Button - Only shows when status is in_progress */}
+                    <StopCrawlingButton 
+                      chatbotId={bot.id}
+                      status={bot.progress_status}
+                      onStopSuccess={handleStopCrawlingSuccess}
+                    />
+
+                    {/* REMOVED: Standalone Recrawl Button */}
+                    {/* {bot.progress_status === "failed" && (
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -396,7 +498,7 @@ export default function ChatbotTable() {
                       >
                         Recrawl
                       </Button>
-                    )}
+                    )} */}
 
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -426,18 +528,12 @@ export default function ChatbotTable() {
                       </Tooltip>
                     )}
 
+                    {/* Recrawl is now only available inside the ActionsDropdown */}
                     <ActionsDropdown
                       chatbotId={bot.id}
                       onRecrawl={handleRecrawl}
                       onDelete={handleDelete}
                       onUploadFiles={handleUploadFiles}
-                    />
-
-                    {/* Crawling dropdown on right of actions */}
-                    <CrawlingDropdown
-                      chatbotId={bot.id}
-                      isOpen={expandedBotId === bot.id}
-                      onToggle={toggleExpand}
                     />
                   </div>
                 </TableCell>
@@ -508,7 +604,7 @@ export default function ChatbotTable() {
           <DialogHeader>
             <DialogTitle>Crawling Status</DialogTitle>
           </DialogHeader>
-          {selectedBotId && <ChatbotCrawlingStatus chatbotId={selectedBotId} />}
+          {selectedBotId && <div>Crawling status details would appear here</div>}
         </DialogContent>
       </Dialog>
 
