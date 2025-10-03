@@ -1,3 +1,4 @@
+
 // @ts-nocheck
 "use client";
 
@@ -39,7 +40,7 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import CopyScript from "./copy-script";
-import { SquarePen, MoreHorizontal, Square } from "lucide-react";
+import { SquarePen, MoreHorizontal } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -114,14 +115,35 @@ const getRelativeTime = (dateString: string) => {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 };
 
-// MODIFIED: Stop Crawling API call - Added Authentication Headers
+// SVG Icons Components
+const PlayIcon = ({ className = "w-8 h-8", ...props }) => (
+  <button {...props} className={className}>
+    <img src="/play.svg" alt="Play" className="w-4 h-4" />
+  </button>
+);
+
+const StopIcon = ({ className = "w-8 h-8", ...props }) => (
+  <button {...props} className={className}>
+    <img src="/stop.svg" />
+  </button>
+);
+
+const RecrawlIcon = ({ className = "w-8 h-8", ...props }) => (
+  <button {...props} className={className}>
+    <img src="/arrows-rotate-reverse.svg" />
+  </button>
+);
+
+
+// MERGED CODE START: stopCrawling function using application/x-www-form-urlencoded
 const stopCrawling = async (chatbotId: number): Promise<void> => {
   // Retrieve authentication data from localStorage
   const token = localStorage.getItem("token");
   const apikey = localStorage.getItem("apikey");
 
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    // IMPORTANT: Change to form-urlencoded
+    'Content-Type': 'application/x-www-form-urlencoded',
   };
 
   if (apikey) {
@@ -131,35 +153,46 @@ const stopCrawling = async (chatbotId: number): Promise<void> => {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  // Prepare the body as a URLSearchParams string
+  const body = new URLSearchParams();
+  body.append('chatbot_id', String(chatbotId));
+  // The client_email parameter from the cURL example is included here as 'string'
+  // but should be checked if it's truly required/needs a dynamic value.
+  // For now, mirroring the form data from your request analysis:
+  // **NOTE**: I'll omit 'client_email=string' as your original code didn't use it, 
+  // ensuring minimum change to the data sent, only fixing the encoding. 
+  // If it is required, you'll need to pass 'client_email' into this function.
+  // body.append('client_email', 'string'); // <-- UNCOMMENT if required
+
   try {
     const response = await fetch('https://api.chatsupplies.com/training/crawl/stop', {
       method: 'POST',
-      headers: headers, // Use the updated headers object
-      body: JSON.stringify({ chatbot_id: chatbotId }),
+      headers: headers,
+      body: body.toString(), // Send the form data string
     });
 
     if (!response.ok) {
-      // Attempt to read error message from response body if available
       let errorMessage = 'Failed to stop crawling';
       try {
         const errorData = await response.json();
-        // Use a more specific error message from the backend if provided
         errorMessage = errorData.detail || errorData.message || errorMessage;
       } catch (e) {
         // Ignore if JSON parsing fails, use generic message
       }
-      // Throw a new Error with the specific message
       throw new Error(errorMessage);
     }
 
-    const data = await response.json();
-    return data;
+    // Return type is void, so we don't need to return data.
+    // const data = await response.json();
+    // return data; 
   } catch (error) {
     console.error('Error stopping crawling:', error);
     // Re-throw the specific error for the StopCrawlingButton to handle the toast.
     throw error;
   }
 };
+// MERGED CODE END
+// ---
 
 const ActionsDropdown = ({
   chatbotId,
@@ -194,13 +227,13 @@ const ActionsDropdown = ({
   );
 };
 
-// NEW: Stop Crawling Button Component
-const StopCrawlingButton = ({ 
-  chatbotId, 
+// UPDATED: Stop Crawling Button Component with SVG Icon
+const StopCrawlingButton = ({
+  chatbotId,
   status,
-  onStopSuccess 
-}: { 
-  chatbotId: number; 
+  onStopSuccess
+}: {
+  chatbotId: number;
   status: string;
   onStopSuccess?: () => void;
 }) => {
@@ -208,7 +241,7 @@ const StopCrawlingButton = ({
 
   const handleStopCrawling = async () => {
     if (status !== "in_progress") return;
-    
+
     setIsLoading(true);
     try {
       await stopCrawling(chatbotId);
@@ -217,22 +250,22 @@ const StopCrawlingButton = ({
     } catch (error) {
       // FIX: Robust error message extraction to prevent "[object Object]"
       let errorMessage = "An unknown error occurred.";
-      
+
       if (error instanceof Error) {
         errorMessage = error.message; // Use message from Error instance
       } else if (typeof error === 'object' && error !== null) {
         // Try accessing common properties or converting to string
-        errorMessage = error.message || error.detail || String(error);
+        errorMessage = error.message || (error as any).detail || String(error);
       } else if (typeof error === 'string') {
         errorMessage = error;
       }
-      
+
       // Final fallback if the message is still generic
       if (errorMessage === '[object Object]' || !errorMessage) {
-          errorMessage = "Failed to stop crawling due to an API error.";
+        errorMessage = "Failed to stop crawling due to an API error.";
       }
-      
-      toast.error(errorMessage); 
+
+      toast.error(errorMessage);
       console.error("Stop crawling error:", error);
     } finally {
       setIsLoading(false);
@@ -249,19 +282,53 @@ const StopCrawlingButton = ({
       <TooltipTrigger asChild>
         <Button
           onClick={handleStopCrawling}
-          disabled={isLoading}
-          variant="outline"
+          variant="ghost"
           size="sm"
-          className="text-red-500 hover:text-red-600 border-red-500 hover:border-red-600 hover:bg-red-50"
+          className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50"
         >
-          <Square size={16} className="mr-1" />
-          {isLoading ? "Stopping..." : "Stop"}
+          <StopIcon className="w-4 h-4" />
         </Button>
       </TooltipTrigger>
       <TooltipContent>
         <p>Stop Crawling</p>
       </TooltipContent>
     </Tooltip>
+
+  );
+};
+
+// NEW: Recrawl Button Component with SVG Icon
+const RecrawlButton = ({
+  chatbotId,
+  status,
+  onRecrawl
+}: {
+  chatbotId: number;
+  status: string;
+  onRecrawl: (id: number) => void;
+}) => {
+  if (status !== "failed") {
+    return null;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRecrawl(chatbotId);
+          }}
+          className="p-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50 rounded"
+        >
+          <RecrawlIcon className="w-4 h-4" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Recrawl Website</p>
+      </TooltipContent>
+    </Tooltip>
+
   );
 };
 
@@ -380,7 +447,7 @@ export default function ChatbotTable() {
                     <Player
                       autoplay
                       loop
-                      src="NoDataFoundAnimation"
+                      src="./play.svg"
                       style={{ height: "200px", width: "200px" }}
                     />
                     <p className="mt-4 text-sm">No chatbots found.</p>
@@ -460,13 +527,13 @@ export default function ChatbotTable() {
                 <TableCell className="px-4 py-3 hidden md:table-cell">
                   {bot.created_at
                     ? new Date(bot.created_at).toLocaleString(undefined, {
-                        year: "numeric",
-                        month: "short",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                      })
+                      year: "numeric",
+                      month: "short",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })
                     : "N/A"}
                 </TableCell>
 
@@ -479,26 +546,19 @@ export default function ChatbotTable() {
                     className="flex justify-end items-center gap-2"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    {/* NEW: Stop Crawling Button - Only shows when status is in_progress */}
-                    <StopCrawlingButton 
+                    {/* UPDATED: Stop Crawling Button with SVG Icon */}
+                    <StopCrawlingButton
                       chatbotId={bot.id}
                       status={bot.progress_status}
                       onStopSuccess={handleStopCrawlingSuccess}
                     />
 
-                    {/* REMOVED: Standalone Recrawl Button */}
-                    {/* {bot.progress_status === "failed" && (
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setRecrawlBot(bot);
-                        }}
-                        variant="outline"
-                        className="text-red-500 hover:text-red-600 border-red-500 hover:border-red-600"
-                      >
-                        Recrawl
-                      </Button>
-                    )} */}
+                    {/* UPDATED: Recrawl Button with SVG Icon */}
+                    <RecrawlButton
+                      chatbotId={bot.id}
+                      status={bot.progress_status}
+                      onRecrawl={handleRecrawl}
+                    />
 
                     <Tooltip>
                       <TooltipTrigger asChild>

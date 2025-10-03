@@ -33,7 +33,7 @@ export function AppSidebar() {
     }
 
     window.addEventListener('sidebar-toggle', handleSidebarToggle as EventListener)
-    
+
     return () => {
       window.removeEventListener('sidebar-toggle', handleSidebarToggle as EventListener)
     }
@@ -86,8 +86,8 @@ export function AppSidebar() {
   return (
     <aside
       className={`left-0 bottom-0 sticky top-0 h-screen relative bg-white border-r shadow-sm flex flex-col justify-between transition-all duration-300 
-        ${collapsed 
-          ? "w-[70px]" 
+        ${collapsed
+          ? "w-[70px]"
           : "w-[320px] md:w-[250px]"
         }`}
     >
