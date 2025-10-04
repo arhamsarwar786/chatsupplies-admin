@@ -551,15 +551,7 @@ export default function ChatbotTable() {
                       chatbotId={bot.id}
                       status={bot.progress_status}
                       onStopSuccess={handleStopCrawlingSuccess}
-                    />
-
-                    {/* UPDATED: Recrawl Button with SVG Icon */}
-                    <RecrawlButton
-                      chatbotId={bot.id}
-                      status={bot.progress_status}
-                      onRecrawl={handleRecrawl}
-                    />
-
+                    />                   
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <UploadUrlPdf

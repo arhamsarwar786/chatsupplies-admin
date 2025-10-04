@@ -566,14 +566,20 @@ const UploadUrlWithPDF = ({
         </DialogTrigger>
       ) : status === "failed" ? (
         <DialogTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            className="text-red-500 hover:text-red-600 border-red-500 hover:border-red-600 text-xs sm:text-sm px-2 sm:px-3 py-1 h-auto min-h-[32px]"
-            onClick={() => setOpen(true)}
-          >
-            <span className="truncate">Recrawl</span>
-          </Button>
+         <Button
+  type="button"
+  variant="ghost" // 👈 removes background & border
+  onClick={() => setOpen(true)}
+  className="p-0 h-auto hover:bg-transparent focus-visible:ring-0"
+>
+  <img
+    src="/arrows-rotate-reverse.svg"
+    alt="Recrawl"
+    className="w-4 h-4 sm:w-5 sm:h-5"
+  />
+</Button>
+
+
         </DialogTrigger>
       ) : (
         <button

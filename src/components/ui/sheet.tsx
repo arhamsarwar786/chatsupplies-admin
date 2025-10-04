@@ -2,10 +2,9 @@
 
 import * as React from "react"
 import * as SheetPrimitive from "@radix-ui/react-dialog"
-import { XIcon, PanelLeftIcon } from "lucide-react" // added PanelLeftIcon for button
+import { XIcon } from "lucide-react"
 
 import { cn } from "@/src/lib/utils"
-import { Button } from "@/src/components/ui/button" // using your button
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -128,30 +127,6 @@ function SheetDescription({
   )
 }
 
-// 👉 Example: Add a top button for desktop
-function DesktopDrawerButton() {
-  return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline" className="m-2 flex items-center gap-2">
-          <PanelLeftIcon className="size-4" />
-          Open Drawer
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="left">
-        <SheetHeader>
-          <SheetTitle>Desktop Drawer</SheetTitle>
-          <SheetDescription>This drawer opens from the left.</SheetDescription>
-        </SheetHeader>
-        <div className="p-4">Drawer content here</div>
-        <SheetFooter>
-          <Button>Save</Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
-  )
-}
-
 export {
   Sheet,
   SheetTrigger,
@@ -161,5 +136,4 @@ export {
   SheetFooter,
   SheetTitle,
   SheetDescription,
-  DesktopDrawerButton, // ✅ export new button
 }
