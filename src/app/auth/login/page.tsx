@@ -71,7 +71,7 @@ export default function LoginPage() {
     <div className="h-screen overflow-y-auto bg-gradient-to-br from-[#eeeaff] to-white flex items-center justify-center">
       <div className="grid grid-cols-1 h-full md:grid-cols-2 w-full bg-white shadow-xl overflow-hidden">
         {/* Left Section - Form */}
-        <div className="p-8">
+        <div className="p-8 overflow-y-auto  max-h-screen">
           <div className="flex flex-col w-full mb-12 items-start gap-3">
             <div className="flex items-center gap-3 hover:scale-105 transition-transform duration-300">
               <Image
@@ -105,10 +105,16 @@ export default function LoginPage() {
               className="space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/30 -mt-3"
             >
               {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                <Alert
+                  variant="destructive"
+                  className="py-1 px-3 text-xs sm:text-sm rounded-md"
+                >
+                  <AlertDescription className="text-xs sm:text-sm">
+                    {error}
+                  </AlertDescription>
                 </Alert>
               )}
+
               <Input
                 type="text"
                 placeholder="Username"

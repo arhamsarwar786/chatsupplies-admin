@@ -51,37 +51,40 @@ export function AppSidebar() {
     setOpenMenu(prev => (prev === title ? null : title))
   }
 
-  const items = [
-    { title: "Dashboard", url: "/dashboard", icon: Home },
-    {
-      title: "Chatbot Management",
-      url: "/dashboard/chatbot-management",
-      icon: Bot,
-      subItems: [{ title: "Chat History", url: "/dashboard/chatbot-management/chat-history", icon: Home }],
-    },
-    ...(role === "super_admin"
-      ? [{ title: "Client Management", url: "/dashboard/client-management", icon: User }]
-      : []),
-    {
-      title: "Docs",
-      url: "/dashboard/docs",
-      icon: Book,
-      subItems: [{ title: "Script", url: "/dashboard/docs/script", icon: Home }],
-    },
-    {
-      title: "Packages Management",
-      url: "/dashboard/subscription-packages",
-      icon: Package,
-      subItems: [
-        ...(role === "super_admin"
-          ? [{ title: "Add Package", url: "/dashboard/add-packages", icon: PackagePlus }]
-          : []),
-      ],
-    },
-    { title: "Beta Users", url: "/dashboard/beta-users", icon: Home },
-    { title: "Terms and Conditions", url: "/dashboard/term-and-condition", icon: Home },
-    { title: "Privacy Policy", url: "/dashboard/privacy-policy", icon: Home },
-  ]
+ const items = [
+  { title: "Dashboard", url: "/dashboard", icon: Home },
+  {
+    title: "Chatbot Management",
+    url: "/dashboard/chatbot-management",
+    icon: Bot,
+    subItems: [{ title: "Chat History", url: "/dashboard/chatbot-management/chat-history", icon: Home }],
+  },
+  ...(role === "super_admin"
+    ? [{ title: "Client Management", url: "/dashboard/client-management", icon: User }]
+    : []),
+  {
+    title: "Docs",
+    url: "/dashboard/docs",
+    icon: Book,
+    subItems: [{ title: "Script", url: "/dashboard/docs/script", icon: Home }],
+  },
+  {
+    title: "Packages Management",
+    url: "/dashboard/subscription-packages",
+    icon: Package,
+    subItems: [
+      ...(role === "super_admin"
+        ? [{ title: "Add Package", url: "/dashboard/add-packages", icon: PackagePlus }]
+        : []),
+    ],
+  },
+  ...(role === "super_admin"
+    ? [{ title: "Beta Users", url: "/dashboard/beta-users", icon: Home }]
+    : []),
+  { title: "Terms and Conditions", url: "/dashboard/term-and-condition", icon: Home },
+  { title: "Privacy Policy", url: "/dashboard/privacy-policy", icon: Home },
+];
+
 
   return (
     <aside

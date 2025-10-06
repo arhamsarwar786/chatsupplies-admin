@@ -63,14 +63,16 @@ export default function ClientTable() {
     page: currentPage,
     only_active: false,
     sort_desc: true,
+    // ✨ CHANGE: Added is_beta: true to fetch only beta users from the API
+    is_beta: true,
   });
 
-  // unwrap API response -> only paid users are beta users
-  const clients = (data?.clients ?? []).filter(
-    (client) => client.payment_status === "paid"
-  );
+  // unwrap API response
+  // ⚡ CHANGE: Removed redundant client-side filtering (client.payment_status === "paid")
+  // as the API query now filters specifically for beta users (is_beta=true).
+  const clients = data?.clients ?? [];
   const totalPages = data?.total_pages ?? 1;
-  const totalCount = clients.length;
+  const totalCount = clients.length; // Note: This should ideally come from data?.total_count if available, but keeping existing structure.
 
   // Mutations
   const [deleteClientById, { isLoading: isDeleting }] =
@@ -130,9 +132,9 @@ export default function ClientTable() {
         buttonText="Create Chatbot"
         onButtonClick={handleCreateChatbot}
       />
-      <div className="border rounded-xl shadow-sm">
-        {isLoading && <div className="p-4">Loading clients...</div>}
-        {error && <div className="p-4 text-red-500">Failed to load clients.</div>}
+      <div className="border rounded-xl shadow-sm mt-6 ml-4 mr-4 mb-6">
+        {isLoading && <div className="p-4">Loading beta clients...</div>}
+        {error && <div className="p-4 text-red-500">Failed to load beta clients.</div>}
         {!isLoading && !error && (
           <>
             <div className="w-full max-w-full overflow-x-auto">
@@ -156,7 +158,7 @@ export default function ClientTable() {
                         colSpan={8}
                         className="text-center py-6 text-gray-500"
                       >
-                        No clients found.
+                        No beta clients found.
                       </TableCell>
                     </TableRow>
                   ) : (

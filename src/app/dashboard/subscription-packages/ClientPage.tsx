@@ -61,7 +61,7 @@ const Page: React.FC = () => {
   const [openDialogId, setOpenDialogId] = useState<number | null>(null);
   const role = useSelector((state: RootState) => state.authSlice.role);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   const [purchasePackage] = usePurchasePackageMutation();
   const [deletePackage] = useDeletePackagesByIdMutation();
@@ -74,8 +74,8 @@ const [showPaymentDialog, setShowPaymentDialog] = useState(false);
         description: Array.isArray(pkg.description)
           ? pkg.description
           : typeof pkg.description === "string"
-          ? pkg.description.replace(/^"|"$/g, "").split(",").map(s => s.trim())
-          : [],
+            ? pkg.description.replace(/^"|"$/g, "").split(",").map(s => s.trim())
+            : [],
       })) as Package[],
     }),
   });
@@ -91,19 +91,19 @@ const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   };
 
   const handlePurchase = async (packageId: number) => {
-  try {
-    const res = (await purchasePackage({ packageId }).unwrap()) as PurchasePackageResponse;
-    if (res.clientSecret) {
-      setClientSecret(res.clientSecret);
-      setShowPaymentDialog(true); // <-- open modal
-    } else {
-      toast.error("Client secret not returned.");
+    try {
+      const res = (await purchasePackage({ packageId }).unwrap()) as PurchasePackageResponse;
+      if (res.clientSecret) {
+        setClientSecret(res.clientSecret);
+        setShowPaymentDialog(true); // <-- open modal
+      } else {
+        toast.error("Client secret not returned.");
+      }
+    } catch (err) {
+      console.error("Payment error:", err);
+      toast.error("Failed to initiate payment.");
     }
-  } catch (err) {
-    console.error("Payment error:", err);
-    toast.error("Failed to initiate payment.");
-  }
-};
+  };
 
 
   return (
@@ -142,11 +142,10 @@ const [showPaymentDialog, setShowPaymentDialog] = useState(false);
             {data?.map(pkg => (
               <div
                 key={pkg.id}
-                className={`relative p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${
-                  pkg.isPopular
-                    ? "border-2 border-primary shadow-xl bg-gradient-to-b from-primary/5 to-white"
-                    : "border border-gray-200 shadow-md bg-white"
-                }`}
+                className={`relative p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${pkg.isPopular
+                  ? "border-2 border-primary shadow-xl bg-gradient-to-b from-primary/5 to-white"
+                  : "border border-gray-200 shadow-md bg-white"
+                  }`}
               >
                 {pkg.isPopular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1 rounded-full flex items-center">
@@ -204,14 +203,14 @@ const [showPaymentDialog, setShowPaymentDialog] = useState(false);
                   </div>
                   <span className="text-sm text-gray-500">{pkg.duration_days} days</span>
                 </div>
-  {role !== "super_admin" && (
-                <Button
-                  className="bg-primary hover:bg-primary/80 w-full"
-                  onClick={() => handlePurchase(pkg.id)}
-                >
-                  Purchase Package
-                </Button>
-  )}
+                {role !== "super_admin" && (
+                  <Button
+                    className="bg-primary hover:bg-primary/80 w-full"
+                    onClick={() => handlePurchase(pkg.id)}
+                  >
+                    Purchase Package
+                  </Button>
+                )}
                 <div className="border-t border-gray-200 pt-4">
                   <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
                     Features
@@ -220,7 +219,10 @@ const [showPaymentDialog, setShowPaymentDialog] = useState(false);
                     {pkg.description.map((line, i) => (
                       <li key={i} className="flex items-start">
                         <Check className="w-5 h-5 text-green-500 mr-2" />
-                        <span className="text-gray-700">{line}</span>
+                        <span className="text-gray-700">
+                          {line.replace(/[\[\]{}"\\]/g, "").trim()}
+                        </span>
+
                       </li>
                     ))}
                   </ul>
@@ -241,26 +243,26 @@ const [showPaymentDialog, setShowPaymentDialog] = useState(false);
         </div>
       </div>
 
-     {clientSecret && (
-  <Elements
-    stripe={stripePromise}
-    options={{
-      clientSecret,
-      appearance: {
-        theme: "stripe", // or "night", "flat", etc.
-      },
-    }}
-  >
-    <StripeCheckoutDialog
-      clientSecret={clientSecret}
-      open={showPaymentDialog}
-      onClose={() => {
-        setShowPaymentDialog(false);
-        setClientSecret(null);
-      }}
-    />
-  </Elements>
-)}
+      {clientSecret && (
+        <Elements
+          stripe={stripePromise}
+          options={{
+            clientSecret,
+            appearance: {
+              theme: "stripe", // or "night", "flat", etc.
+            },
+          }}
+        >
+          <StripeCheckoutDialog
+            clientSecret={clientSecret}
+            open={showPaymentDialog}
+            onClose={() => {
+              setShowPaymentDialog(false);
+              setClientSecret(null);
+            }}
+          />
+        </Elements>
+      )}
     </>
   );
 };

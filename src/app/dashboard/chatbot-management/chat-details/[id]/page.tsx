@@ -193,7 +193,6 @@ const ChatbotDetailPage = () => {
         <p className="text-sm text-right mb-4">{progressPercent}% completed</p>
 
         {/* Steps */}
-        {/* Steps */}
         <div className="space-y-4">
           {steps.map((step) => (
             <div key={step.id} className="flex items-start gap-3">
