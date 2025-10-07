@@ -114,9 +114,16 @@ const ChatHistoryPage = () => {
     </div>
   );
 
-  // ✅ Tooltip Content Component
+  // 🛠️ UPDATED Tooltip Content Component: Language line removed.
   const UserMessageTooltipContent: React.FC<{ chat: ChatData }> = ({ chat }) => (
     <div className="text-xs space-y-2 min-w-64">
+      {/* IP Address is kept as the primary hover info */}
+      <div className="flex justify-between border-b border-gray-700 pb-2 mb-2">
+        <span className="text-gray-300 font-bold">IP Address:</span>
+        <span className="text-white font-bold">{chat.ip_address || "—"}</span>
+      </div>
+      
+      {/* Existing details */}
       <div className="flex justify-between">
         <span className="text-gray-300">User Agent:</span>
         <span className="text-white text-right ml-2 truncate max-w-40">
@@ -131,10 +138,12 @@ const ChatHistoryPage = () => {
         <span className="text-gray-300">Platform:</span>
         <span className="text-white">{chat.platform || "—"}</span>
       </div>
+      {/* The following Language section has been removed:
       <div className="flex justify-between">
         <span className="text-gray-300">Language:</span>
         <span className="text-white">{chat.language || "—"}</span>
-      </div>
+      </div> 
+      */}
     </div>
   );
 
@@ -158,7 +167,7 @@ const ChatHistoryPage = () => {
           Back to Previous
         </button>
 
-        {/* ✅ Stat Cards Row */}
+        {/* ✅ Stat Cards Row (Language card is intentionally kept here to maintain existing behavior) */}
         <div className="flex flex-wrap justify-start gap-3 text-sm">
           {latestChat ? (
             <>
