@@ -1,4 +1,3 @@
-
 // @ts-nocheck
 "use client";
 
@@ -255,7 +254,7 @@ const StopCrawlingButton = ({
         errorMessage = error.message; // Use message from Error instance
       } else if (typeof error === 'object' && error !== null) {
         // Try accessing common properties or converting to string
-        errorMessage = error.message || (error as any).detail || String(error);
+        errorMessage = (error as any).message || (error as any).detail || String(error);
       } else if (typeof error === 'string') {
         errorMessage = error;
       }
@@ -384,6 +383,167 @@ export default function ChatbotTable() {
     if (botToRecrawl) setRecrawlBot(botToRecrawl);
   };
 
+  // Helper function to render the table row, conditionally wrapped in a Tooltip
+  const renderChatbotRow = (bot: Chatbot, idx: number) => {
+    const status = bot.progress_status;
+    const isCrawling = status === "in_progress";
+    
+    // Define the TableRow content and behavior
+    const rowContent = (
+      <TableRow
+        key={idx}
+        onClick={() => {
+          // If 'ready', navigate to chat details
+          if (status === "ready") {
+            router.push(
+              `/dashboard/chatbot-management/chat-details/${bot.id}`
+            );
+            return;
+          }
+
+          // FIX: If 'just_created' or 'in_progress', do nothing
+          if (
+            status === "just_created" ||
+            status === "in_progress"
+          ) {
+            return; // Stop execution, no action taken on click.
+          }
+
+          // For any other status (e.g., 'failed'), show the status dialog
+          setSelectedBotId(bot.id);
+        }}
+        // Apply different cursor based on status
+        className={`transition-colors duration-150 ${
+          isCrawling ? 'cursor-default' : 'cursor-pointer hover:bg-gray-50'
+        }`}
+      >
+        <TableCell className="px-4 py-3">
+          <div className="flex flex-col">
+            <span className="font-medium text-gray-800">{bot.name}</span>
+            <span className="text-sm text-gray-500 max-w-[250px] truncate">
+              {bot.description ? bot.description : "No description"}
+            </span>
+          </div>
+        </TableCell>
+
+        <TableCell className="px-4 py-3 hidden md:table-cell">
+          <span>{bot.client_name}</span>
+        </TableCell>
+
+        <TableCell className="px-4 py-3">
+          <span
+            className={`text-xs font-semibold uppercase px-2 py-1 rounded-full ${getStatusStyle(
+              bot.progress_status
+            )}`}
+          >
+            {bot.progress_status.replace(/_/g, " ")}
+          </span>
+        </TableCell>
+
+        <TableCell className="px-4 py-3 hidden md:table-cell">
+          <span className="font-medium text-gray-700">
+            {bot.total_interactions ?? "N/A"}
+          </span>
+        </TableCell>
+
+        <TableCell className="px-4 py-3 hidden md:table-cell">
+          <SquarePen
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(
+                `/dashboard/chatbot-management/update-chatbot/${bot.id}`
+              );
+            }}
+            className="cursor-pointer text-blue-600 hover:text-blue-500 transition"
+          />
+        </TableCell>
+
+        <TableCell className="px-4 py-3 hidden md:table-cell">
+          {bot.created_at
+            ? new Date(bot.created_at).toLocaleString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })
+            : "N/A"}
+        </TableCell>
+
+        <TableCell className="px-4 py-3 hidden md:table-cell">
+          {bot.created_at ? getRelativeTime(bot.created_at) : "N/A"}
+        </TableCell>
+
+        <TableCell className="px-4 py-3 text-right">
+          <div
+            className="flex justify-end items-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* UPDATED: Stop Crawling Button with SVG Icon */}
+            <StopCrawlingButton
+              chatbotId={bot.id}
+              status={bot.progress_status}
+              onStopSuccess={handleStopCrawlingSuccess}
+            />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <UploadUrlPdf
+                  chatbotId={bot.id}
+                  status={bot.progress_status}
+                  client_email={bot.client_email}
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Upload URL & PDF</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {bot.progress_status === "ready" && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <CopyScript
+                    chatbotId={bot.id}
+                    client_api_key={bot.client_api_key}
+                    status={bot.progress_status}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Copy Script</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* Recrawl is now only available inside the ActionsDropdown */}
+            <ActionsDropdown
+              chatbotId={bot.id}
+              onRecrawl={handleRecrawl}
+              onDelete={handleDelete}
+              onUploadFiles={handleUploadFiles}
+            />
+          </div>
+        </TableCell>
+      </TableRow>
+    );
+    
+    // Condition to wrap the row in a Tooltip
+    if (isCrawling) {
+      return (
+        <Tooltip key={`tooltip-${idx}`}>
+          <TooltipTrigger asChild>
+            {/* The TooltipTrigger must be a single element */}
+            {rowContent}
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Crawl in Progress</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return rowContent;
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -457,139 +617,8 @@ export default function ChatbotTable() {
             )}
 
             {chatbots.map((bot: Chatbot, idx: number) => (
-              <TableRow
-                key={idx}
-                onClick={() => {
-                  const status = bot.progress_status;
-
-                  // If 'ready', navigate to chat details
-                  if (status === "ready") {
-                    router.push(
-                      `/dashboard/chatbot-management/chat-details/${bot.id}`
-                    );
-                    return;
-                  }
-
-                  // FIX: If 'just_created' or 'in_progress', do nothing
-                  if (
-                    status === "just_created" ||
-                    status === "in_progress"
-                  ) {
-                    return; // Stop execution, no action taken on click.
-                  }
-
-                  // For any other status (e.g., 'failed'), show the status dialog
-                  setSelectedBotId(bot.id);
-                }}
-                className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
-              >
-                <TableCell className="px-4 py-3">
-                  <div className="flex flex-col">
-                    <span className="font-medium text-gray-800">{bot.name}</span>
-                    <span className="text-sm text-gray-500 max-w-[250px] truncate">
-                      {bot.description ? bot.description : "No description"}
-                    </span>
-                  </div>
-                </TableCell>
-
-                <TableCell className="px-4 py-3 hidden md:table-cell">
-                  <span>{bot.client_name}</span>
-                </TableCell>
-
-                <TableCell className="px-4 py-3">
-                  <span
-                    className={`text-xs font-semibold uppercase px-2 py-1 rounded-full ${getStatusStyle(
-                      bot.progress_status
-                    )}`}
-                  >
-                    {bot.progress_status.replace(/_/g, " ")}
-                  </span>
-                </TableCell>
-
-                <TableCell className="px-4 py-3 hidden md:table-cell">
-                  <span className="font-medium text-gray-700">
-                    {bot.total_interactions ?? "N/A"}
-                  </span>
-                </TableCell>
-
-                <TableCell className="px-4 py-3 hidden md:table-cell">
-                  <SquarePen
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(
-                        `/dashboard/chatbot-management/update-chatbot/${bot.id}`
-                      );
-                    }}
-                    className="cursor-pointer text-blue-600 hover:text-blue-500 transition"
-                  />
-                </TableCell>
-
-                <TableCell className="px-4 py-3 hidden md:table-cell">
-                  {bot.created_at
-                    ? new Date(bot.created_at).toLocaleString(undefined, {
-                      year: "numeric",
-                      month: "short",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    })
-                    : "N/A"}
-                </TableCell>
-
-                <TableCell className="px-4 py-3 hidden md:table-cell">
-                  {bot.created_at ? getRelativeTime(bot.created_at) : "N/A"}
-                </TableCell>
-
-                <TableCell className="px-4 py-3 text-right">
-                  <div
-                    className="flex justify-end items-center gap-2"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {/* UPDATED: Stop Crawling Button with SVG Icon */}
-                    <StopCrawlingButton
-                      chatbotId={bot.id}
-                      status={bot.progress_status}
-                      onStopSuccess={handleStopCrawlingSuccess}
-                    />                   
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <UploadUrlPdf
-                          chatbotId={bot.id}
-                          status={bot.progress_status}
-                          client_email={bot.client_email}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Upload URL & PDF</p>
-                      </TooltipContent>
-                    </Tooltip>
-
-                    {bot.progress_status === "ready" && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <CopyScript
-                            chatbotId={bot.id}
-                            client_api_key={bot.client_api_key}
-                            status={bot.progress_status}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Copy Script</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-
-                    {/* Recrawl is now only available inside the ActionsDropdown */}
-                    <ActionsDropdown
-                      chatbotId={bot.id}
-                      onRecrawl={handleRecrawl}
-                      onDelete={handleDelete}
-                      onUploadFiles={handleUploadFiles}
-                    />
-                  </div>
-                </TableCell>
-              </TableRow>
+              // Replaced the original mapped row with the new render function
+              renderChatbotRow(bot, idx)
             ))}
           </TableBody>
         </Table>

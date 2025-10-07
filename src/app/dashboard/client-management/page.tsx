@@ -24,7 +24,7 @@ const Page = () => {
       <div className="md:p-5 p-4 flex flex-col gap-8">
         <ClientCards />
         <ClientTable />
-      </div>
+      </div>  
     </>
   )
 }

@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { BASE_URL } from "@/src/lib/constant";
-import { use } from "react";
 
 export const client = createApi({
   reducerPath: "client",
@@ -15,15 +14,32 @@ export const client = createApi({
     },
   }),
   endpoints: (builder) => ({
-getClients: builder.query<
-  any,
-  { page: number; sort_desc?: boolean; only_active?: boolean }>
-({
-  query: ({ page, sort_desc = true, only_active = false }) =>
-    `/?page=${page}&sort_desc=${sort_desc}&only_active=${only_active}`,
-}),
+    getClients: builder.query<
+      any,
+      { 
+        page: number; 
+        sort_desc?: boolean; 
+        only_active?: boolean;
+        is_beta?: boolean; // ✅ ADDED is_beta parameter
+      }
+    >({
+      query: ({ page, sort_desc = true, only_active = false, is_beta = false }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          sort_desc: sort_desc.toString(),
+          only_active: only_active.toString(),
+        });
+        
+        // ✅ ADD is_beta parameter to the query
+        if (is_beta) {
+          params.append('is_beta', 'true');
+        }
+        
+        return `/?${params.toString()}`;
+      },
+    }),
 
- getDashboardSummary: builder.query({
+    getDashboardSummary: builder.query({
       query: () => `dashboard/summary`,
     }),
     createClient: builder.mutation({
@@ -33,16 +49,16 @@ getClients: builder.query<
         body: product,
       }),
     }),
-        deleteClientById: builder.mutation({
+    deleteClientById: builder.mutation({
       query: (id) => ({
         url: `${id}`,
         method: "DELETE",
       }),
     }),
-        getClientById: builder.query<any, number>({
-  query: (id) => `${id}`,
-}),
-      updateClientById: builder.mutation<any, { id: number; body: any }>({
+    getClientById: builder.query<any, number>({
+      query: (id) => `${id}`,
+    }),
+    updateClientById: builder.mutation<any, { id: number; body: any }>({
       query: ({ id, body }) => {
         return {
           url: `${id}`,
@@ -51,13 +67,13 @@ getClients: builder.query<
         };
       },
     }),
-        searchClients: builder.query<any, { query: string }>({
+    searchClients: builder.query<any, { query: string }>({
       query: ({ query }) => ({
         url: `search?query=${encodeURIComponent(query)}`,
         method: "GET",
       }),
     }),
-     resendWelcomeEmail: builder.mutation<any, { id: number }>({
+    resendWelcomeEmail: builder.mutation<any, { id: number }>({
       query: ({ id }) => ({
         url: `${id}/resend-welcome-email`,
         method: "POST",
@@ -73,6 +89,6 @@ export const {
   useGetClientByIdQuery,
   useDeleteClientByIdMutation,
   useUpdateClientByIdMutation,
-   useSearchClientsQuery,
-   useResendWelcomeEmailMutation
+  useSearchClientsQuery,
+  useResendWelcomeEmailMutation
 } = client;

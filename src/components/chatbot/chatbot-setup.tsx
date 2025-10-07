@@ -14,12 +14,6 @@ import Reset from "./set"
 import useExitPrompt from "./restriction";
 import ConfirmationPopup from "./confirmationPopup"; // Make sure this import path is correct
 
-const tones = [
-  { name: "Professional", value: "professional", description: "Formal and business-appropriate" },
-  { name: "Friendly", value: "friendly", description: "Warm and approachable" },
-  { name: "Casual", value: "casual", description: "Relaxed and informal" },
-];
-
 interface UploadedFile {
   name: string;
   status: "uploaded" | "processing";
@@ -134,7 +128,6 @@ const ChatbotSetup = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [industry, setIndustry] = useState("");
-  const [tone, setTone] = useState("Friendly");
   const [botAvatar, setBotAvatar] = useState("");
   const [welcomeMessage, setWelcomeMessage] = useState(
     "Hi! I'm here to help you with any questions..."
@@ -147,7 +140,6 @@ const ChatbotSetup = () => {
     setName("");
     setDescription("");
     setIndustry("");
-    setTone("Friendly");
     setBotAvatar("");
     setWelcomeMessage("Hi! I'm here to help you with any questions...");
     setBusinessHoursStart("default");
@@ -209,9 +201,8 @@ const ChatbotSetup = () => {
     const chatbotForm = {
       name,
       description,
-      personality_tone: tone,
-      bot_avatar: botAvatar,
       industry,
+      bot_avatar: botAvatar,
       welcome_message: welcomeMessage,
       business_hours_start: businessHoursStart,
       business_hours_end: businessHoursEnd,
@@ -266,12 +257,12 @@ const ChatbotSetup = () => {
 
   // create Chatbot button disable condition
   const isFormComplete =
-  name.trim() !== "" &&
-  description.trim() !== "" &&
-  industry.trim() !== "" &&
-  welcomeMessage.trim() !== "" &&
-  !!logoFile &&
-  selectedEmail.trim() !== "";
+    name.trim() !== "" &&
+    description.trim() !== "" &&
+    industry.trim() !== "" &&
+    welcomeMessage.trim() !== "" &&
+    !!logoFile &&
+    selectedEmail.trim() !== "";
 
 
 
@@ -531,28 +522,6 @@ const ChatbotSetup = () => {
                       onConfirm={confirmLeave}
                       onCancel={cancelLeave}
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Personality Tone</label>
-                    <div className="grid grid-cols-1 gap-2">
-                      {tones.map((item) => (
-                        <div
-                          key={item.value}
-                          className={`border rounded-lg p-3 cursor-pointer transition-all ${tone === item.name ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
-                          onClick={() => setTone(item.name)}
-                        >
-                          <div className="flex items-center">
-                            <div className={`h-4 w-4 rounded-full border flex items-center justify-center mr-3 ${tone === item.name ? 'border-blue-500 bg-blue-500' : 'border-gray-400'}`}>
-                              {tone === item.name && <div className="h-2 w-2 rounded-full bg-white"></div>}
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-800">{item.name}</p>
-                              <p className="text-xs text-gray-500">{item.description}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 </div>
               </div>
@@ -869,10 +838,6 @@ const ChatbotSetup = () => {
                         <p className="font-medium">{industry || "Not specified"}</p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-500">Personality</p>
-                        <p className="font-medium">{tone}</p>
-                      </div>
-                      <div className="p-4 bg-gray-50 rounded-lg">
                         <p className="text-sm text-gray-500">Training Files</p>
                         <p className="font-medium">{uploadedFiles.length} PDF(s)</p>
                       </div>
@@ -883,8 +848,8 @@ const ChatbotSetup = () => {
                         type="submit"
                         disabled={!isFormComplete || isLoading}
                         className={`w-full md:w-auto px-6 py-3 text-white rounded-lg font-medium transition flex items-center justify-center shadow-md ${!isFormComplete || isLoading
-                            ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
                           }`}
                       >
                         {isLoading ? (

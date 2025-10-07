@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import { Play, Loader } from "lucide-react"; // Removed Square icon, added below
-import { // Removed unused component
+import { Play, Loader } from "lucide-react";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -16,16 +16,19 @@ import {
   useUploadRequirementMutation,
 } from "@/src/hooks/useTraining";
 import { toast } from "sonner";
+import ConfirmStopPopup from "./confirm-stopPopup";
+
+// 1. 💡 IMPORT TOOLTIP COMPONENTS
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/src/components/ui/tooltip";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-// =========================================================================
-// 🛑 CUSTOM SVG COMPONENT
-// =========================================================================
-
-/**
- * Custom SVG icon component for the Stop button, loading the image from the public folder.
- * Assumes 'stop-icon.svg' is available in the public directory.
+/* Assumes 'stop-icon.svg' is available in the public directory.
  */
 const StopSvgIcon = ({ className }: { className?: string }) => (
   <img
@@ -37,7 +40,7 @@ const StopSvgIcon = ({ className }: { className?: string }) => (
 );
 
 // =========================================================================
-// 🛑 STOP CRAWLING LOGIC
+//  STOP CRAWLING LOGIC (Retained for completeness)
 // =========================================================================
 
 // Placeholder for external data refetch (Simulates updating the chatbot status)
@@ -106,6 +109,8 @@ const StopCrawlingButton = ({
   stopLocalProcess: () => void;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
 
   const isExternalCrawling = status === "in_progress" || status === "scraping";
 
@@ -140,7 +145,7 @@ const StopCrawlingButton = ({
   };
 
   // 🛑 Modified className for better integration inside the URL input field
-  const buttonText = isLocalProcess ? "Stop Discovery" : (isLoading ? "Stopping..." : "Stop Crawling");
+  const buttonText = isLocalProcess ? "Stop" : (isLoading ? "Stopping..." : "Stop Crawling");
 
   // 🛑 UPDATED: Use the custom SVG or the Loader icon
   const buttonIcon = isLoading ? Loader : StopSvgIcon;
@@ -148,30 +153,40 @@ const StopCrawlingButton = ({
   const buttonColor = isLocalProcess ? "destructive" : "destructive";
 
   return (
-    <Button
-      onClick={handleStopCrawling}
-      disabled={isLoading && isExternalCrawling}
-      variant={buttonColor}
-      // 🛑 MODIFIED: Adjusted size for a cleaner look when placed inside the input container
-      className="px-2 h-8 flex items-center justify-center mr-1"
-    >
-      {/* Show icon and text when external or loading, only icon when local for space */}
-      {isExternalCrawling || isLoading || isLocalProcess ? (
-        <>
-          {/* 🛑 Use buttonIcon (StopSvgIcon or Loader) */}
-          {React.createElement(buttonIcon, { className: "h-4 w-4" })}
-          <span className="ml-1 text-xs truncate hidden sm:inline">{buttonText}</span>
-        </>
-      ) : (
-        <>
-          {/* 🛑 Use buttonIcon (StopSvgIcon) */}
-          {React.createElement(buttonIcon, { className: "h-4 w-4" })}
-        </>
-      )}
-    </Button>
+    <>
+      <Button
+        onClick={() => setShowConfirm(true)} // ✅ Show popup instead of stopping immediately
+        disabled={isLoading && isExternalCrawling}
+        variant={buttonColor}
+        className="px-2 h-7 flex items-center cursor-pointer rounded-4xl justify-center mr-1"
+      >
+        {/* Show icon and text when external or loading, only icon when local for space */}
+        {isExternalCrawling || isLoading || isLocalProcess ? (
+          <>
+            {/* 🛑 Use buttonIcon (StopSvgIcon or Loader) */}
+            {React.createElement(buttonIcon, { className: "h-4 w-4" })}
+            <span className="text-xs truncate hidden sm:inline">
+              {buttonText}
+            </span>
+          </>
+        ) : (
+          <>
+            {/* 🛑 Use buttonIcon (StopSvgIcon) */}
+            {React.createElement(buttonIcon, { className: "h-4 w-4" })}
+          </>
+        )}
+      </Button>
 
+      {/* ✅ Confirmation Popup (calls handleStopCrawling on confirm) */}
+      <ConfirmStopPopup
+        open={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handleStopCrawling}
+      />
+    </>
   );
-};
+}; // ✅ CLOSE StopCrawlingButton COMPONENT HERE
+
 
 // =========================================================================
 // 🧰 HELPER FUNCTIONS (Retained from original code)
@@ -240,6 +255,9 @@ const UploadUrlWithPDF = ({
   const [loadingPages, setLoadingPages] = useState(false);
   const [scrapingLoading, setScrapingLoading] = useState(false);
 
+  // 🔹 NEW STATE: Track if we should auto-populate the URL
+  const [shouldAutoPopulateUrl, setShouldAutoPopulateUrl] = useState(false);
+
   // 🔹 Check if the external chatbot status indicates active crawling/processing
   const isChatbotCrawling = status === "in_progress" || status === "scraping";
 
@@ -248,6 +266,92 @@ const UploadUrlWithPDF = ({
 
   // 🛑 NEW: Combined state to determine if the stop button should replace the URL input
   const showStopButtonInInput = isChatbotCrawling || isLocalProcessing;
+
+  // =========================================================================
+  // 🔹 NEW: FUNCTION TO FETCH PREVIOUSLY CRAWLED URL
+  // =========================================================================
+  
+  const fetchPreviousCrawlUrl = async (): Promise<string | null> => {
+    try {
+      const token = localStorage.getItem("token");
+      const apikey = localStorage.getItem("apikey");
+
+      const headers: HeadersInit = {
+        'accept': 'application/json',
+      };
+
+      if (apikey) {
+        headers['api-key'] = apikey;
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(
+        `https://api.chatsupplies.com/training/chatbot/${chatbotId}/crawl-history?limit=1`,
+        {
+          method: 'GET',
+          headers,
+        }
+      );
+
+      if (!response.ok) {
+        console.warn('Failed to fetch crawl history');
+        return null;
+      }
+
+      const data = await response.json();
+      
+      // Extract the most recent crawl URL from the response
+      if (data && data.data && data.data.length > 0) {
+        const latestCrawl = data.data[0];
+        // Try different possible field names for the URL
+        return latestCrawl.url || latestCrawl.original_url || latestCrawl.source_url || null;
+      }
+      
+      return null;
+    } catch (error) {
+      console.warn('Error fetching previous crawl URL:', error);
+      return null;
+    }
+  };
+
+  // =========================================================================
+  // 🔹 NEW: EFFECT TO AUTO-POPULATE URL WHEN DIALOG OPENS FOR RECRAWL
+  // =========================================================================
+
+  React.useEffect(() => {
+    const autoPopulateUrl = async () => {
+      // Only auto-populate when:
+      // 1. Dialog is opening
+      // 2. We're in "failed" status (recrawl scenario)
+      // 3. We haven't already auto-populated in this session
+      // 4. There's no manually entered URL
+      if (open && status === "failed" && !shouldAutoPopulateUrl && !url) {
+        setShouldAutoPopulateUrl(true); // Mark that we're attempting to auto-populate
+        
+        const previousUrl = await fetchPreviousCrawlUrl();
+        if (previousUrl) {
+          setUrl(previousUrl);
+          toast.info("Previous URL auto-filled for recrawl");
+        }
+      }
+    };
+
+    autoPopulateUrl();
+  }, [open, status, shouldAutoPopulateUrl, url]);
+
+  // =========================================================================
+  // 🔹 NEW: RESET AUTO-POPULATE FLAG WHEN DIALOG CLOSES
+  // =========================================================================
+
+  React.useEffect(() => {
+    if (!open) {
+      // Reset the auto-populate flag when dialog closes
+      // This ensures we'll try to auto-populate again next time it opens
+      setShouldAutoPopulateUrl(false);
+    }
+  }, [open]);
 
   // New function to reset the modal state to "previous state" (initial view)
   const handleStopCrawlingSuccess = () => {
@@ -260,6 +364,8 @@ const UploadUrlWithPDF = ({
     setLoadingPages(false);
     setScrapingLoading(false);
     setCrawlingStarted(false);
+    // Also reset auto-populate flag
+    setShouldAutoPopulateUrl(false);
 
     // 2. Simulate refetch to update the parent component's status
     refetch();
@@ -533,313 +639,334 @@ const UploadUrlWithPDF = ({
     }
   }, [url]);
 
-  // =========================================================================
-  // ❌ END OF FIXES
-  // =========================================================================
-
   const getDialogSize = () => {
     return "w-[95vw] max-w-md sm:max-w-md md:max-w-lg";
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {/* Trigger... (omitted for brevity) */}
+    // 2. 💡 WRAP COMPONENT WITH TOOLTIPPROVIDER
+    <TooltipProvider> 
+      <Dialog open={open} onOpenChange={setOpen}>
+        {/* Trigger... (omitted for brevity) */}
 
-      {/* 🎯 MODAL TRIGGER: Added status checks to show the dialog properly */}
-      {isChatbotCrawling ? (
-        <button
-          type="button"
-          disabled
-          className="p-1 rounded cursor-not-allowed min-w-[32px] min-h-[32px] flex items-center justify-center"
-        >
-          <Loader className="h-4 w-4 animate-spin text-orange-500" />
-        </button>
-      ) : status === "ready" || status === "just_created" ? (
-        <DialogTrigger asChild>
+        {/* 🎯 MODAL TRIGGER: Added status checks to show the dialog properly */}
+        {isChatbotCrawling ? (
+          // 3. 💡 TOOLTIP FOR CRAWLING IN PROGRESS (Loader Icon)
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                disabled
+                className="p-1 rounded cursor-not-allowed min-w-[32px] min-h-[32px] flex items-center justify-center"
+              >
+                <Loader className="h-4 w-4 animate-spin text-orange-500" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Chatbot is currently crawling/processing.</p>
+            </TooltipContent>
+          </Tooltip>
+        ) : status === "ready" || status === "just_created" ? (
+          <DialogTrigger asChild>
+            <button
+              type="button"
+              className="p-1 rounded hover:bg-muted transition min-w-[32px] min-h-[32px] flex items-center justify-center"
+              onClick={() => setOpen(true)}
+            >
+              <Play className="h-4 w-4 text-green-600" />
+            </button>
+          </DialogTrigger>
+        ) : status === "failed" ? (
+          // 4. 💡 TOOLTIP FOR RECRAWL (Refresh Icon)
+          <Tooltip delayDuration={300}>
+            <DialogTrigger asChild>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost" // 👈 removes background & border
+                  onClick={() => setOpen(true)}
+                  className="p-0 h-auto hover:bg-transparent focus-visible:ring-0"
+                >
+                  <img
+                    src="/arrows-rotate-reverse.svg"
+                    alt="Recrawl"
+                    className="w-4 h-4 sm:w-5 sm:h-5"
+                  />
+                </Button>
+              </TooltipTrigger>
+            </DialogTrigger>
+            <TooltipContent>
+              <p>Recrawl Website</p>
+            </TooltipContent>
+          </Tooltip>
+        ) : (
           <button
             type="button"
-            className="p-1 rounded hover:bg-muted transition min-w-[32px] min-h-[32px] flex items-center justify-center"
-            onClick={() => setOpen(true)}
+            disabled
+            className="p-1 rounded cursor-not-allowed min-w-[32px] min-h-[32px] flex items-center justify-center"
           >
-            <Play className="h-4 w-4 text-green-600" />
+            <Loader className="h-4 w-4 animate-spin" />
           </button>
-        </DialogTrigger>
-      ) : status === "failed" ? (
-        <DialogTrigger asChild>
-         <Button
-  type="button"
-  variant="ghost" // 👈 removes background & border
-  onClick={() => setOpen(true)}
-  className="p-0 h-auto hover:bg-transparent focus-visible:ring-0"
->
-  <img
-    src="/arrows-rotate-reverse.svg"
-    alt="Recrawl"
-    className="w-4 h-4 sm:w-5 sm:h-5"
-  />
-</Button>
+        )}
 
 
-        </DialogTrigger>
-      ) : (
-        <button
-          type="button"
-          disabled
-          className="p-1 rounded cursor-not-allowed min-w-[32px] min-h-[32px] flex items-center justify-center"
-        >
-          <Loader className="h-4 w-4 animate-spin" />
-        </button>
-      )}
+        {/* Modal Content - Slightly smaller desktop size */}
+        <DialogContent className={getDialogSize()}>
+          <DialogHeader>
+            <DialogTitle className="text-lg sm:text-xl">
+              {isChatbotCrawling || isLocalProcessing ? "Crawling/Discovery in Progress" : "Start Website Crawling & Upload Files"}
+            </DialogTitle>
+          </DialogHeader>
 
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto px-1">
 
-      {/* Modal Content - Slightly smaller desktop size */}
-      <DialogContent className={getDialogSize()}>
-        <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl">
-            {isChatbotCrawling || isLocalProcessing ? "Crawling/Discovery in Progress" : "Start Website Crawling & Upload Files"}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4 max-h-[70vh] overflow-y-auto px-1">
-
-          {/* 🎯 STOP CRAWLING BUTTON: Removed the external status alert block to centralize the stop button in the input field */}
-          {isChatbotCrawling && (
-            <div className="p-4 border border-orange-400 bg-orange-50 rounded-lg space-y-3">
-              <p className="text-sm font-medium text-orange-700">
-                The chatbot is currently processing. You can stop the process in the URL field below.
-              </p>
-            </div>
-          )}
-
-          {/* URL input / Stop Button Field - Show when not in the discovery results view */}
-          {discoveredPages.length === 0 && (
-            <div>
-              <label className="text-sm font-medium mb-2 block">Website URL (required)*</label>
-
-              {/* 🛑 MODIFIED: Container for URL Input and Stop Button */}
-              <div className="flex w-full items-center relative">
-                {/* The Input Field */}
-                <Input
-                  type="url"
-                  placeholder={showStopButtonInInput ? "Process in progress..." : "https://example.com"}
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  // 🛑 Disable input when any process is active
-                  disabled={showStopButtonInInput}
-                  // 🛑 Add padding-right to prevent text from going under the button
-                  className={`w-full text-sm sm:text-base ${showStopButtonInInput ? 'pr-[100px] sm:pr-[120px]' : ''}`}
-                />
-
-                {/* 🛑 The Stop Button - Absolutely positioned to the right */}
-                {showStopButtonInInput && (
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10">
-                    <StopCrawlingButton
-                      chatbotId={chatbotId}
-                      status={status}
-                      onStopSuccess={handleStopCrawlingSuccess}
-                      isLocalProcess={isLocalProcessing} // Pass the local state
-                      stopLocalProcess={stopLocalProcess} // Pass the local stop function
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Discover Pages Button - Hide when pages are discovered OR when discovery is loading OR when already crawling */}
-          {!isChatbotCrawling && discoveredPages.length === 0 && !isLocalProcessing && (
-            <Button
-              onClick={handleDiscoverPages}
-              disabled={!url} // Removed loadingPages from disabled as it's now controlled by showStopButtonInInput
-              variant="secondary"
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm sm:text-base py-2 h-auto min-h-[44px]"
-            >
-              {"Discover Pages"}
-            </Button>
-          )}
-
-          {/* Page selection UI & Discovery Loading State */}
-          {loadingPages && (
-            <div className="flex items-center justify-center p-4 border rounded text-sm sm:text-base">
-              <Loader className="h-4 w-4 animate-spin mr-2" />
-              <p className="truncate">Discovering pages from {url}...</p>
-            </div>
-          )}
-
-          {/* Discovered Pages List */}
-          {discoveredPages.length > 0 && (
-            <div className="border rounded p-3 sm:p-4">
-              {/* ... Page selection UI (omitted for brevity) ... */}
-
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
-                <p className="text-sm font-medium truncate">
-                  Select pages to crawl
+            {/* 🎯 STOP CRAWLING BUTTON: Removed the external status alert block to centralize the stop button in the input field */}
+            {isChatbotCrawling && (
+              <div className="p-4 border border-orange-400 bg-orange-50 rounded-lg space-y-3">
+                <p className="text-sm font-medium text-orange-700">
+                  The chatbot is currently processing. You can stop the process in the URL field below.
                 </p>
-                <span className="text-xs text-gray-500">
-                  {selectedPages.length} of {discoveredPages.length} selected
-                </span>
               </div>
+            )}
 
-              {/* Select All */}
-              <div className="flex items-center space-x-2 border-b pb-2 mb-3">
-                <Checkbox
-                  id="selectAll"
-                  checked={selectedPages.length === discoveredPages.length}
-                  onCheckedChange={(checked) => {
-                    setSelectedPages(checked ? [...discoveredPages] : []);
-                  }}
-                />
-                <label htmlFor="selectAll" className="text-sm font-medium truncate">
-                  Select All
-                </label>
-              </div>
-
-              {/* Pages list */}
-              <div className="max-h-[180px] sm:max-h-[200px] md:max-h-[220px] overflow-y-auto space-y-2 mb-4 pr-2">
-                {discoveredPages.map((pageUrl, idx) => {
-                  const safeUrl = typeof pageUrl === 'string' ? pageUrl : String(pageUrl);
-
-                  return (
-                    <div
-                      key={safeUrl}
-                      className="flex items-start space-x-2 rounded border p-2 hover:bg-gray-50 text-sm"
-                    >
-                      <Checkbox
-                        id={`page-${idx}`}
-                        checked={selectedPages.includes(safeUrl)}
-                        onCheckedChange={(checked) => {
-                          setSelectedPages((prev) =>
-                            checked ? [...prev, safeUrl] : prev.filter((p) => p !== safeUrl)
-                          );
-                        }}
-                        className="mt-0.5 flex-shrink-0"
-                      />
-                      <label
-                        htmlFor={`page-${idx}`}
-                        className="flex flex-col cursor-pointer flex-1 min-w-0"
-                      >
-                        <span className="font-medium truncate text-xs sm:text-sm">
-                          {formatPageDisplayName(safeUrl)}
-                        </span>
-                        <span className="text-xs text-gray-500 truncate">{safeUrl}</span>
-                      </label>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Crawl Selected Button */}
-              <Button
-                onClick={handleScrapeSelected}
-                className="w-full text-sm sm:text-base py-2 h-auto min-h-[44px]"
-                disabled={selectedPages.length === 0 || scrapingLoading}
-              >
-                {scrapingLoading ? (
-                  <>
-                    <Loader className="h-4 w-4 animate-spin mr-2" />
-                    <span className="truncate">Starting Crawl...</span>
-                  </>
-                ) : (
-                  `Crawl ${selectedPages.length} Selected Pages`
-                )}
-              </Button>
-
-              <div className="text-center mt-3">
-                <Button
-                  onClick={() => {
-                    setDiscoveredPages([]);
-                    setSelectedPages([]);
-                    // 🛑 Stop local process when going back
-                    stopLocalProcess();
-                  }}
-                  variant="link"
-                  className="text-sm p-0 h-auto"
-                >
-                  ← Back to URL input
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* PDF Upload - Show in both views (omitted for brevity) */}
-
-          <div>
-            <label className="text-sm font-medium mb-2 block">PDF Files (Optional)</label>
-            <label
-              htmlFor="fileInput"
-              className="cursor-pointer rounded-lg border-2 border-dashed border-gray-300 p-3 sm:p-4 text-center text-sm text-gray-500 hover:bg-gray-50 min-h-[80px] flex items-center justify-center"
-            >
+            {/* URL input / Stop Button Field - Show when not in the discovery results view */}
+            {discoveredPages.length === 0 && (
               <div>
-                {files.length > 0
-                  ? `Selected ${files.length} file(s)`
-                  : "Click or drag PDF files here to upload (optional)."}
+                <label className="text-sm font-medium mb-2 block">Website URL (required)*</label>
+
+                {/* 🛑 MODIFIED: Container for URL Input and Stop Button */}
+                <div className="flex w-full items-center relative">
+                  {/* The Input Field */}
+                  <Input
+                    type="url"
+                    placeholder={showStopButtonInInput ? "Process in progress..." : "https://example.com"}
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    // 🛑 Disable input when any process is active
+                    disabled={showStopButtonInInput}
+                    // 🛑 Add padding-right to prevent text from going under the button
+                    className={`w-full text-sm sm:text-base ${showStopButtonInInput ? 'pr-[100px] sm:pr-[120px]' : ''}`}
+                  />
+
+                  {/* 🛑 The Stop Button - Absolutely positioned to the right */}
+                  {showStopButtonInInput && (
+                    // 5. 💡 TOOLTIP FOR STOP CRAWLING BUTTON
+                    <Tooltip delayDuration={300}>
+                      <TooltipTrigger asChild>
+                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10">
+                          <StopCrawlingButton
+                            chatbotId={chatbotId}
+                            status={status}
+                            onStopSuccess={handleStopCrawlingSuccess}
+                            isLocalProcess={isLocalProcessing} // Pass the local state
+                            stopLocalProcess={stopLocalProcess} // Pass the local stop function
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{isLocalProcessing ? "Stop Local Discovery" : "Stop External Crawl"}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
               </div>
-              <Input
-                id="fileInput"
-                type="file"
-                accept="application/pdf"
-                multiple
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </label>
-          </div>
+            )}
 
-          {files.length > 0 && (
-            <ul className="max-h-[100px] sm:max-h-[120px] overflow-y-auto rounded border p-2 text-sm text-muted-foreground space-y-1">
-              {files.map((file, index) => (
-                <li
-                  key={file.name}
-                  className="flex items-center justify-between rounded px-2 py-1 hover:bg-gray-50 text-xs sm:text-sm"
-                >
-                  <span className="truncate flex-1 pr-2">{file.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => setFiles(files.filter((_, i) => i !== index))}
-                    className="ml-2 text-red-500 hover:text-red-700 flex-shrink-0 p-1"
-                    aria-label={`Remove ${file.name}`}
-                  >
-                    ✕
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {/* Single URL Flow - Only show when NOT crawling, no pages discovered, and not loading */}
-          {!isChatbotCrawling && discoveredPages.length === 0 && !isLocalProcessing && (
-            <>
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="agree"
-                  checked={agreed}
-                  onCheckedChange={(checked) => setAgreed(Boolean(checked))}
-                  className="mt-0.5 flex-shrink-0"
-                />
-                <label htmlFor="agree" className="text-sm text-gray-600 leading-tight">
-                  I agree to start crawling of this website
-                </label>
-              </div>
-
+            {/* Discover Pages Button - Hide when pages are discovered OR when discovery is loading OR when already crawling */}
+            {!isChatbotCrawling && discoveredPages.length === 0 && !isLocalProcessing && (
               <Button
-                onClick={handleUpload}
-                disabled={!agreed || !url || isLoading || isUploadingPDF}
-                className="w-full text-sm sm:text-base py-2 h-auto min-h-[44px]"
+                onClick={handleDiscoverPages}
+                disabled={!url} // Removed loadingPages from disabled as it's now controlled by showStopButtonInInput
+                variant="secondary"
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm sm:text-base py-2 h-auto min-h-[44px]"
               >
-                {isLoading || isUploadingPDF ? (
-                  <>
-                    <Loader className="h-4 w-4 animate-spin mr-2" />
-                    <span className="truncate">Starting...</span>
-                  </>
-                ) : (
-                  `Start Crawling${files.length > 0 ? " & Upload PDFs" : ""}`
-                )}
+                {"Discover Pages"}
               </Button>
-            </>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+            )}
+
+            {/* Page selection UI & Discovery Loading State */}
+            {loadingPages && (
+              <div className="flex items-center justify-center p-4 border rounded text-sm sm:text-base">
+                <Loader className="h-4 w-4 animate-spin mr-2" />
+                <p className="truncate">Discovering pages from {url}...</p>
+              </div>
+            )}
+
+            {/* Discovered Pages List */}
+            {discoveredPages.length > 0 && (
+              <div className="border rounded p-3 sm:p-4">
+                {/* ... Page selection UI (omitted for brevity) ... */}
+
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                  <p className="text-sm font-medium truncate">
+                    Select pages to crawl
+                  </p>
+                  <span className="text-xs text-gray-500">
+                    {selectedPages.length} of {discoveredPages.length} selected
+                  </span>
+                </div>
+
+                {/* Select All */}
+                <div className="flex items-center space-x-2 border-b pb-2 mb-3">
+                  <Checkbox
+                    id="selectAll"
+                    checked={selectedPages.length === discoveredPages.length}
+                    onCheckedChange={(checked) => {
+                      setSelectedPages(checked ? [...discoveredPages] : []);
+                    }}
+                  />
+                  <label htmlFor="selectAll" className="text-sm font-medium truncate">
+                    Select All
+                  </label>
+                </div>
+
+                {/* Pages list */}
+                <div className="max-h-[180px] sm:max-h-[200px] md:max-h-[220px] overflow-y-auto space-y-2 mb-4 pr-2">
+                  {discoveredPages.map((pageUrl, idx) => {
+                    const safeUrl = typeof pageUrl === 'string' ? pageUrl : String(pageUrl);
+
+                    return (
+                      <div
+                        key={safeUrl}
+                        className="flex items-start space-x-2 rounded border p-2 hover:bg-gray-50 text-sm"
+                      >
+                        <Checkbox
+                          id={`page-${idx}`}
+                          checked={selectedPages.includes(safeUrl)}
+                          onCheckedChange={(checked) => {
+                            setSelectedPages((prev) =>
+                              checked ? [...prev, safeUrl] : prev.filter((p) => p !== safeUrl)
+                            );
+                          }}
+                          className="mt-0.5 flex-shrink-0"
+                        />
+                        <label
+                          htmlFor={`page-${idx}`}
+                          className="flex flex-col cursor-pointer flex-1 min-w-0"
+                        >
+                          <span className="font-medium truncate text-xs sm:text-sm">
+                            {formatPageDisplayName(safeUrl)}
+                          </span>
+                          <span className="text-xs text-gray-500 truncate">{safeUrl}</span>
+                        </label>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Crawl Selected Button */}
+                <Button
+                  onClick={handleScrapeSelected}
+                  className="w-full text-sm sm:text-base py-2 h-auto min-h-[44px]"
+                  disabled={selectedPages.length === 0 || scrapingLoading}
+                >
+                  {scrapingLoading ? (
+                    <>
+                      <Loader className="h-4 w-4 animate-spin mr-2" />
+                      <span className="truncate">Starting Crawl...</span>
+                    </>
+                  ) : (
+                    `Crawl ${selectedPages.length} Selected Pages`
+                  )}
+                </Button>
+
+                <div className="text-center mt-3">
+                  <Button
+                    onClick={() => {
+                      setDiscoveredPages([]);
+                      setSelectedPages([]);
+                      // 🛑 Stop local process when going back
+                      stopLocalProcess();
+                    }}
+                    variant="link"
+                    className="text-sm p-0 h-auto"
+                  >
+                    ← Back to URL input
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* PDF Upload - Show in both views (omitted for brevity) */}
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">PDF Files (Optional)</label>
+              <label
+                htmlFor="fileInput"
+                className="cursor-pointer rounded-lg border-2 border-dashed border-gray-300 p-3 sm:p-4 text-center text-sm text-gray-500 hover:bg-gray-50 min-h-[80px] flex items-center justify-center"
+              >
+                <div>
+                  {files.length > 0
+                    ? `Selected ${files.length} file(s)`
+                    : "Click or drag PDF files here to upload (optional)."}
+                </div>
+                <Input
+                  id="fileInput"
+                  type="file"
+                  accept="application/pdf"
+                  multiple
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {files.length > 0 && (
+              <ul className="max-h-[100px] sm:max-h-[120px] overflow-y-auto rounded border p-2 text-sm text-muted-foreground space-y-1">
+                {files.map((file, index) => (
+                  <li
+                    key={file.name}
+                    className="flex items-center justify-between rounded px-2 py-1 hover:bg-gray-50 text-xs sm:text-sm"
+                  >
+                    <span className="truncate flex-1 pr-2">{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setFiles(files.filter((_, i) => i !== index))}
+                      className="ml-2 text-red-500 hover:text-red-700 flex-shrink-0 p-1"
+                      aria-label={`Remove ${file.name}`}
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {/* Single URL Flow - Only show when NOT crawling, no pages discovered, and not loading */}
+            {!isChatbotCrawling && discoveredPages.length === 0 && !isLocalProcessing && (
+              <>
+                <div className="flex items-start space-x-2">
+                  <Checkbox
+                    id="agree"
+                    checked={agreed}
+                    onCheckedChange={(checked) => setAgreed(Boolean(checked))}
+                    className="mt-0.5 flex-shrink-0"
+                  />
+                  <label htmlFor="agree" className="text-sm text-gray-600 leading-tight">
+                    I agree to start crawling of this website
+                  </label>
+                </div>
+
+                <Button
+                  onClick={handleUpload}
+                  disabled={!agreed || !url || isLoading || isUploadingPDF}
+                  className="w-full text-sm sm:text-base py-2 h-auto min-h-[44px]"
+                >
+                  {isLoading || isUploadingPDF ? (
+                    <>
+                      <Loader className="h-4 w-4 animate-spin mr-2" />
+                      <span className="truncate">Starting...</span>
+                    </>
+                  ) : (
+                    `Start Crawling${files.length > 0 ? " & Upload PDFs" : ""}`
+                  )}
+                </Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </TooltipProvider>
   );
 };
 

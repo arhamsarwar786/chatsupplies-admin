@@ -1,15 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react"; // ✅ Added useMemo
 import dynamic from "next/dynamic";
 import { useGetChatbotQuery } from "@/src/hooks/useChatbot";
 import { DashboardHeader } from "@/src/components/layout/dashboard-header";
 import { Button } from "@/src/components/ui/button";
 import { skipToken } from "@reduxjs/toolkit/query";
-import { MessageCircle, ArrowLeft } from "lucide-react";
+import { MessageCircle, ArrowLeft, User } from "lucide-react"; // ✅ Added User icon
 import noDataAnimation from "@/public/lottie/nodata.json";
 import { useGetAllChatsQuery } from "@/src/hooks/useChat";
 import { Globe, Clock, Target, MapPin } from "lucide-react"; // ✅ added MapPin for IP
+
+// NOTE: chat.ts (RTK Query definition) is not modified as it's correct.
 
 const Player = dynamic(
   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
@@ -32,9 +34,17 @@ interface ChatData {
   user_id: number;
   chatbot_id: number;
   intent_detected: string;
-  language: string; // ✅ corrected field
-  ip_address?: string; // ✅ keep from backend
+  language: string;
+  ip_address?: string;
   username?: string;
+}
+
+// ✅ New UserConversation type
+interface UserConversation {
+  id: number;
+  name: string;
+  lastMessageTime: string;
+  messageCount: number;
 }
 
 const ChatHistoryPage = () => {
@@ -72,21 +82,57 @@ const ChatHistoryPage = () => {
 
   const chatList: ChatData[] = chatData?.results ?? chatData?.data ?? [];
 
+  // ✅ New memoized list of unique users for the selected bot
+  const userConversations: UserConversation[] = useMemo(() => {
+    const usersMap = new Map<number, UserConversation>();
+
+    chatList.forEach((chat) => {
+      if (!usersMap.has(chat.user_id)) {
+        usersMap.set(chat.user_id, {
+          id: chat.user_id,
+          name: chat.username || `User ${chat.user_id}`,
+          lastMessageTime: chat.timestamp,
+          messageCount: 1,
+        });
+      } else {
+        const existingUser = usersMap.get(chat.user_id)!;
+        existingUser.messageCount += 1;
+        // Keep the latest timestamp for sorting/display
+        if (new Date(chat.timestamp) > new Date(existingUser.lastMessageTime)) {
+            existingUser.lastMessageTime = chat.timestamp;
+        }
+      }
+    });
+
+    // Convert map values to array and sort by latest message time
+    return Array.from(usersMap.values()).sort((a, b) => 
+        new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
+    );
+  }, [chatList]); // Re-calculate when chatList changes
+
+  // 1. Automatically select the first chatbot on load
   useEffect(() => {
     if (chatbotList.length > 0 && !selectedBotId) {
       setSelectedBotId(chatbotList[0].id);
     }
   }, [chatbotList, selectedBotId]);
 
+  // 2. Automatically select the first user when selectedBotId changes or new chats load
   useEffect(() => {
-    if (chatList.length > 0 && !selectedUser) {
-      const firstUser = chatList[0];
-      setSelectedUser({
-        id: firstUser.user_id,
-        name: firstUser.username || `User ${firstUser.user_id}`,
-      });
+    if (selectedBotId !== null && userConversations.length > 0) {
+      // Only set if no user is currently selected OR if the selected user is no longer in the list
+      if (!selectedUser || !userConversations.some(u => u.id === selectedUser.id)) {
+        const firstUser = userConversations[0];
+        setSelectedUser({
+          id: firstUser.id,
+          name: firstUser.name,
+        });
+      }
+    } else if (selectedBotId !== null && userConversations.length === 0) {
+        // If a bot is selected but has no chats, clear the user selection
+        setSelectedUser(null);
     }
-  }, [chatList, selectedUser]);
+  }, [userConversations, selectedBotId, selectedUser]); // ✅ dependencies updated
 
   const formatTime = (timestamp: string) =>
     new Date(timestamp).toLocaleTimeString([], {
@@ -94,7 +140,7 @@ const ChatHistoryPage = () => {
       minute: "2-digit",
     });
 
-  // ✅ StatCard component
+  // StatCard component (no change)
   const StatCard: React.FC<{
     icon: React.ElementType;
     title: string;
@@ -110,7 +156,7 @@ const ChatHistoryPage = () => {
     </div>
   );
 
-  // ✅ latest chat
+  // latest chat (no change)
   const latestChat = chatList.length > 0 ? chatList[chatList.length - 1] : null;
 
   return (
@@ -130,7 +176,7 @@ const ChatHistoryPage = () => {
           Back to Previous
         </button>
 
-        {/* ✅ Stat Cards Row */}
+        {/* Stat Cards Row */}
         <div className="flex flex-wrap justify-start gap-3 text-sm">
           {latestChat ? (
             <>
@@ -173,7 +219,7 @@ const ChatHistoryPage = () => {
         </div>
       </div>
 
-      {/* ✅ rest of your existing code untouched */}
+      {/* Main Content Area */}
       <div className="p-4 md:p-5 ">
         {isLoading ? (
           <div className="mt-8 text-center text-muted-foreground">
@@ -195,8 +241,9 @@ const ChatHistoryPage = () => {
           </div>
         ) : (
           <div className="flex flex-col lg:flex-row gap-6 -mt-5 shadow-4xl h-[calc(100vh-200px)]">
-            {/* Left Sidebar */}
-            <div className="w-full lg:w-[320px] flex-shrink-0 flex flex-col border rounded-lg bg-gray-50">
+            {/* 1. Left Sidebar: Chatbots List */}
+            <div className={`w-full lg:w-[320px] flex-shrink-0 flex flex-col border rounded-lg bg-gray-50 
+              ${selectedBotId && selectedUser ? 'hidden lg:flex' : 'flex'}`}> {/* ✅ New responsiveness logic */}
               <div className="p-4 border-b bg-white rounded-t-lg">
                 <h3 className="font-semibold text-lg">Chatbots List</h3>
                 <p className="text-sm text-muted-foreground">
@@ -205,6 +252,8 @@ const ChatHistoryPage = () => {
               </div>
               <div className="flex-1 overflow-y-auto">
                 {chatbotList.map((bot) => {
+                  // NOTE: Filtering for last message is not efficient here, but kept for minimal change.
+                  // This section does not need to be refactored to use the userConversations list.
                   const botChats = chatList.filter(
                     (chat) => chat.chatbot_id === bot.id
                   );
@@ -216,7 +265,7 @@ const ChatHistoryPage = () => {
                       key={bot.id}
                       onClick={() => {
                         setSelectedBotId(bot.id);
-                        setSelectedUser(null);
+                        setSelectedUser(null); // ✅ Reset selected user on new bot selection
                       }}
                       className={`p-4 border-b cursor-pointer hover:bg-gray-100 transition-colors ${
                         selectedBotId === bot.id
@@ -256,8 +305,59 @@ const ChatHistoryPage = () => {
               </div>
             </div>
 
-            {/* Right Chat Area */}
-            <div className="flex-1 flex flex-col border rounded-lg bg-gray-50">
+            {/* 2. Middle Sidebar: User Conversations List (NEW FIX) */}
+            {selectedBotId && (
+                <div className={`w-full lg:w-[320px] flex-shrink-0 flex flex-col border rounded-lg bg-gray-50 
+                  ${!selectedUser ? 'flex' : 'hidden lg:flex'}`}> {/* ✅ New responsiveness logic */}
+                  <div className="p-4 border-b bg-white rounded-t-lg flex items-center justify-between">
+                    <h3 className="font-semibold text-lg">User Chats</h3>
+                    <span className="text-sm text-muted-foreground">
+                        {userConversations.length} users
+                    </span>
+                  </div>
+
+                  {chatLoading ? (
+                      <div className="p-4 text-center text-muted-foreground">Loading users...</div>
+                  ) : userConversations.length === 0 ? (
+                      <div className="p-4 text-center text-muted-foreground">No conversations for this bot.</div>
+                  ) : (
+                    <div className="flex-1 overflow-y-auto">
+                        {userConversations.map((user) => (
+                          <div
+                            key={user.id}
+                            onClick={() => {
+                                setSelectedUser({ id: user.id, name: user.name });
+                            }}
+                            className={`p-4 border-b cursor-pointer hover:bg-gray-100 transition-colors ${
+                                selectedUser?.id === user.id
+                                  ? "bg-blue-50 border-l-4 border-l-blue-500"
+                                  : "bg-white"
+                            }`}
+                          >
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-2">
+                                <User className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                                <p className="font-medium text-sm truncate">
+                                  {user.name}
+                                </p>
+                              </div>
+                              <span className="text-xs text-muted-foreground ml-2 whitespace-nowrap">
+                                {formatTime(user.lastMessageTime)}
+                              </span>
+                            </div>
+                            <p className="text-xs ml-7 text-muted-foreground truncate">
+                                {user.messageCount} messages
+                            </p>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+            )}
+
+
+            {/* 3. Right Chat Area */}
+            <div className={`flex-1 flex flex-col border rounded-lg bg-gray-50 ${!selectedUser ? 'hidden lg:flex' : 'flex'}`}> {/* ✅ New responsiveness logic */}
               {selectedUser ? (
                 <>
                   <div className="p-4 border-b bg-white rounded-t-lg flex items-center justify-between">
@@ -272,6 +372,7 @@ const ChatHistoryPage = () => {
                       </Button>
 
                       {selectedBotId && (
+                        // Displaying selected bot's image
                         <img
                           src={
                             chatbotList.find((bot) => bot.id === selectedBotId)
@@ -287,8 +388,7 @@ const ChatHistoryPage = () => {
 
                       <h3 className="font-semibold">
                         Chat with{" "}
-                        {chatbotList.find((bot) => bot.id === selectedBotId)
-                          ?.name || "Chatbot"}
+                        {selectedUser.name} {/* ✅ Show selected user's name */}
                       </h3>
                     </div>
                   </div>
@@ -305,10 +405,12 @@ const ChatHistoryPage = () => {
                     ) : (
                       chatList
                         .filter(
+                          // ✅ Filtering based on the selected user ID
                           (chat: ChatData) => chat.user_id === selectedUser.id
                         )
                         .map((chat: ChatData) => (
                           <div key={chat.id} className="space-y-2">
+                            {/* User Message */}
                             {chat.user_message && (
                               <div className="flex justify-end">
                                 <div className="bg-blue-500 text-white rounded-2xl rounded-br-none px-4 py-2 max-w-[70%] shadow">
@@ -320,6 +422,7 @@ const ChatHistoryPage = () => {
                               </div>
                             )}
 
+                            {/* Bot Response */}
                             {chat.bot_response &&
                               chat.bot_response.toLowerCase() !== "general" && (
                                 <div className="flex justify-start">
@@ -342,7 +445,11 @@ const ChatHistoryPage = () => {
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center text-muted-foreground">
                     <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Select a conversation to view messages</p>
+                    <p>
+                        {selectedBotId ? 
+                        "Select a user conversation to view messages" : 
+                        "Select a chatbot to begin."}
+                    </p>
                   </div>
                 </div>
               )}
