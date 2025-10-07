@@ -9,7 +9,8 @@ import { skipToken } from "@reduxjs/toolkit/query";
 import { MessageCircle, ArrowLeft } from "lucide-react";
 import noDataAnimation from "@/public/lottie/nodata.json";
 import { useGetAllChatsQuery } from "@/src/hooks/useChat";
-import { Globe, Clock, Target, MapPin } from "lucide-react"; // ✅ added MapPin for IP
+import { Globe, Clock, Target, MapPin } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/src/components/ui/tooltip"; // ✅ import your tooltip
 
 const Player = dynamic(
   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
@@ -32,9 +33,12 @@ interface ChatData {
   user_id: number;
   chatbot_id: number;
   intent_detected: string;
-  language: string; // ✅ corrected field
-  ip_address?: string; // ✅ keep from backend
+  language: string;
+  ip_address?: string;
   username?: string;
+  user_agent?: string;
+  location?: string;
+  platform?: string;
 }
 
 const ChatHistoryPage = () => {
@@ -110,11 +114,35 @@ const ChatHistoryPage = () => {
     </div>
   );
 
+  // ✅ Tooltip Content Component
+  const UserMessageTooltipContent: React.FC<{ chat: ChatData }> = ({ chat }) => (
+    <div className="text-xs space-y-2 min-w-64">
+      <div className="flex justify-between">
+        <span className="text-gray-300">User Agent:</span>
+        <span className="text-white text-right ml-2 truncate max-w-40">
+          {chat.user_agent || "—"}
+        </span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-300">Location:</span>
+        <span className="text-white">{chat.location || "—"}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-300">Platform:</span>
+        <span className="text-white">{chat.platform || "—"}</span>
+      </div>
+      <div className="flex justify-between">
+        <span className="text-gray-300">Language:</span>
+        <span className="text-white">{chat.language || "—"}</span>
+      </div>
+    </div>
+  );
+
   // ✅ latest chat
   const latestChat = chatList.length > 0 ? chatList[chatList.length - 1] : null;
 
   return (
-    <>
+    <TooltipProvider> {/* ✅ Wrap entire app with TooltipProvider */}
       <DashboardHeader
         title="Chat History"
         description="View and manage your chatbot conversations"
@@ -311,12 +339,23 @@ const ChatHistoryPage = () => {
                           <div key={chat.id} className="space-y-2">
                             {chat.user_message && (
                               <div className="flex justify-end">
-                                <div className="bg-blue-500 text-white rounded-2xl rounded-br-none px-4 py-2 max-w-[70%] shadow">
-                                  <p className="text-sm">{chat.user_message}</p>
-                                  <span className="text-xs opacity-70 block text-right mt-1">
-                                    {formatTime(chat.timestamp)}
-                                  </span>
-                                </div>
+                                <Tooltip> {/* ✅ Use Radix Tooltip */}
+                                  <TooltipTrigger asChild>
+                                    <div className="bg-blue-500 text-white rounded-2xl rounded-br-none px-4 py-2 max-w-[70%] shadow cursor-pointer">
+                                      <p className="text-sm">{chat.user_message}</p>
+                                      <span className="text-xs opacity-70 block text-right mt-1">
+                                        {formatTime(chat.timestamp)}
+                                      </span>
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent 
+                                    side="left" 
+                                    align="end"
+                                    className="bg-gray-900 text-white border-0"
+                                  >
+                                    <UserMessageTooltipContent chat={chat} />
+                                  </TooltipContent>
+                                </Tooltip>
                               </div>
                             )}
 
@@ -350,7 +389,7 @@ const ChatHistoryPage = () => {
           </div>
         )}
       </div>
-    </>
+    </TooltipProvider>
   );
 };
 
