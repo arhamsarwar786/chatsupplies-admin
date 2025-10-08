@@ -58,9 +58,9 @@ const ChatHistoryPage = () => {
   const chatbotList: Chatbot[] = Array.isArray(chatbotResponse)
     ? chatbotResponse
     : chatbotResponse?.results ??
-      chatbotResponse?.data ??
-      chatbotResponse?.chatbots ??
-      [];
+    chatbotResponse?.data ??
+    chatbotResponse?.chatbots ??
+    [];
 
   const {
     data: chatData,
@@ -69,8 +69,8 @@ const ChatHistoryPage = () => {
   } = useGetAllChatsQuery(
     selectedBotId !== null
       ? {
-          chatbot_id: selectedBotId,
-        }
+        chatbot_id: selectedBotId,
+      }
       : skipToken
   );
 
@@ -98,7 +98,7 @@ const ChatHistoryPage = () => {
       minute: "2-digit",
     });
 
-  // ✅ StatCard component
+  // ✅ StatCard component (kept here but unused in the render logic)
   const StatCard: React.FC<{
     icon: React.ElementType;
     title: string;
@@ -122,7 +122,7 @@ const ChatHistoryPage = () => {
         <span className="text-gray-300 font-bold">IP Address:</span>
         <span className="text-white font-bold">{chat.ip_address || "—"}</span>
       </div>
-      
+
       {/* Existing details */}
       <div className="flex justify-between">
         <span className="text-gray-300">User Agent:</span>
@@ -139,11 +139,11 @@ const ChatHistoryPage = () => {
         <span className="text-white">{chat.platform || "—"}</span>
       </div>
       {/* The following Language section has been removed:
-      <div className="flex justify-between">
-        <span className="text-gray-300">Language:</span>
-        <span className="text-white">{chat.language || "—"}</span>
-      </div> 
-      */}
+      <div className="flex justify-between">
+        <span className="text-gray-300">Language:</span>
+        <span className="text-white">{chat.language || "—"}</span>
+      </div> 
+      */}
     </div>
   );
 
@@ -157,7 +157,7 @@ const ChatHistoryPage = () => {
         description="View and manage your chatbot conversations"
       />
 
-      {/* Back button + Stat Cards */}
+      {/* Back button + Stat Cards (Only back button remains after removal) */}
       <div className="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <button
           onClick={() => history.back()}
@@ -167,47 +167,49 @@ const ChatHistoryPage = () => {
           Back to Previous
         </button>
 
-        {/* ✅ Stat Cards Row (Language card is intentionally kept here to maintain existing behavior) */}
+        {/* ❌ REMOVED: Stat Cards Row 
+        
         <div className="flex flex-wrap justify-start gap-3 text-sm">
-          {latestChat ? (
-            <>
-              <StatCard
-                icon={Globe}
-                title="Language"
-                value={latestChat.language || "—"}
-                valueClass="text-gray-600"
-              />
-              <StatCard
-                icon={Clock}
-                title="Timestamp"
-                value={
-                  latestChat.timestamp
-                    ? new Date(latestChat.timestamp).toLocaleString()
-                    : "—"
-                }
-                valueClass="text-gray-600"
-              />
-              <StatCard
-                icon={MapPin}
-                title="IP Address"
-                value={latestChat.ip_address || "—"}
-              />
-              <StatCard
-                icon={Target}
-                title="Intent"
-                value={latestChat.intent_detected || "—"}
-                valueClass="text-blue-600"
-              />
-            </>
-          ) : (
-            <>
-              <StatCard icon={Globe} title="Language" value="—" />
-              <StatCard icon={Clock} title="Timestamp" value="—" />
-              <StatCard icon={MapPin} title="IP Address" value="—" />
-              <StatCard icon={Target} title="Intent" value="—" />
-            </>
-          )}
-        </div>
+          {latestChat ? (
+            <>
+              <StatCard
+                icon={Globe}
+                title="Language"
+                value={latestChat.language || "—"}
+                valueClass="text-gray-600"
+              />
+              <StatCard
+                icon={Clock}
+                title="Timestamp"
+                value={
+                  latestChat.timestamp
+                    ? new Date(latestChat.timestamp).toLocaleString()
+                    : "—"
+                }
+                valueClass="text-gray-600"
+              />
+              <StatCard
+                icon={MapPin}
+                title="IP Address"
+                value={latestChat.ip_address || "—"}
+              />
+              <StatCard
+                icon={Target}
+                title="Intent"
+                value={latestChat.intent_detected || "—"}
+                valueClass="text-blue-600"
+              />
+            </>
+          ) : (
+            <>
+              <StatCard icon={Globe} title="Language" value="—" />
+              <StatCard icon={Clock} title="Timestamp" value="—" />
+              <StatCard icon={MapPin} title="IP Address" value="—" />
+              <StatCard icon={Target} title="Intent" value="—" />
+            </>
+          )}
+        </div>
+        */}
       </div>
 
       {/* ✅ rest of your existing code untouched */}
@@ -255,11 +257,10 @@ const ChatHistoryPage = () => {
                         setSelectedBotId(bot.id);
                         setSelectedUser(null);
                       }}
-                      className={`p-4 border-b cursor-pointer hover:bg-gray-100 transition-colors ${
-                        selectedBotId === bot.id
-                          ? "bg-blue-50 border-l-4 border-l-blue-500"
-                          : "bg-white"
-                      }`}
+                      className={`p-4 border-b cursor-pointer hover:bg-gray-100 transition-colors ${selectedBotId === bot.id
+                        ? "bg-blue-50 border-l-4 border-l-blue-500"
+                        : "bg-white"
+                        }`}
                     >
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
@@ -285,7 +286,9 @@ const ChatHistoryPage = () => {
                         )}
                       </div>
                       <p className="text-xs ml-10 text-muted-foreground truncate">
-                        {bot.description}
+                        <div>
+                          <div dangerouslySetInnerHTML={{ __html: bot.description }} />
+                        </div>
                       </p>
                     </div>
                   );
@@ -309,17 +312,25 @@ const ChatHistoryPage = () => {
                       </Button>
 
                       {selectedBotId && (
-                        <img
-                          src={
-                            chatbotList.find((bot) => bot.id === selectedBotId)
-                              ?.profile_image || ""
-                          }
-                          alt={
-                            chatbotList.find((bot) => bot.id === selectedBotId)
-                              ?.name || "Bot"
-                          }
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
+                        <>
+                          {chatbotList.find((bot) => bot.id === selectedBotId)?.profile_image ? (
+                            <img
+                              src={
+                                chatbotList.find((bot) => bot.id === selectedBotId)
+                                  ?.profile_image
+                              }
+                              alt={
+                                chatbotList.find((bot) => bot.id === selectedBotId)
+                                  ?.name || "Bot"
+                              }
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white text-sm font-semibold">
+                              {chatbotList.find((bot) => bot.id === selectedBotId)?.name?.charAt(0) || "?"}
+                            </div>
+                          )}
+                        </>
                       )}
 
                       <h3 className="font-semibold">
@@ -351,14 +362,18 @@ const ChatHistoryPage = () => {
                                 <Tooltip> {/* ✅ Use Radix Tooltip */}
                                   <TooltipTrigger asChild>
                                     <div className="bg-blue-500 text-white rounded-2xl rounded-br-none px-4 py-2 max-w-[70%] shadow cursor-pointer">
-                                      <p className="text-sm">{chat.user_message}</p>
+                                      <p className="text-sm">
+                                        <div>
+                                          <div dangerouslySetInnerHTML={{ __html: chat.user_message }} />
+                                        </div>
+                                      </p>
                                       <span className="text-xs opacity-70 block text-right mt-1">
                                         {formatTime(chat.timestamp)}
                                       </span>
                                     </div>
                                   </TooltipTrigger>
-                                  <TooltipContent 
-                                    side="left" 
+                                  <TooltipContent
+                                    side="left"
                                     align="end"
                                     className="bg-gray-900 text-white border-0"
                                   >
@@ -373,7 +388,9 @@ const ChatHistoryPage = () => {
                                 <div className="flex justify-start">
                                   <div className="bg-gray-200 text-gray-800 rounded-2xl rounded-bl-none px-4 py-2 max-w-[70%] shadow">
                                     <p className="text-sm">
-                                      {chat.bot_response}
+                                      <div>
+                                        <div dangerouslySetInnerHTML={{ __html: chat.bot_response }} />
+                                      </div>
                                     </p>
                                     <span className="text-xs opacity-70 block text-right mt-1">
                                       {formatTime(chat.timestamp)}

@@ -47,6 +47,8 @@ import {
   DialogTitle,
 } from "@/src/components/ui/dialog";
 import UploadUrlPdf from "./upload-url-pdf";
+// 1. 🛑 IMPORT THE NEW POPUP COMPONENT
+import ConfirmStopPopup from "./confirm-stopPopup";
 
 const Player = dynamic(
   () => import("@lottiefiles/react-lottie-player").then((mod) => mod.Player),
@@ -155,13 +157,6 @@ const stopCrawling = async (chatbotId: number): Promise<void> => {
   // Prepare the body as a URLSearchParams string
   const body = new URLSearchParams();
   body.append('chatbot_id', String(chatbotId));
-  // The client_email parameter from the cURL example is included here as 'string'
-  // but should be checked if it's truly required/needs a dynamic value.
-  // For now, mirroring the form data from your request analysis:
-  // **NOTE**: I'll omit 'client_email=string' as your original code didn't use it, 
-  // ensuring minimum change to the data sent, only fixing the encoding. 
-  // If it is required, you'll need to pass 'client_email' into this function.
-  // body.append('client_email', 'string'); // <-- UNCOMMENT if required
 
   try {
     const response = await fetch('https://api.chatsupplies.com/training/crawl/stop', {
@@ -181,17 +176,12 @@ const stopCrawling = async (chatbotId: number): Promise<void> => {
       throw new Error(errorMessage);
     }
 
-    // Return type is void, so we don't need to return data.
-    // const data = await response.json();
-    // return data; 
   } catch (error) {
     console.error('Error stopping crawling:', error);
     // Re-throw the specific error for the StopCrawlingButton to handle the toast.
     throw error;
   }
 };
-// MERGED CODE END
-// ---
 
 const ActionsDropdown = ({
   chatbotId,
@@ -226,61 +216,34 @@ const ActionsDropdown = ({
   );
 };
 
-// UPDATED: Stop Crawling Button Component with SVG Icon
+// MODIFIED: Stop Crawling Button Component to open confirmation dialog
 const StopCrawlingButton = ({
   chatbotId,
   status,
-  onStopSuccess
+  // MODIFIED PROP: Pass a handler to open the dialog
+  onOpenConfirmStop,
 }: {
   chatbotId: number;
   status: string;
-  onStopSuccess?: () => void;
+  onOpenConfirmStop: (id: number) => void;
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleStopCrawling = async () => {
-    if (status !== "in_progress") return;
-
-    setIsLoading(true);
-    try {
-      await stopCrawling(chatbotId);
-      toast.success("Crawling stopped successfully");
-      onStopSuccess?.();
-    } catch (error) {
-      // FIX: Robust error message extraction to prevent "[object Object]"
-      let errorMessage = "An unknown error occurred.";
-
-      if (error instanceof Error) {
-        errorMessage = error.message; // Use message from Error instance
-      } else if (typeof error === 'object' && error !== null) {
-        // Try accessing common properties or converting to string
-        errorMessage = (error as any).message || (error as any).detail || String(error);
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      }
-
-      // Final fallback if the message is still generic
-      if (errorMessage === '[object Object]' || !errorMessage) {
-        errorMessage = "Failed to stop crawling due to an API error.";
-      }
-
-      toast.error(errorMessage);
-      console.error("Stop crawling error:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Only show when status is in_progress
   if (status !== "in_progress") {
     return null;
   }
 
+  // The click handler now opens the confirmation popup
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onOpenConfirmStop(chatbotId);
+  };
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
-          onClick={handleStopCrawling}
+          onClick={handleClick}
           variant="ghost"
           size="sm"
           className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50"
@@ -337,6 +300,9 @@ export default function ChatbotTable() {
   const [selectedBotId, setSelectedBotId] = useState<number | null>(null);
   const [recrawlBot, setRecrawlBot] = useState<Chatbot | null>(null);
 
+  // 2. 🛑 NEW STATE FOR STOP CONFIRMATION POPUP
+  const [botIdToStop, setBotIdToStop] = useState<number | null>(null);
+
   // We still need 'refetch' for pagination and other uses, but handleDelete will rely on RTK Query's optimistic update.
   const { data, isLoading, error, refetch } = useGetChatbotQuery({
     page: currentPage,
@@ -354,10 +320,44 @@ export default function ChatbotTable() {
     window.scrollTo(0, 0);
   }, [currentPage]);
 
-  // NEW: Handle stop crawling success
-  const handleStopCrawlingSuccess = () => {
-    // Refetch the data to update the status
-    refetch();
+  // NEW: Handler to open the confirmation popup
+  const handleOpenConfirmStop = (chatbotId: number) => {
+    setBotIdToStop(chatbotId);
+  };
+
+  // NEW: Handler to close the confirmation popup
+  const handleCloseConfirmStop = () => {
+    setBotIdToStop(null);
+  };
+
+  // 4. 🛑 NEW: Confirmation handler to perform the API call
+  const handleConfirmStop = async () => {
+    if (!botIdToStop) return;
+
+    try {
+      await stopCrawling(botIdToStop);
+      toast.success("Crawling stop request sent successfully");
+      refetch(); // Refetch the data to update the status
+    } catch (error) {
+      let errorMessage = "An unknown error occurred.";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        errorMessage = (error as any).message || (error as any).detail || String(error);
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
+      if (errorMessage === '[object Object]' || !errorMessage) {
+        errorMessage = "Failed to stop crawling due to an API error.";
+      }
+
+      toast.error(errorMessage);
+      console.error("Stop crawling error:", error);
+    }
+    // The popup is closed by the `onConfirm` callback passed to the ConfirmStopPopup component
+    // We don't need to call handleCloseConfirmStop here, as it's called inside the popup's onClick
   };
 
   // FIX: Relying on RTK Query's definition in chatbot.ts to update the cache
@@ -387,7 +387,7 @@ export default function ChatbotTable() {
   const renderChatbotRow = (bot: Chatbot, idx: number) => {
     const status = bot.progress_status;
     const isCrawling = status === "in_progress";
-    
+
     // Define the TableRow content and behavior
     const rowContent = (
       <TableRow
@@ -413,9 +413,8 @@ export default function ChatbotTable() {
           setSelectedBotId(bot.id);
         }}
         // Apply different cursor based on status
-        className={`transition-colors duration-150 ${
-          isCrawling ? 'cursor-default' : 'cursor-pointer hover:bg-gray-50'
-        }`}
+        className={`transition-colors duration-150 ${isCrawling ? 'cursor-default' : 'cursor-pointer hover:bg-gray-50'
+          }`}
       >
         <TableCell className="px-4 py-3">
           <div className="flex flex-col">
@@ -461,13 +460,13 @@ export default function ChatbotTable() {
         <TableCell className="px-4 py-3 hidden md:table-cell">
           {bot.created_at
             ? new Date(bot.created_at).toLocaleString(undefined, {
-                year: "numeric",
-                month: "short",
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-              })
+              year: "numeric",
+              month: "short",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            })
             : "N/A"}
         </TableCell>
 
@@ -480,11 +479,11 @@ export default function ChatbotTable() {
             className="flex justify-end items-center gap-2"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* UPDATED: Stop Crawling Button with SVG Icon */}
+            {/* UPDATED: Stop Crawling Button to use the new handler */}
             <StopCrawlingButton
               chatbotId={bot.id}
               status={bot.progress_status}
-              onStopSuccess={handleStopCrawlingSuccess}
+              onOpenConfirmStop={handleOpenConfirmStop} // Pass the new handler
             />
             <Tooltip>
               <TooltipTrigger asChild>
@@ -525,7 +524,7 @@ export default function ChatbotTable() {
         </TableCell>
       </TableRow>
     );
-    
+
     // Condition to wrap the row in a Tooltip
     if (isCrawling) {
       return (
@@ -709,6 +708,13 @@ export default function ChatbotTable() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* 5. 🛑 RENDER THE CONFIRMATION POPUP */}
+      <ConfirmStopPopup
+        open={!!botIdToStop}
+        onClose={handleCloseConfirmStop}
+        onConfirm={handleConfirmStop}
+      />
     </div>
   );
 }

@@ -704,10 +704,7 @@ const ChatbotSetup = () => {
                         <p className="text-xs text-gray-500">{description}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div
-                          className="w-8 h-8 rounded-full border border-gray-300 shadow-sm"
-                          style={{ backgroundColor: value }}
-                        ></div>
+                       
                         <input
                           type="color"
                           value={value}
