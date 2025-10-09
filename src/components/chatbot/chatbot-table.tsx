@@ -47,7 +47,6 @@ import {
   DialogTitle,
 } from "@/src/components/ui/dialog";
 import UploadUrlPdf from "./upload-url-pdf";
-// 1. 🛑 IMPORT THE NEW POPUP COMPONENT
 import ConfirmStopPopup from "./confirm-stopPopup";
 
 const Player = dynamic(
@@ -135,15 +134,11 @@ const RecrawlIcon = ({ className = "w-8 h-8", ...props }) => (
   </button>
 );
 
-
-// MERGED CODE START: stopCrawling function using application/x-www-form-urlencoded
 const stopCrawling = async (chatbotId: number): Promise<void> => {
-  // Retrieve authentication data from localStorage
   const token = localStorage.getItem("token");
   const apikey = localStorage.getItem("apikey");
 
   const headers: HeadersInit = {
-    // IMPORTANT: Change to form-urlencoded
     'Content-Type': 'application/x-www-form-urlencoded',
   };
 
@@ -154,7 +149,6 @@ const stopCrawling = async (chatbotId: number): Promise<void> => {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  // Prepare the body as a URLSearchParams string
   const body = new URLSearchParams();
   body.append('chatbot_id', String(chatbotId));
 
@@ -162,7 +156,7 @@ const stopCrawling = async (chatbotId: number): Promise<void> => {
     const response = await fetch('https://api.chatsupplies.com/training/crawl/stop', {
       method: 'POST',
       headers: headers,
-      body: body.toString(), // Send the form data string
+      body: body.toString(),
     });
 
     if (!response.ok) {
@@ -178,7 +172,6 @@ const stopCrawling = async (chatbotId: number): Promise<void> => {
 
   } catch (error) {
     console.error('Error stopping crawling:', error);
-    // Re-throw the specific error for the StopCrawlingButton to handle the toast.
     throw error;
   }
 };
@@ -220,20 +213,16 @@ const ActionsDropdown = ({
 const StopCrawlingButton = ({
   chatbotId,
   status,
-  // MODIFIED PROP: Pass a handler to open the dialog
   onOpenConfirmStop,
 }: {
   chatbotId: number;
   status: string;
   onOpenConfirmStop: (id: number) => void;
 }) => {
-
-  // Only show when status is in_progress
   if (status !== "in_progress") {
     return null;
   }
 
-  // The click handler now opens the confirmation popup
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onOpenConfirmStop(chatbotId);
@@ -255,56 +244,15 @@ const StopCrawlingButton = ({
         <p>Stop Crawling</p>
       </TooltipContent>
     </Tooltip>
-
   );
 };
-
-// NEW: Recrawl Button Component with SVG Icon
-// const RecrawlButton = ({
-//   chatbotId,
-//   status,
-//   onRecrawl
-// }: {
-//   chatbotId: number;
-//   status: string;
-//   onRecrawl: (id: number) => void;
-// }) => {
-//   if (status !== "failed") {
-//     return null;
-//   }
-
-//   return (
-//     <Tooltip>
-//       <TooltipTrigger asChild>
-//         <button
-//           onClick={(e) => {
-//             e.stopPropagation();
-//             onRecrawl(chatbotId);
-//           }}
-//           className="p-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50 rounded"
-//         >
-//           <RecrawlIcon className="w-4 h-4" />
-//         </button>
-//       </TooltipTrigger>
-//       <TooltipContent>
-//         <p>Recrawl Website</p>
-//       </TooltipContent>
-//     </Tooltip>
-
-//   );
-// };
 
 export default function ChatbotTable() {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBotId, setSelectedBotId] = useState<number | null>(null);
   const [recrawlBot, setRecrawlBot] = useState<Chatbot | null>(null);
-
-  // 2. 🛑 NEW STATE FOR STOP CONFIRMATION POPUP
   const [botIdToStop, setBotIdToStop] = useState<number | null>(null);
-
-  // NEW: State to track processing chatbots for auto-refresh
-  const [processingChatbots, setProcessingChatbots] = useState<Set<number>>(new Set());
 
   const { data, isLoading, error, refetch } = useGetChatbotQuery({
     page: currentPage,
@@ -322,86 +270,17 @@ export default function ChatbotTable() {
     window.scrollTo(0, 0);
   }, [currentPage]);
 
-  // NEW: Function to check if chatbot needs polling
-  const needsPolling = useCallback((chatbot: Chatbot) => {
-    return chatbot.progress_status === "just_created" || 
-           chatbot.progress_status === "in_progress" || 
-           chatbot.progress_status === "scraping";
-  }, []);
-
-  // NEW: Auto-refresh effect for real-time status updates
-  useEffect(() => {
-    // Find chatbots that need polling
-    const chatbotsToPoll = chatbots.filter(needsPolling);
-    
-    if (chatbotsToPoll.length === 0) {
-      setProcessingChatbots(new Set());
-      return;
-    }
-
-    // Update processing chatbots set
-    const newProcessingSet = new Set(chatbotsToPoll.map(bot => bot.id));
-    setProcessingChatbots(newProcessingSet);
-
-    // Set up polling interval
-    const pollInterval = setInterval(() => {
-      console.log("Auto-refreshing chatbot status...");
-      refetch();
-    }, 5000); // Poll every 5 seconds
-
-    // Clean up interval when component unmounts or when no chatbots need polling
-    return () => clearInterval(pollInterval);
-  }, [chatbots, refetch, needsPolling]);
-
-  // NEW: Effect to detect status changes and show notifications
-  useEffect(() => {
-    chatbots.forEach(chatbot => {
-      // If chatbot was previously processing but is now ready
-      if (processingChatbots.has(chatbot.id) && chatbot.progress_status === "ready") {
-        toast.success(`Crawling completed for ${chatbot.name}!`);
-        
-        // Remove from processing set
-        setProcessingChatbots(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(chatbot.id);
-          return newSet;
-        });
-      }
-      
-      // If chatbot was previously processing but now failed
-      if (processingChatbots.has(chatbot.id) && chatbot.progress_status === "failed") {
-        toast.error(`Crawling failed for ${chatbot.name}`);
-        
-        // Remove from processing set
-        setProcessingChatbots(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(chatbot.id);
-          return newSet;
-        });
-      }
-
-      // If chatbot just started processing
-      if (!processingChatbots.has(chatbot.id) && needsPolling(chatbot)) {
-        setProcessingChatbots(prev => {
-          const newSet = new Set(prev);
-          newSet.add(chatbot.id);
-          return newSet;
-        });
-      }
-    });
-  }, [chatbots, processingChatbots, needsPolling]);
-
-  // NEW: Handler to open the confirmation popup
+  // Handler to open the confirmation popup
   const handleOpenConfirmStop = (chatbotId: number) => {
     setBotIdToStop(chatbotId);
   };
 
-  // NEW: Handler to close the confirmation popup
+  // Handler to close the confirmation popup
   const handleCloseConfirmStop = () => {
     setBotIdToStop(null);
   };
 
-  // 4. 🛑 NEW: Confirmation handler to perform the API call
+  // Confirmation handler to perform the API call
   const handleConfirmStop = async () => {
     if (!botIdToStop) return;
 
@@ -409,8 +288,10 @@ export default function ChatbotTable() {
       await stopCrawling(botIdToStop);
       toast.success("Crawling stop request sent successfully");
       
-      // Immediately refetch to get updated status
-      refetch();
+      // Manual refetch only when user explicitly stops crawling
+      setTimeout(() => {
+        refetch();
+      }, 2000);
     } catch (error) {
       let errorMessage = "An unknown error occurred.";
 
@@ -431,15 +312,12 @@ export default function ChatbotTable() {
     }
   };
 
-  // FIX: Relying on RTK Query's definition in chatbot.ts to update the cache
   const handleDelete = async (chatbotId: number) => {
     try {
-      // The deletion and cache update logic is now inside the RTK Query file
       await deleteChatbot(chatbotId).unwrap();
       toast.success("Chatbot deleted successfully");
     } catch (err) {
       toast.error("Failed to delete chatbot");
-      // Logging the error is helpful for debugging the API response
       console.error("Chatbot delete failed:", err);
     }
   };
@@ -454,9 +332,24 @@ export default function ChatbotTable() {
     if (botToRecrawl) setRecrawlBot(botToRecrawl);
   };
 
+  // SIMPLIFIED: UploadUrlPdf component without automatic status checking
+  const SimpleUploadUrlPdf = ({ chatbotId, status, client_email }: { 
+    chatbotId: number; 
+    status: string; 
+    client_email: string;
+  }) => {
+    return (
+      <UploadUrlPdf
+        chatbotId={chatbotId}
+        status={status}
+        client_email={client_email}
+        onStatusChange={refetch} // Only refetch when status actually changes
+      />
+    );
+  };
+
   // Helper function to render the table row
   const renderChatbotRow = (bot: Chatbot, idx: number) => {
-    console.log("Rendering chatbot row:", bot);
     const status = bot.progress_status;
     const isCrawling = status === "in_progress";
 
@@ -464,28 +357,18 @@ export default function ChatbotTable() {
       <TableRow
         key={idx}
         onClick={() => {
-          // If 'ready', navigate to chat details
           if (status === "ready") {
-            router.push(
-              `/dashboard/chatbot-management/chat-details/${bot.id}`
-            );
+            router.push(`/dashboard/chatbot-management/chat-details/${bot.id}`);
             return;
           }
 
-          // FIX: If 'just_created' or 'in_progress', do nothing
-          if (
-            status === "just_created" ||
-            status === "in_progress"
-          ) {
-            return; // Stop execution, no action taken on click.
+          if (status === "just_created" || status === "in_progress") {
+            return;
           }
 
-          // For any other status (e.g., 'failed'), show the status dialog
           setSelectedBotId(bot.id);
         }}
-        // Apply different cursor based on status
-        className={`transition-colors duration-150 ${isCrawling ? 'cursor-default' : 'cursor-pointer hover:bg-gray-50'
-          }`}
+        className={`transition-colors duration-150 ${isCrawling ? 'cursor-default' : 'cursor-pointer hover:bg-gray-50'}`}
       >
         <TableCell className="px-4 py-3">
           <div className="flex flex-col">
@@ -501,7 +384,6 @@ export default function ChatbotTable() {
         </TableCell>
 
         <TableCell className="px-4 py-3">
-          {/* FIX: Wrap only the status badge in Tooltip for crawling state */}
           {isCrawling ? (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -535,15 +417,12 @@ export default function ChatbotTable() {
         </TableCell>
 
         <TableCell className="px-4 py-3 hidden md:table-cell">
-          {/* ADDED: Tooltip for Edit icon */}
           <Tooltip>
             <TooltipTrigger asChild>
               <SquarePen
                 onClick={(e) => {
                   e.stopPropagation();
-                  router.push(
-                    `/dashboard/chatbot-management/update-chatbot/${bot.id}`
-                  );
+                  router.push(`/dashboard/chatbot-management/update-chatbot/${bot.id}`);
                 }}
                 className="cursor-pointer text-blue-600 hover:text-blue-500 transition"
               />
@@ -576,20 +455,17 @@ export default function ChatbotTable() {
             className="flex justify-end items-center gap-2"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* UPDATED: Stop Crawling Button to use the new handler */}
             <StopCrawlingButton
               chatbotId={bot.id}
               status={bot.progress_status}
-              onOpenConfirmStop={handleOpenConfirmStop} // Pass the new handler
+              onOpenConfirmStop={handleOpenConfirmStop}
             />
             <Tooltip>
               <TooltipTrigger asChild>
-                {/* UPDATED: Pass refetch as onStatusChange callback */}
-                <UploadUrlPdf
+                <SimpleUploadUrlPdf
                   chatbotId={bot.id}
                   status={bot.progress_status}
                   client_email={bot.client_email}
-                  onStatusChange={refetch} // NEW: Auto-refresh when status changes
                 />
               </TooltipTrigger>
               <TooltipContent>
@@ -612,7 +488,6 @@ export default function ChatbotTable() {
               </Tooltip>
             )}
 
-            {/* Recrawl is now only available inside the ActionsDropdown */}
             <ActionsDropdown
               chatbotId={bot.id}
               onRecrawl={handleRecrawl}
@@ -661,10 +536,7 @@ export default function ChatbotTable() {
           <TableBody>
             {isLoading && (
               <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="text-center py-6 text-gray-500"
-                >
+                <TableCell colSpan={8} className="text-center py-6 text-gray-500">
                   Loading...
                 </TableCell>
               </TableRow>
@@ -672,10 +544,7 @@ export default function ChatbotTable() {
 
             {error && (
               <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="text-center py-6 text-red-500"
-                >
+                <TableCell colSpan={8} className="text-center py-6 text-red-500">
                   Failed to load chatbots.
                 </TableCell>
               </TableRow>
@@ -697,10 +566,7 @@ export default function ChatbotTable() {
               </TableRow>
             )}
 
-            {chatbots.map((bot: Chatbot, idx: number) => (
-              // Replaced the original mapped row with the new render function
-              renderChatbotRow(bot, idx)
-            ))}
+            {chatbots.map((bot: Chatbot, idx: number) => renderChatbotRow(bot, idx))}
           </TableBody>
         </Table>
       </div>
@@ -720,9 +586,7 @@ export default function ChatbotTable() {
                   e.preventDefault();
                   if (currentPage > 1) setCurrentPage((p) => p - 1);
                 }}
-                className={
-                  currentPage === 1 ? "pointer-events-none opacity-50" : ""
-                }
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
               />
             </PaginationItem>
             {Array.from({ length: totalPages }, (_, i) => (
@@ -746,11 +610,7 @@ export default function ChatbotTable() {
                   e.preventDefault();
                   if (currentPage < totalPages) setCurrentPage((p) => p + 1);
                 }}
-                className={
-                  currentPage === totalPages
-                    ? "pointer-events-none opacity-50"
-                    : ""
-                }
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
               />
             </PaginationItem>
           </PaginationContent>
@@ -777,22 +637,19 @@ export default function ChatbotTable() {
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>
-              Start again Website Crawling & Upload Files
-            </DialogTitle>
+            <DialogTitle>Start again Website Crawling & Upload Files</DialogTitle>
           </DialogHeader>
           {recrawlBot && (
-            <UploadUrlPdf
+            <SimpleUploadUrlPdf
               chatbotId={recrawlBot.id}
               status={recrawlBot.progress_status}
               client_email={recrawlBot.client_email}
-              onStatusChange={refetch} // NEW: Auto-refresh when status changes
             />
           )}
         </DialogContent>
       </Dialog>
 
-      {/* 5. RENDER THE CONFIRMATION POPUP */}
+      {/* Confirmation Popup */}
       <ConfirmStopPopup
         open={!!botIdToStop}
         onClose={handleCloseConfirmStop}
