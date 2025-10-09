@@ -43,12 +43,6 @@ const StopSvgIcon = ({ className }: { className?: string }) => (
 //  STOP CRAWLING LOGIC (Retained for completeness)
 // =========================================================================
 
-// Placeholder for external data refetch (Simulates updating the chatbot status)
-const refetch = () => {
-  console.log("Simulating refetch to update external chatbot status...");
-  // In a real app, this would be a call to invalidate/refetch query data.
-};
-
 const stopCrawling = async (chatbotId: number): Promise<void> => {
   // Retrieve authentication data from localStorage
   const token = localStorage.getItem("token");
@@ -234,10 +228,12 @@ const UploadUrlWithPDF = ({
   chatbotId,
   status, // The external chatbot status (e.g., 'in_progress', 'ready')
   client_email,
+  onStatusChange, // NEW: Add callback for status updates
 }: {
   chatbotId: number;
   status: string;
   client_email: string;
+  onStatusChange?: () => void; // NEW: Callback when status changes
 }) => {
   const [url, setUrl] = useState("");
   const [agreed, setAgreed] = useState(false);
@@ -246,6 +242,8 @@ const UploadUrlWithPDF = ({
   const [files, setFiles] = useState<File[]>([]);
 
   const [uploadUrl, { isLoading }] = useUploadUrlMutation();
+
+  console.log("uploadingURL: ", uploadUrl)
   const [uploadRequirement, { isLoading: isUploadingPDF }] =
     useUploadRequirementMutation();
 
@@ -367,8 +365,8 @@ const UploadUrlWithPDF = ({
     // Also reset auto-populate flag
     setShouldAutoPopulateUrl(false);
 
-    // 2. Simulate refetch to update the parent component's status
-    refetch();
+    // 2. Trigger status update
+    onStatusChange?.();
   };
 
   // 🛑 NEW: Function to stop local processes
@@ -411,7 +409,7 @@ const UploadUrlWithPDF = ({
     }
   };
 
-  // Original upload flow (URL required, PDFs optional) - Re-implemented handleUpload
+  // MODIFIED: Original upload flow with auto-status update
   const handleUpload = async () => {
     if (!url || !agreed) return;
     try {
@@ -425,6 +423,10 @@ const UploadUrlWithPDF = ({
       }
 
       toast.success("Crawling started successfully!");
+      
+      // NEW: Trigger status update to refresh parent component
+      onStatusChange?.();
+      
       setUrl("");
       setAgreed(false);
       setFiles([]);
@@ -554,7 +556,7 @@ const UploadUrlWithPDF = ({
     }
   };
 
-  // Scrape selected pages API - Re-implemented handleScrapeSelected
+  // MODIFIED: Scrape selected pages API with auto-status update
   const handleScrapeSelected = async () => {
     if (selectedPages.length === 0) return toast.error("Select at least one page");
 
@@ -610,6 +612,9 @@ const UploadUrlWithPDF = ({
       }
 
       toast.success(`Crawling started for ${selectedPages.length} pages!`);
+
+      // NEW: Trigger status update to refresh parent component
+      onStatusChange?.();
 
       setUrl("");
       setAgreed(false);
@@ -967,6 +972,7 @@ const UploadUrlWithPDF = ({
         </DialogContent>
       </Dialog>
     </TooltipProvider>
+
   );
 };
 
