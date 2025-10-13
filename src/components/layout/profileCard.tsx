@@ -43,52 +43,51 @@ interface ProfileCardProps {
   onClose?: () => void
 }
 
-// API base URL for password change
-const API_BASE_URL_PASSWORD = "https://api.chatsupplies.com/clients/change-password";
-// API URL for profile update - MODIFIED TO REQUESTED ENDPOINT
-const API_BASE_URL_PROFILE = "https://api.chatsupplies.com/clients/";
+// API base URL
+const API_BASE_URL = "https://api.chatsupplies.com";
 
 // Fixed API service functions with proper error handling and method fallback
 const apiService = {
   async updatePassword(currentPassword: string, newPassword: string) {
     // Try to get auth token from various possible locations
-    const token = localStorage.getItem("auth_token") ||
-      localStorage.getItem("token") ||
-      sessionStorage.getItem("auth_token");
-
+    const token = localStorage.getItem("auth_token") || 
+                  localStorage.getItem("token") || 
+                  sessionStorage.getItem("auth_token");
+    
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
-
+    
     // Add authorization header if token exists
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    let response = await fetch(API_BASE_URL_PASSWORD, {
-      method: 'PUT',
+    // Try POST first (most common), fallback to PUT if needed
+    let response = await fetch(`${API_BASE_URL}/clients/update-password`, {
+      method: 'POST',
       headers,
       body: JSON.stringify({
-        old_password: currentPassword,
+        current_password: currentPassword,
         new_password: newPassword
       }),
     });
 
-    // If PUT fails with Method Not Allowed, try POST
+    // If POST fails with Method Not Allowed, try PUT
     if (response.status === 405) {
-      response = await fetch(API_BASE_URL_PASSWORD, {
-        method: 'POST',
+      response = await fetch(`${API_BASE_URL}/clients/update-password`, {
+        method: 'PUT',
         headers,
         body: JSON.stringify({
-          old_password: currentPassword,
+          current_password: currentPassword,
           new_password: newPassword
         }),
       });
     }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        detail: `HTTP ${response.status}: ${response.statusText}`
+      const errorData = await response.json().catch(() => ({ 
+        detail: `HTTP ${response.status}: ${response.statusText}` 
       }));
       throw new Error(errorData.detail || 'Failed to update password');
     }
@@ -96,41 +95,43 @@ const apiService = {
     return response.json();
   },
 
-  // FIXED: Proper updateProfile function without mocked errors
   async updateProfile(name: string, phoneNumber?: string) {
-    const token = localStorage.getItem("auth_token") ||
-      localStorage.getItem("token") ||
-      sessionStorage.getItem("auth_token");
-
+    const token = localStorage.getItem("auth_token") || 
+                  localStorage.getItem("token") || 
+                  sessionStorage.getItem("auth_token");
+    
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
-
+    
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    // Use the requested API endpoint structure: /clients/{user_id}
-    // Note: You may need to dynamically get the user ID from your auth system
-    const USER_ID = "123"; // This should come from your authentication context
-    const PROFILE_UPDATE_URL = `${API_BASE_URL_PROFILE}${USER_ID}`;
-
-    // Prepare body: only include name and phone_number (not email)
-    const requestBody: { name: string; phone_number?: string } = { name };
-    if (phoneNumber !== undefined && phoneNumber !== "") {
-      requestBody.phone_number = phoneNumber;
-    }
-
-    // Use PUT method as requested
-    const response = await fetch(PROFILE_UPDATE_URL, {
-      method: 'PUT',
+    let response = await fetch(`${API_BASE_URL}/clients/update-profile`, {
+      method: 'POST',
       headers,
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        name,
+        phone_number: phoneNumber
+      }),
     });
 
+    // If POST fails with Method Not Allowed, try PUT
+    if (response.status === 405) {
+      response = await fetch(`${API_BASE_URL}/clients/update-profile`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          name,
+          phone_number: phoneNumber
+        }),
+      });
+    }
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        detail: `HTTP ${response.status}: ${response.statusText}`
+      const errorData = await response.json().catch(() => ({ 
+        detail: `HTTP ${response.status}: ${response.statusText}` 
       }));
       throw new Error(errorData.detail || 'Failed to update profile');
     }
@@ -140,10 +141,8 @@ const apiService = {
 
   // Add forgot password functionality
   async forgotPassword(email: string) {
-    const FORGOT_PASSWORD_URL = "https://api.chatsupplies.com/clients/forgot-password";
-
-    const response = await fetch(FORGOT_PASSWORD_URL, {
-      method: 'PUT',
+    const response = await fetch(`${API_BASE_URL}/clients/forgot-password`, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -153,8 +152,8 @@ const apiService = {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        detail: `HTTP ${response.status}: ${response.statusText}`
+      const errorData = await response.json().catch(() => ({ 
+        detail: `HTTP ${response.status}: ${response.statusText}` 
       }));
       throw new Error(errorData.detail || 'Failed to send reset password email');
     }
@@ -171,11 +170,11 @@ interface UpdatePasswordFormProps {
   email: string; // Add email prop for forgot password
 }
 
-const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
-  handleClose,
-  isLoading,
+const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({ 
+  handleClose, 
+  isLoading, 
   setIsLoading,
-  email
+  email 
 }) => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [password, setPassword] = useState("");
@@ -202,7 +201,7 @@ const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
   const handleForgotPassword = async () => {
     setForgotPasswordLoading(true);
     setError(null);
-
+    
     try {
       await apiService.forgotPassword(email);
       setSuccess("Password reset email sent! Please check your inbox.");
@@ -218,23 +217,23 @@ const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
     e.preventDefault();
     setError(null);
     setSuccess(null);
-
+    
     // Validation
     if (!currentPassword) {
       setError("Current password is required.");
       return;
     }
-
+    
     if (!password) {
       setError("New password cannot be empty.");
       return;
     }
-
-    if (password.length < 8) {
-      setError("New password must be at least 8 characters long.");
+    
+    if (password.length < 6) {
+      setError("New password must be at least 6 characters long.");
       return;
     }
-
+    
     if (password !== confirmPassword) {
       setError("New passwords do not match.");
       return;
@@ -245,19 +244,19 @@ const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
     try {
       // API call to update password
       await apiService.updatePassword(currentPassword, password);
-
+      
       setSuccess("Password updated successfully!");
-
+      
       // Clear form and close after success
       setCurrentPassword("");
       setPassword("");
       setConfirmPassword("");
-
+      
       // Close modal after a short delay to show success message
       setTimeout(() => {
         handleClose();
       }, 1500);
-
+      
     } catch (error) {
       console.error("Error updating password:", error);
       setError(error instanceof Error ? error.message : "Failed to update password. Please check your current password and try again.");
@@ -372,7 +371,7 @@ const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
               {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
             </button>
           </div>
-
+          
           {/* Forgot Password Link - Added on the left side */}
           <div className="flex justify-start mt-2">
             <button
@@ -391,18 +390,18 @@ const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
                 </>
               ) : (
                 <>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="w-4 h-4" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
                     stroke="currentColor"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
                     />
                   </svg>
                   Forgot Password?
@@ -415,7 +414,7 @@ const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
         {error && (
           <p className="text-sm text-red-500">{error}</p>
         )}
-
+        
         {success && (
           <p className="text-sm text-green-500">{success}</p>
         )}
@@ -452,7 +451,7 @@ const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
   );
 };
 
-// --- MODIFIED COMPONENT: ManageChatsForm ---
+// --- MODIFIED COMPONENT: ManageChatsForm (unchanged) ---
 interface ManageChatsFormProps {
   handleClose: () => void;
   isLoading: boolean;
@@ -461,6 +460,7 @@ interface ManageChatsFormProps {
 }
 
 const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoading, setIsLoading, name }) => {
+  // ... (ManageChatsForm implementation remains exactly the same) ...
   const [form, setForm] = useState({
     name: name,
     phone_number: "" as string | undefined,
@@ -505,24 +505,21 @@ const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoadin
     setIsLoading(true);
 
     try {
-      // API call to update profile - ONLY name and phone_number (no email)
-      const responseData = await apiService.updateProfile(form.name.trim(), form.phone_number);
-
-      // ✅ LOG THE BACKEND RESPONSE
-      console.log("Profile Update Backend Response:", responseData);
-
+      // API call to update profile
+      await apiService.updateProfile(form.name.trim(), form.phone_number);
+      
       // Update name in localStorage (preserving existing behavior)
       if (form.name.trim()) {
         localStorage.setItem("username", form.name.trim());
       }
 
       setSuccess("Profile updated successfully!");
-
+      
       // Close modal after a short delay to show success message
       setTimeout(() => {
         handleClose();
       }, 1500);
-
+      
     } catch (error) {
       console.error("Error updating profile:", error);
       setError(error instanceof Error ? error.message : "Failed to update profile. Please try again.");
@@ -592,7 +589,7 @@ const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoadin
         {error && (
           <p className="text-sm text-red-500">{error}</p>
         )}
-
+        
         {success && (
           <p className="text-sm text-green-500">{success}</p>
         )}
@@ -754,7 +751,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ email, name, onClose }) => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <path d="M9 21H5a2 2 2 0 1 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                 <polyline points="16 17 21 12 16 7" />
                 <line x1="21" y1="12" x2="9" y2="12" />
               </svg>
