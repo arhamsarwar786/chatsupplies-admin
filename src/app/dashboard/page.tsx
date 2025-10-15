@@ -25,10 +25,37 @@ export default function DashboardPage() {
   }, [token, router])
 
   useEffect(() => {
-    const name = localStorage.getItem("username") || ""
-    const part = name.includes("@") ? name.split("@")[0] : name
-    setNamePart(part)
+    reloadData();
   }, [])
+
+ const reloadData = () => {
+  console.log("Reloading user data from localStorage...");
+  try {
+    const userString = localStorage.getItem("userObject");
+    if (!userString) {
+      console.log("No userObject found in localStorage.");
+      return;
+    }
+
+    const user = JSON.parse(userString);
+    console.log("User Object:", user);
+
+    const fullName =
+      (user?.first_name ? user.first_name + " " : "") + (user?.username || "");
+    setNamePart(fullName.trim());
+  } catch (error) {
+    console.error("Failed to parse userObject:", error);
+  }
+};
+
+
+  useEffect(() => {
+  const handleFocus = () => {
+    reloadData();
+  };
+  window.addEventListener("focus", handleFocus);
+  return () => window.removeEventListener("focus", handleFocus);
+}, []);
 
   return (
    
