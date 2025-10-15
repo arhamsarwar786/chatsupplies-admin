@@ -28,36 +28,10 @@ import {
 } from "@/src/hooks/usePackages";
 import EditPackages from "@/src/components/packages/update-packages";
 
-interface Package {
-  id: number;
-  name: string;
-  description: string[]; // always an array after transform
-  price: number;
-  currency: string;
-  is_active: boolean;
-  duration_days: number;
-  is_recurring: boolean;
-  billing_cycle: string;
-  created_at: string;
-  isPopular?: boolean;
-  perUser?: boolean;
-}
-
-interface PurchasePackageResponse {
-  clientSecret: string;
-  payment: {
-    id: number;
-    user_id: number;
-    package_id: number;
-    amount: number;
-    currency: string;
-    stripe_payment_intent: string;
-    status: string;
-    created_at: string;
-  };
-}
-
 const Page: React.FC = () => {
+  // 🧩 Prevent SSR hydration mismatch
+  if (typeof window === "undefined") return null;
+
   const [openDialogId, setOpenDialogId] = useState<number | null>(null);
   const role = useSelector((state: RootState) => state.authSlice.role);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -69,14 +43,27 @@ const Page: React.FC = () => {
   const { data, isLoading, error } = useGetPackagesQuery(undefined, {
     selectFromResult: ({ data, ...rest }) => ({
       ...rest,
-      data: data?.map((pkg: Package) => ({
+      data: data?.map((pkg) => ({
         ...pkg,
         description: Array.isArray(pkg.description)
-          ? pkg.description
+          ? pkg.description.map((d) =>
+              String(d)
+                .replace(/[\[\]{}"\\]/g, "")
+                .trim()
+            )
           : typeof pkg.description === "string"
-            ? pkg.description.replace(/^"|"$/g, "").split(",").map(s => s.trim())
-            : [],
-      })) as Package[],
+          ? pkg.description
+              .replace(/^[{\[\"]+|[}\]\"]+$/g, "")
+              .replace(/\\+/g, "")
+              .split(",")
+              .map((s) =>
+                s
+                  .replace(/[\[\]{}"\\]/g, "")
+                  .trim()
+              )
+              .filter((s) => s.length > 0)
+          : [],
+      })),
     }),
   });
 
@@ -219,9 +206,18 @@ const Page: React.FC = () => {
                     {pkg.description.map((line, i) => (
                       <li key={i} className="flex items-start">
                         <Check className="w-5 h-5 text-green-500 mr-2" />
-                        <span className="text-gray-700">
-                          {line.replace(/[\[\]{}"\\]/g, "").trim()}
+                        <span className="text-gray-700 whitespace-pre-line">
+                          {line
+                            .replace(/[\[\]{}"\\]/g, "")
+                            .split("|")
+                            .map((part, idx) => (
+                              <React.Fragment key={idx}>
+                                {part.trim()}
+                                {idx !== line.split("|").length - 1 && "\n"}
+                              </React.Fragment>
+                            ))}
                         </span>
+
 
                       </li>
                     ))}
