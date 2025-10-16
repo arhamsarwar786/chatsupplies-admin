@@ -11,7 +11,6 @@ import { RootState } from "@/src/store/store"
 import Image from "next/image"
 import Link from "next/link"
 
-// ✅ Added props definition (even if not used now)
 interface AppSidebarProps {
   isSidebarOpen?: boolean
   toggleSidebar?: () => void
@@ -19,18 +18,18 @@ interface AppSidebarProps {
 
 export function AppSidebar({ isSidebarOpen, toggleSidebar }: AppSidebarProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null)
-
-  // ✅ initialize collapsed directly from localStorage (lazy init)
-  const [collapsed, setCollapsed] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("sidebar-collapsed")
-      return saved === "true"
-    }
-    return false
-  })
+  const [collapsed, setCollapsed] = useState<boolean>(false) // ✅ Start with false
 
   const pathname = usePathname()
   const role = useSelector((state: RootState) => state.authSlice.role)
+
+  // ✅ Initialize collapsed state from localStorage on client only
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebar-collapsed")
+    if (saved) {
+      setCollapsed(saved === "true")
+    }
+  }, [])
 
   // ✅ Listen for toggle events from header
   useEffect(() => {
@@ -44,7 +43,7 @@ export function AppSidebar({ isSidebarOpen, toggleSidebar }: AppSidebarProps) {
     }
   }, [])
 
-  // ✅ keep collapsed state in sync with localStorage
+  // ✅ Keep collapsed state in sync with localStorage
   useEffect(() => {
     localStorage.setItem("sidebar-collapsed", String(collapsed))
   }, [collapsed])

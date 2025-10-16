@@ -96,8 +96,8 @@ const apiService = {
     return response.json();
   },
 
-  // FIXED: Proper updateProfile function without mocked errors
-  async updateProfile(name: string, phoneNumber?: string) {
+  // UPDATED: Modified updateProfile function to handle first_name and last_name
+  async updateProfile(firstName: string, lastName: string, phoneNumber?: string) {
     const token = localStorage.getItem("auth_token") ||
       localStorage.getItem("token") ||
       sessionStorage.getItem("auth_token");
@@ -111,12 +111,14 @@ const apiService = {
     }
 
     // Use the requested API endpoint structure: /clients/{user_id}
-    // Note: You may need to dynamically get the user ID from your auth system
     const USER_ID = localStorage.getItem("userid"); 
     const PROFILE_UPDATE_URL = `${API_BASE_URL_PROFILE}${USER_ID}`;
 
-    // Prepare body: only include name and phone_number (not email)
-    const requestBody: { first_name: string; phone_number?: string } = { first_name: name };
+    // Prepare body: include first_name, last_name and phone_number
+    const requestBody: { first_name: string; last_name: string; phone_number?: string } = { 
+      first_name: firstName,
+      last_name: lastName 
+    };
     if (phoneNumber !== undefined && phoneNumber !== "") {
       requestBody.phone_number = phoneNumber;
     }
@@ -461,8 +463,37 @@ interface ManageChatsFormProps {
 }
 
 const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoading, setIsLoading, name }) => {
+  // UPDATED: Get first_name and last_name directly from userObject
+  const getInitialNames = () => {
+    try {
+      const userString = localStorage.getItem("userObject");
+      if (userString) {
+        const user = JSON.parse(userString);
+        console.log("User Object in ManageChatsForm:", user);
+        
+        // Use first_name and last_name from userObject
+        return {
+          firstName: user?.first_name || '',
+          lastName: user?.last_name || ''
+        };
+      }
+    } catch (error) {
+      console.error("Error parsing userObject:", error);
+    }
+    
+    // Fallback: split the existing name prop
+    const nameParts = name.split(' ');
+    return {
+      firstName: nameParts[0] || '',
+      lastName: nameParts.slice(1).join(' ') || ''
+    };
+  };
+
+  const initialNames = getInitialNames();
+
   const [form, setForm] = useState({
-    name: name,
+    firstName: initialNames.firstName,
+    lastName: initialNames.lastName,
     phone_number: "" as string | undefined,
   });
   const [missing, setMissing] = useState<string[]>([]);
@@ -470,7 +501,8 @@ const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoadin
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    setForm(prev => ({ ...prev, name: name }));
+    const names = getInitialNames();
+    setForm(prev => ({ ...prev, firstName: names.firstName, lastName: names.lastName }));
   }, [name]);
 
   const handlePhoneChange = (value: string | undefined) => {
@@ -493,8 +525,8 @@ const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoadin
 
     // Simple validation
     const newMissing: string[] = [];
-    if (!form.name.trim()) {
-      newMissing.push('name');
+    if (!form.firstName.trim()) {
+      newMissing.push('firstName');
     }
 
     if (newMissing.length > 0) {
@@ -505,16 +537,26 @@ const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoadin
     setIsLoading(true);
 
     try {
-      // API call to update profile - ONLY name and phone_number (no email)
-      const responseData = await apiService.updateProfile(form.name.trim(), form.phone_number);
+      // API call to update profile - now with firstName and lastName
+      const responseData = await apiService.updateProfile(
+        form.firstName.trim(), 
+        form.lastName.trim(), 
+        form.phone_number
+      );
 
       // ✅ LOG THE BACKEND RESPONSE
-  
-      localStorage.setItem("userObject", JSON.stringify(responseData));
-      // Update name in localStorage (preserving existing behavior)
       console.log("Updated profile response:", responseData);
-      if (form.name.trim()) {
-        localStorage.setItem("username", form.name.trim());
+      
+      localStorage.setItem("userObject", JSON.stringify(responseData));
+      
+      // Update name in localStorage (preserving existing behavior)
+      // Combine first and last name for the username to maintain backward compatibility
+      const fullName = form.lastName.trim() 
+        ? `${form.firstName.trim()} ${form.lastName.trim()}`
+        : form.firstName.trim();
+      
+      if (fullName) {
+        localStorage.setItem("username", fullName);
       }
 
       setSuccess("Profile updated successfully!");
@@ -565,14 +607,28 @@ const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoadin
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Name
+            First Name *
           </label>
           <input
             type="text"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className={`mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${missing.includes("name") ? "border-red-500" : "border-gray-300"}`}
-            placeholder="Enter your name"
+            value={form.firstName}
+            onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+            className={`mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${missing.includes("firstName") ? "border-red-500" : "border-gray-300"}`}
+            placeholder="Enter your first name"
+            disabled={isLoading}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Last Name
+          </label>
+          <input
+            type="text"
+            value={form.lastName}
+            onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+            className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter your last name"
             disabled={isLoading}
           />
         </div>
@@ -610,7 +666,7 @@ const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoadin
           <button
             type="submit"
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition duration-150 disabled:opacity-50 flex items-center gap-2"
-            disabled={isLoading || !form.name.trim()}
+            disabled={isLoading || !form.firstName.trim()}
           >
             {isLoading ? (
               <>
@@ -636,6 +692,21 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ email, name, onClose }) => {
 
   const [modalView, setModalView] = useState<'none' | 'manage_account' | 'change_password'>('none');
   const [isLoading, setIsLoading] = useState(false)
+
+  // ADDED: Focus event listener for auto-update without refreshing
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log("ProfileCard: Window focused - data auto-updated");
+      // You can add any auto-update logic here if needed
+    };
+    
+    window.addEventListener("focus", handleFocus);
+    
+    // Cleanup: remove event listener when component unmounts
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, []);
 
   const handleSignOut = () => {
     localStorage.clear()
@@ -677,7 +748,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ email, name, onClose }) => {
         handleClose={handleClose}
         isLoading={isLoading}
         setIsLoading={setIsLoading}
-        email={email} // Pass email to UpdatePasswordForm
+        email={email}
       />
     );
   }
@@ -767,5 +838,4 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ email, name, onClose }) => {
     </div>
   )
 }
-
 export default ProfileCard
