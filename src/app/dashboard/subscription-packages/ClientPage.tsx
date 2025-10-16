@@ -40,32 +40,39 @@ const Page: React.FC = () => {
   const [purchasePackage] = usePurchasePackageMutation();
   const [deletePackage] = useDeletePackagesByIdMutation();
 
-  const { data, isLoading, error } = useGetPackagesQuery(undefined, {
-    selectFromResult: ({ data, ...rest }) => ({
-      ...rest,
-      data: data?.map((pkg) => ({
+  // ✅ Simplified: Remove complex transformation that might be breaking the data
+  const { data: packagesData, isLoading, error } = useGetPackagesQuery();
+
+  // ✅ Transform data safely
+  const displayPackages = React.useMemo(() => {
+    if (!packagesData) {
+      console.log("No packages data available");
+      return [];
+    }
+
+    console.log("Raw packages data:", packagesData);
+    
+    const transformed = packagesData.map((pkg) => {
+      let descriptionArray: string[] = [];
+      
+      // Handle description transformation safely
+      if (Array.isArray(pkg.description)) {
+        descriptionArray = pkg.description.map(d => String(d).trim());
+      } else if (typeof pkg.description === 'string') {
+        // Handle pipe-separated descriptions like "Limited Form|5 Form"
+        descriptionArray = pkg.description.split('|').map(item => item.trim());
+      }
+      
+      return {
         ...pkg,
-        description: Array.isArray(pkg.description)
-          ? pkg.description.map((d) =>
-              String(d)
-                .replace(/[\[\]{}"\\]/g, "")
-                .trim()
-            )
-          : typeof pkg.description === "string"
-          ? pkg.description
-              .replace(/^[{\[\"]+|[}\]\"]+$/g, "")
-              .replace(/\\+/g, "")
-              .split(",")
-              .map((s) =>
-                s
-                  .replace(/[\[\]{}"\\]/g, "")
-                  .trim()
-              )
-              .filter((s) => s.length > 0)
-          : [],
-      })),
-    }),
-  });
+        description: descriptionArray,
+        isPopular: pkg.isPopular || false
+      };
+    });
+    
+    console.log("Transformed packages:", transformed);
+    return transformed;
+  }, [packagesData]);
 
   const handleDelete = async (id: number) => {
     try {
@@ -79,10 +86,10 @@ const Page: React.FC = () => {
 
   const handlePurchase = async (packageId: number) => {
     try {
-      const res = (await purchasePackage({ packageId }).unwrap()) as PurchasePackageResponse;
+      const res = await purchasePackage({ packageId }).unwrap();
       if (res.clientSecret) {
         setClientSecret(res.clientSecret);
-        setShowPaymentDialog(true); // <-- open modal
+        setShowPaymentDialog(true);
       } else {
         toast.error("Client secret not returned.");
       }
@@ -92,6 +99,8 @@ const Page: React.FC = () => {
     }
   };
 
+  // ✅ Debug: Check what's actually rendering
+  console.log("Rendering - isLoading:", isLoading, "error:", error, "packages:", displayPackages);
 
   return (
     <>
@@ -122,17 +131,26 @@ const Page: React.FC = () => {
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-lg max-w-2xl mx-auto text-center">
               Failed to load plans. Please try again later.
+              <div className="text-xs mt-2">{JSON.stringify(error)}</div>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {data?.map(pkg => (
+          {/* ✅ Debug info */}
+          {!isLoading && !error && (
+            <div className="text-center text-sm text-gray-500">
+              Found {displayPackages.length} package(s)
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {displayPackages?.map(pkg => (
               <div
                 key={pkg.id}
-                className={`relative p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${pkg.isPopular
-                  ? "border-2 border-primary shadow-xl bg-gradient-to-b from-primary/5 to-white"
-                  : "border border-gray-200 shadow-md bg-white"
-                  }`}
+                className={`relative p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${
+                  pkg.isPopular
+                    ? "border-2 border-primary shadow-xl bg-gradient-to-b from-primary/5 to-white"
+                    : "border border-gray-200 shadow-md bg-white"
+                }`}
               >
                 {pkg.isPopular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1 rounded-full flex items-center">
@@ -183,42 +201,36 @@ const Page: React.FC = () => {
                   )}
                 </div>
 
-                <div className="mb-6">
-                  <div className="flex items-end">
-                    <span className="text-4xl font-bold">${pkg.price}</span>
-                    <span className="text-lg text-gray-500 ml-1">/{pkg.billing_cycle}</span>
+                {/* Pricing Section */}
+                <div className="mb-6 text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-end justify-center">
+                    <span className="text-3xl font-bold">${pkg.price}</span>
+                    <span className="text-lg text-gray-500 ml-1">
+                      {pkg.billing_cycle === 'yearly' ? '/year' : '/month'}
+                    </span>
                   </div>
                   <span className="text-sm text-gray-500">{pkg.duration_days} days</span>
+                  {role !== "super_admin" && (
+                    <Button
+                      className="bg-primary hover:bg-primary/80 w-full mt-2"
+                      onClick={() => handlePurchase(pkg.id)}
+                    >
+                      Purchase {pkg.billing_cycle === 'yearly' ? 'Yearly' : 'Monthly'}
+                    </Button>
+                  )}
                 </div>
-                {role !== "super_admin" && (
-                  <Button
-                    className="bg-primary hover:bg-primary/80 w-full"
-                    onClick={() => handlePurchase(pkg.id)}
-                  >
-                    Purchase Package
-                  </Button>
-                )}
+
                 <div className="border-t border-gray-200 pt-4">
                   <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
                     Features
                   </h4>
                   <ul className="space-y-3">
-                    {pkg.description.map((line, i) => (
+                    {pkg.description && pkg.description.map((line, i) => (
                       <li key={i} className="flex items-start">
-                        <Check className="w-5 h-5 text-green-500 mr-2" />
-                        <span className="text-gray-700 whitespace-pre-line">
-                          {line
-                            .replace(/[\[\]{}"\\]/g, "")
-                            .split("|")
-                            .map((part, idx) => (
-                              <React.Fragment key={idx}>
-                                {part.trim()}
-                                {idx !== line.split("|").length - 1 && "\n"}
-                              </React.Fragment>
-                            ))}
+                        <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" />
+                        <span className="text-gray-700">
+                          {line}
                         </span>
-
-
                       </li>
                     ))}
                   </ul>
@@ -226,6 +238,16 @@ const Page: React.FC = () => {
               </div>
             ))}
           </div>
+
+          {!isLoading && !error && displayPackages.length === 0 && (
+            <div className="text-center py-12">
+              <div className="bg-yellow-50 border border-yellow-200 text-yellow-600 p-6 rounded-lg max-w-2xl mx-auto">
+                <h3 className="text-lg font-semibold mb-2">No Plans Available</h3>
+                <p>There are no pricing plans available at the moment.</p>
+              </div>
+            </div>
+          )}
+          
           <div className="mt-12 bg-gray-50 rounded-xl p-8 text-center">
             <Gem className="w-10 h-10 text-primary mx-auto mb-4" />
             <h3 className="text-2xl font-bold mb-3">Enterprise Solutions</h3>
@@ -245,7 +267,7 @@ const Page: React.FC = () => {
           options={{
             clientSecret,
             appearance: {
-              theme: "stripe", // or "night", "flat", etc.
+              theme: "stripe",
             },
           }}
         >

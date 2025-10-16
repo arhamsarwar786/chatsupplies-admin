@@ -38,7 +38,8 @@ interface DescriptionItem {
 const INITIAL_FORM_STATE = {
   name: "",
   description: [] as string[],
-  price: 0,
+  monthly_price: 0, // 👈 FIX: Renamed from price_monthly
+  yearly_price: 0, // 👈 FIX: Renamed from price_yearly
   currency: "usd",
   duration_days: 0,
   is_recurring: false,
@@ -189,7 +190,8 @@ const Page = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // No transformation needed - description is already array of strings
+    // The payload now correctly uses monthly_price and yearly_price
+    // which match the backend's expected names.
     const payload = { ...form };
 
     try {
@@ -312,11 +314,11 @@ const Page = () => {
                   </Select>
                 </div>
 
-                {/* Price */}
+                {/* Price - Monthly */}
                 <div className="space-y-2">
-                  <Label htmlFor="price" className="flex items-center gap-1">
+                  <Label htmlFor="monthly_price" className="flex items-center gap-1">
                     <DollarSign className="w-4 h-4" />
-                    <span>Price</span>
+                    <span>Monthly</span>
                     <span className="text-red-500">*</span>
                   </Label>
                   <div className="relative">
@@ -324,11 +326,11 @@ const Page = () => {
                       {form.currency.toUpperCase()}
                     </span>
                     <Input
-                      id="price"
+                      id="monthly_price" // 👈 FIX: Changed ID
                       type="number"
-                      value={form.price}
+                      value={form.monthly_price} // 👈 FIX: Bound to monthly_price
                       onChange={(e) =>
-                        handleChange("price", parseFloat(e.target.value))
+                        handleChange("monthly_price", parseFloat(e.target.value) || 0) // 👈 FIX: Updates monthly_price
                       }
                       placeholder="0.00"
                       className="h-11 pl-12"
@@ -338,6 +340,34 @@ const Page = () => {
                     />
                   </div>
                 </div>
+
+                {/* Price - Yearly */}
+                <div className="space-y-2">
+                  <Label htmlFor="yearly_price" className="flex items-center gap-1">
+                    <DollarSign className="w-4 h-4" />
+                    <span>Yearly</span>
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                      {form.currency.toUpperCase()}
+                    </span>
+                    <Input
+                      id="yearly_price" // 👈 FIX: Changed ID
+                      type="number"
+                      value={form.yearly_price} // 👈 FIX: Bound to yearly_price
+                      onChange={(e) =>
+                        handleChange("yearly_price", parseFloat(e.target.value) || 0) // 👈 FIX: Updates yearly_price
+                      }
+                      placeholder="0.00"
+                      className="h-11 pl-12"
+                      min="0"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                </div>
+
 
                 {/* Duration */}
                 <div className="space-y-2">
@@ -359,48 +389,6 @@ const Page = () => {
                     required
                   />
                 </div>
-
-                {/* Recurring Subscription */}
-                <div className="space-y-2">
-                  <Label htmlFor="is_recurring" className="flex items-center gap-1">
-                    <RefreshCw className="w-4 h-4" />
-                    <span>Recurring Subscription</span>
-                  </Label>
-                  <div className="flex items-center justify-between p-3 border rounded-lg h-11">
-                    <span className="text-sm text-muted-foreground">
-                      {form.is_recurring ? "Enabled" : "Disabled"}
-                    </span>
-                    <Switch
-                      id="is_recurring"
-                      checked={form.is_recurring}
-                      onCheckedChange={(value: any) =>
-                        handleChange("is_recurring", value)
-                      }
-                    />
-                  </div>
-                </div>
-
-                {/* Billing Cycle */}
-                {form.is_recurring && (
-                  <div className="space-y-2">
-                    <Label htmlFor="billing_cycle">Billing Cycle</Label>
-                    <Select
-                      value={form.billing_cycle}
-                      onValueChange={(value: any) =>
-                        handleChange("billing_cycle", value)
-                      }
-                    >
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="Select billing cycle" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="quarterly">Quarterly (3 months)</SelectItem>
-                        <SelectItem value="yearly">Yearly (12 months)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
               </div>
 
               {/* Description - UPDATED: Show Title and Value on Separate Lines */}
