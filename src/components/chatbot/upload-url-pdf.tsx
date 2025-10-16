@@ -242,8 +242,6 @@ const UploadUrlWithPDF = ({
   const [files, setFiles] = useState<File[]>([]);
 
   const [uploadUrl, { isLoading }] = useUploadUrlMutation();
-
-  console.log("uploadingURL: ", uploadUrl)
   const [uploadRequirement, { isLoading: isUploadingPDF }] =
     useUploadRequirementMutation();
 

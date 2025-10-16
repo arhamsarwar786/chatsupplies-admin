@@ -37,8 +37,8 @@ export default function LoginPage() {
 
     try {
       const result = await login({ username, password }).unwrap();
+      console.log("Login result:", result);
       const user = result.user;
-      const name = user?.username || "User";
 
       const apikey = result.apikey || result.api_key;
       const token = result.token || result.access_token;
@@ -50,7 +50,8 @@ export default function LoginPage() {
         localStorage.setItem("apikey", apikey);
         localStorage.setItem("email", email);
         localStorage.setItem("username", username);
-
+        localStorage.setItem("userid", user.id);
+        localStorage.setItem("userObject", JSON.stringify(user));
 
         toast.success("Login successful!");
         setTimeout(() => router.push("/dashboard"), 700);

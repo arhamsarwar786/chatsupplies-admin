@@ -112,11 +112,11 @@ const apiService = {
 
     // Use the requested API endpoint structure: /clients/{user_id}
     // Note: You may need to dynamically get the user ID from your auth system
-    const USER_ID = "123"; // This should come from your authentication context
+    const USER_ID = localStorage.getItem("userid"); 
     const PROFILE_UPDATE_URL = `${API_BASE_URL_PROFILE}${USER_ID}`;
 
     // Prepare body: only include name and phone_number (not email)
-    const requestBody: { name: string; phone_number?: string } = { name };
+    const requestBody: { first_name: string; phone_number?: string } = { first_name: name };
     if (phoneNumber !== undefined && phoneNumber !== "") {
       requestBody.phone_number = phoneNumber;
     }
@@ -509,9 +509,10 @@ const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoadin
       const responseData = await apiService.updateProfile(form.name.trim(), form.phone_number);
 
       // ✅ LOG THE BACKEND RESPONSE
-      console.log("Profile Update Backend Response:", responseData);
-
+  
+      localStorage.setItem("userObject", JSON.stringify(responseData));
       // Update name in localStorage (preserving existing behavior)
+      console.log("Updated profile response:", responseData);
       if (form.name.trim()) {
         localStorage.setItem("username", form.name.trim());
       }

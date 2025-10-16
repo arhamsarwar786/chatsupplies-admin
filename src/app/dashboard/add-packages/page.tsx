@@ -1,7 +1,7 @@
 "use client";
 
 import { DashboardHeader } from "@/src/components/layout/dashboard-header";
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { Textarea } from "@/src/components/ui/textarea";
@@ -23,64 +23,218 @@ import {
 } from "@/src/components/ui/card";
 import { useCreatePackagesMutation } from "@/src/hooks/usePackages";
 import { toast } from "sonner";
-import { Loader2, PlusCircle, DollarSign, Calendar, RefreshCw } from "lucide-react";
+import { Loader2, PlusCircle, DollarSign, Calendar, RefreshCw, XCircle } from "lucide-react"; // Added XCircle for remove icon
+import ConfirmationPopup from "../../../components/chatbot/confirmationPopup"; // Your custom popup
+import { useRouter } from "next/navigation"; // App Router
+import Link from 'next/link'; // Import Link to help identify navigation elements
 
-const Page = () => {
-const [form, setForm] = useState({
+// Define the structure for a single description item
+interface DescriptionItem {
+  title: string;
+  value: string;
+}
+
+// Define a default/initial state to check for changes
+const INITIAL_FORM_STATE = {
   name: "",
-  description: [] as string[], // updated to array of strings
+  description: [] as string[],
   price: 0,
   currency: "usd",
   duration_days: 0,
   is_recurring: false,
   billing_cycle: "",
-});
+};
 
-const [newDesc, setNewDesc] = useState({ title: "", value: "" });
+const Page = () => {
+  const router = useRouter();
+
+  const [form, setForm] = useState(INITIAL_FORM_STATE);
+  const [newDesc, setNewDesc] = useState<DescriptionItem>({ title: "", value: "" });
+
+  // State to track if the form has been modified
+  const [isDirty, setIsDirty] = useState(false);
+  // State to control the visibility of the custom confirmation dialog
+  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+  // State to store the path the user is trying to navigate to
+  const [nextPath, setNextPath] = useState("");
 
   const [createPackage, { isLoading }] = useCreatePackagesMutation();
 
+  // Memoize the form state string for easy comparison
+  const formStateString = useMemo(() => JSON.stringify(form), [form]);
+
+  // Hook to check if the form is dirty
+  useEffect(() => {
+    const initialFormStateString = JSON.stringify(INITIAL_FORM_STATE);
+    const isFormModified = formStateString !== initialFormStateString;
+    setIsDirty(isFormModified);
+  }, [formStateString]);
+
+
+  // === 1. Handle Native Browser Events (Reload/Close/External Navigation) ===
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isDirty) {
+        event.preventDefault();
+        event.returnValue = '';
+        return '';
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isDirty]);
+
+
+  // 🔑 === FIX: Handle Client-Side Navigation (Sidebar, Next/Link clicks) ===
+  // This effect listens for all clicks and intercepts Next.js <Link> navigations.
+  useEffect(() => {
+    if (!isDirty) return;
+
+    const handleLinkClick = (event: MouseEvent) => {
+      // Find the closest ancestor that is a Link or has an href, but isn't the form submit button
+      const target = event.target as HTMLElement;
+      let linkElement: HTMLAnchorElement | null = null;
+
+      // Traverse up the DOM to find a parent <a> tag with an href attribute
+      let currentElement: HTMLElement | null = target;
+      while (currentElement && currentElement !== document.body) {
+        if (currentElement.tagName === 'A' && currentElement.hasAttribute('href')) {
+          linkElement = currentElement as HTMLAnchorElement;
+          break;
+        }
+        currentElement = currentElement.parentElement;
+      }
+
+      if (linkElement) {
+        const url = linkElement.href;
+
+        // Ensure it's an internal link and not the current page
+        if (url && url !== window.location.href) {
+
+          // Check if this is an internal Next.js navigation (same origin and not forcing a full reload)
+          const urlPath = new URL(url).pathname;
+          const isExternal = linkElement.target === '_blank' || linkElement.rel === 'noopener noreferrer';
+
+          if (urlPath !== window.location.pathname && !isExternal) {
+            // Prevent the default navigation
+            event.preventDefault();
+            event.stopPropagation();
+
+            // Store the path and show the custom dialog
+            setNextPath(urlPath);
+            setShowConfirmPopup(true);
+          }
+        }
+      }
+    };
+
+    // Attach the listener to the whole window
+    window.addEventListener('click', handleLinkClick, true); // Use capture phase
+
+    return () => {
+      window.removeEventListener('click', handleLinkClick, true);
+    };
+  }, [isDirty]);
+
+
+  // Helper function to navigate away
+  const handleNavigateAway = useCallback(() => {
+    setIsDirty(false);
+    setShowConfirmPopup(false);
+
+    if (nextPath) {
+      // Use push for the intercepted sidebar link
+      router.push(nextPath);
+    } else {
+      // Default to back (used by handleBackButton fallback)
+      router.back();
+    }
+    setNextPath("");
+  }, [nextPath, router]);
+
+  // Handle form field changes
   const handleChange = (field: string, value: any) => {
-    setForm({ ...form, [field]: value });
+    setForm((prevForm) => ({ ...prevForm, [field]: value }));
   };
 
+  // Handle addition of features - Store as "title|value" format
+  const handleAddFeature = () => {
+    // Store as string with pipe delimiter for parsing later
+    const featureString = `${newDesc.title}|${newDesc.value}`;
+    
+    setForm((prevForm) => ({
+      ...prevForm,
+      description: [
+        ...prevForm.description,
+        featureString
+      ],
+    }));
+    setNewDesc({ title: "", value: "" });
+  };
+
+  // Handle removal of features
+  const handleRemoveFeature = (index: number) => {
+    setForm((prevForm) => {
+      const updated = [...prevForm.description];
+      updated.splice(index, 1);
+      return { ...prevForm, description: updated };
+    });
+  };
+
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // Prepare payload
-  // const payload = {
-  //   ...form,
-  //   description: form.description
-
-  //     .map((item) => item.trim()) // trim whitespace
-  //     .filter((item) => item.length > 0), // remove empty lines
-  // };
+    // No transformation needed - description is already array of strings
     const payload = { ...form };
 
-  try {
-    const response = await createPackage(payload).unwrap();
-    toast.success("Package created successfully!", {
-      description: `${form.name} is now available for subscription.`,
-    });
-    console.log("Created Package:", response);
+    try {
+      await createPackage(payload).unwrap();
+      toast.success("Package created successfully!", {
+        description: `${form.name} is now available for subscription.`,
+      });
 
-    // Reset form after successful submission
-    setForm({
-      name: "",
-      description: [] as string[],
-      price: 0,
-      currency: "usd",
-      duration_days: 0,
-      is_recurring: false,
-      billing_cycle: "",
-    });
-  } catch (err) {
-    console.error("Error creating package:", err);
-    toast.error("Failed to create package", {
-      description: "Please check the form and try again.",
-    });
-  }
-};
+      // Reset form and dirty state after successful submission
+      setForm(INITIAL_FORM_STATE);
+      setIsDirty(false);
+      setNewDesc({ title: "", value: "" });
+
+    } catch (err) {
+      console.error("Error creating package:", err);
+      toast.error("Failed to create package", {
+        description: "Please check the form and try again.",
+      });
+    }
+  };
+
+  /**
+   * Function to handle the click on the DashboardHeader button.
+   * This handles the **internal navigation** prompt.
+   */
+  const handleBackButton = () => {
+    if (isDirty) {
+      // Set the intended path for the back button
+      setNextPath('/dashboard/subscription-packages');
+      setShowConfirmPopup(true);
+    } else {
+      router.back();
+    }
+  };
+
+  // Custom Confirmation Popup handlers
+  const onCancelLeave = () => {
+    setShowConfirmPopup(false);
+    setNextPath("");
+  };
+
+  const onConfirmLeave = () => {
+    handleNavigateAway();
+  };
+
 
   return (
     <>
@@ -88,6 +242,15 @@ const [newDesc, setNewDesc] = useState({ title: "", value: "" });
         title="Create New Package"
         description="Design a subscription plan for your customers"
         buttonText="Back to Packages"
+        // This handles the button click
+        onButtonClick={handleBackButton}
+      />
+
+      {/* The Custom Confirmation Popup Component */}
+      <ConfirmationPopup
+        open={showConfirmPopup}
+        onConfirm={onConfirmLeave}
+        onCancel={onCancelLeave}
       />
 
       <div className="p-4 md:p-6 max-w-4xl mx-auto">
@@ -127,7 +290,7 @@ const [newDesc, setNewDesc] = useState({ title: "", value: "" });
                   <Label htmlFor="currency">Currency</Label>
                   <Select
                     value={form.currency}
-                    onValueChange={(value:any) => handleChange("currency", value)}
+                    onValueChange={(value: any) => handleChange("currency", value)}
                   >
                     <SelectTrigger className="h-11">
                       <SelectValue placeholder="Select currency" />
@@ -210,7 +373,7 @@ const [newDesc, setNewDesc] = useState({ title: "", value: "" });
                     <Switch
                       id="is_recurring"
                       checked={form.is_recurring}
-                      onCheckedChange={(value:any) =>
+                      onCheckedChange={(value: any) =>
                         handleChange("is_recurring", value)
                       }
                     />
@@ -223,7 +386,7 @@ const [newDesc, setNewDesc] = useState({ title: "", value: "" });
                     <Label htmlFor="billing_cycle">Billing Cycle</Label>
                     <Select
                       value={form.billing_cycle}
-                      onValueChange={(value:any) =>
+                      onValueChange={(value: any) =>
                         handleChange("billing_cycle", value)
                       }
                     >
@@ -240,62 +403,67 @@ const [newDesc, setNewDesc] = useState({ title: "", value: "" });
                 )}
               </div>
 
-              {/* Description */}
-             {/* === Description Input Section === */}
-<div className="space-y-4">
-  <Label htmlFor="description">Package Description</Label>
+              {/* Description - UPDATED: Show Title and Value on Separate Lines */}
+              <div className="space-y-4">
+                <Label htmlFor="description">Package Description / Features</Label>
 
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    {/* Value Field */}
-    <Input
-      placeholder="Enter feature"
-      value={newDesc.value}
-      onChange={(e) =>
-        setNewDesc((prev) => ({ ...prev, value: e.target.value }))
-      }
-    />
-  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Title/Name Field */}
+                  <Input
+                    placeholder="Feature Name (e.g., Max Users)"
+                    value={newDesc.title}
+                    onChange={(e) =>
+                      setNewDesc((prev) => ({ ...prev, title: e.target.value }))
+                    }
+                  />
+                  {/* Value Field */}
+                  <Input
+                    placeholder="Feature Value (e.g., 50)"
+                    value={newDesc.value}
+                    onChange={(e) =>
+                      setNewDesc((prev) => ({ ...prev, value: e.target.value }))
+                    }
+                  />
+                </div>
 
-  {/* Add Button */}
-  <Button
-    type="button"
-    className="h-10"
-    disabled={ !newDesc.value}
-    onClick={() => {
-      setForm((prevForm) => ({
-        ...prevForm,
-        description: [
-          ...prevForm.description,
-          `${newDesc.value}`,
-        ],
-      }));
-      setNewDesc({ title: "", value: "" });
-    }}
-  >
-    Add Feature
-  </Button>
+                {/* Add Button */}
+                <Button
+                  type="button"
+                  className="h-10"
+                  disabled={!newDesc.title || !newDesc.value}
+                  onClick={handleAddFeature}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Feature
+                </Button>
 
-  {/* Show Added Descriptions */}
-  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-    {form.description.map((desc, index) => (
-      <li key={index} className="flex justify-between items-center">
-        {desc}
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            const updated = [...form.description];
-            updated.splice(index, 1);
-            setForm((prevForm) => ({ ...prevForm, description: updated }));
-          }}
-        >
-          Remove
-        </Button>
-      </li>
-    ))}
-  </ul>
-</div>
+                {/* Show Added Descriptions - UPDATED: Parse strings to show title and value separately */}
+                <ul className="space-y-3 text-sm">
+                  {form.description.map((desc, index) => {
+                    // Parse the string back into title and value
+                    const [title, value] = desc.split('|');
+                    
+                    return (
+                      <li key={index} className="flex justify-between items-start bg-muted/50 p-3 rounded-lg border border-border">
+                        <div className="flex-1">
+                          <div className="font-medium text-primary">{title}</div>
+                          <div className="text-muted-foreground mt-1">{value}</div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveFeature(index)}
+                          className="text-red-500 hover:bg-red-500/10 ml-2"
+                        >
+                          <XCircle className="w-4 h-4" />
+                        </Button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+
               {/* Submit Button */}
               <div className="pt-4">
                 <Button
