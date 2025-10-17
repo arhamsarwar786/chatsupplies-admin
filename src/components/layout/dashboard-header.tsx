@@ -72,12 +72,12 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     <header className="flex items-center justify-between border-b bg-gray-100 px-6 py-4 shadow-sm">
       <div className="flex items-center gap-4">
         {/* Sidebar Trigger with toggle functionality */}
-        <button
+        <div
           onClick={handleSidebarToggle}
           className="-ml-1 p-2 rounded-md hover:bg-gray-200 transition-colors"
         >
           <SidebarTrigger />
-        </button>
+        </div>
         <div>
           <h1 className="text-2xl font-bold text-black">{title}</h1>
           <p className="text-sm text-muted-foreground">{description}</p>

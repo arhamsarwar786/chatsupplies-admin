@@ -125,10 +125,13 @@ const ChatHistoryPage = () => {
 
       {/* Existing details */}
       <div className="flex justify-between">
-        <span className="text-gray-300">User Agent:</span>
-        <span className="text-white text-right ml-2 truncate max-w-40">
-          {chat.user_agent || "—"}
-        </span>
+       <span className="text-gray-300">User Agent:</span>
+<span
+  className="text-white text-right ml-2 break-words whitespace-normal max-w-xs leading-snug"
+>
+  {chat.user_agent || "—"}
+</span>
+
       </div>
       <div className="flex justify-between">
         <span className="text-gray-300">Location:</span>
