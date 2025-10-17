@@ -252,7 +252,7 @@ const UploadUrlWithPDF = ({
   const [scrapingLoading, setScrapingLoading] = useState(false);
 
   // 🔹 NEW STATE: Track if we should auto-populate the URL
-  const [shouldAutoPopulateUrl, setShouldAutoPopulateUrl] = useState(false);
+  const [hasFetchedPreviousUrl, setHasFetchedPreviousUrl] = useState(false);
 
   // 🔹 Check if the external chatbot status indicates active crawling/processing
   const isChatbotCrawling = status === "in_progress" || status === "scraping";
@@ -264,7 +264,7 @@ const UploadUrlWithPDF = ({
   const showStopButtonInInput = isChatbotCrawling || isLocalProcessing;
 
   // =========================================================================
-  // 🔹 NEW: FUNCTION TO FETCH PREVIOUSLY CRAWLED URL
+  // 🔹 NEW: FUNCTION TO FETCH PREVIOUSLY CRAWLED URL - FIXED VERSION
   // =========================================================================
   
   const fetchPreviousCrawlUrl = async (): Promise<string | null> => {
@@ -283,6 +283,8 @@ const UploadUrlWithPDF = ({
         headers['Authorization'] = `Bearer ${token}`;
       }
 
+      console.log('Fetching previous crawl URL for chatbot:', chatbotId);
+      
       const response = await fetch(
         `https://api.chatsupplies.com/training/chatbot/${chatbotId}/crawl-history?limit=1`,
         {
@@ -292,19 +294,29 @@ const UploadUrlWithPDF = ({
       );
 
       if (!response.ok) {
-        console.warn('Failed to fetch crawl history');
+        console.warn('Failed to fetch crawl history, status:', response.status);
         return null;
       }
 
       const data = await response.json();
+      console.log('Crawl history API response:', data);
       
-      // Extract the most recent crawl URL from the response
-      if (data && data.data && data.data.length > 0) {
+      // FIXED: Better response parsing based on actual API structure
+      if (data && Array.isArray(data) && data.length > 0) {
+        // If response is directly an array
+        const latestCrawl = data[0];
+        return latestCrawl.url || latestCrawl.original_url || latestCrawl.source_url || null;
+      } else if (data && data.data && Array.isArray(data.data) && data.data.length > 0) {
+        // If response has data array
         const latestCrawl = data.data[0];
-        // Try different possible field names for the URL
+        return latestCrawl.url || latestCrawl.original_url || latestCrawl.source_url || null;
+      } else if (data && data.crawl_history && Array.isArray(data.crawl_history) && data.crawl_history.length > 0) {
+        // If response has crawl_history array
+        const latestCrawl = data.crawl_history[0];
         return latestCrawl.url || latestCrawl.original_url || latestCrawl.source_url || null;
       }
       
+      console.log('No crawl history found in response');
       return null;
     } catch (error) {
       console.warn('Error fetching previous crawl URL:', error);
@@ -313,39 +325,44 @@ const UploadUrlWithPDF = ({
   };
 
   // =========================================================================
-  // 🔹 NEW: EFFECT TO AUTO-POPULATE URL WHEN DIALOG OPENS FOR RECRAWL
+  // 🔹 NEW: EFFECT TO AUTO-POPULATE URL WHEN DIALOG OPENS FOR RECRAWL - FIXED
   // =========================================================================
 
   React.useEffect(() => {
     const autoPopulateUrl = async () => {
       // Only auto-populate when:
       // 1. Dialog is opening
-      // 2. We're in "failed" status (recrawl scenario)
-      // 3. We haven't already auto-populated in this session
+      // 2. We're in "failed" or "complete" status (recrawl scenario)
+      // 3. We haven't already fetched the previous URL
       // 4. There's no manually entered URL
-      if (open && status === "failed" && !shouldAutoPopulateUrl && !url) {
-        setShouldAutoPopulateUrl(true); // Mark that we're attempting to auto-populate
+      if (open && (status === "failed" || status === "complete") && !hasFetchedPreviousUrl && !url) {
+        console.log('Auto-populating URL for recrawl, status:', status);
+        setHasFetchedPreviousUrl(true); // Mark that we're attempting to fetch
         
         const previousUrl = await fetchPreviousCrawlUrl();
+        console.log('Fetched previous URL:', previousUrl);
+        
         if (previousUrl) {
           setUrl(previousUrl);
           toast.info("Previous URL auto-filled for recrawl");
+        } else {
+          console.log('No previous URL found');
         }
       }
     };
 
     autoPopulateUrl();
-  }, [open, status, shouldAutoPopulateUrl, url]);
+  }, [open, status, hasFetchedPreviousUrl, url]);
 
   // =========================================================================
-  // 🔹 NEW: RESET AUTO-POPULATE FLAG WHEN DIALOG CLOSES
+  // 🔹 NEW: RESET FETCHED URL FLAG WHEN DIALOG CLOSES
   // =========================================================================
 
   React.useEffect(() => {
     if (!open) {
-      // Reset the auto-populate flag when dialog closes
-      // This ensures we'll try to auto-populate again next time it opens
-      setShouldAutoPopulateUrl(false);
+      // Reset the fetched flag when dialog closes
+      // This ensures we'll try to fetch again next time it opens
+      setHasFetchedPreviousUrl(false);
     }
   }, [open]);
 
@@ -360,8 +377,8 @@ const UploadUrlWithPDF = ({
     setLoadingPages(false);
     setScrapingLoading(false);
     setCrawlingStarted(false);
-    // Also reset auto-populate flag
-    setShouldAutoPopulateUrl(false);
+    // Also reset fetched URL flag
+    setHasFetchedPreviousUrl(false);
 
     // 2. Trigger status update
     onStatusChange?.();
@@ -679,8 +696,8 @@ const UploadUrlWithPDF = ({
               <Play className="h-4 w-4 text-green-600" />
             </button>
           </DialogTrigger>
-        ) : status === "failed" ? (
-          // 4. 💡 TOOLTIP FOR RECRAWL (Refresh Icon)
+        ) : status === "failed" || status === "complete" ? (
+          // 4. 💡 TOOLTIP FOR RECRAWL (Refresh Icon) - Now includes both failed and complete status
           <Tooltip delayDuration={300}>
             <DialogTrigger asChild>
               <TooltipTrigger asChild>

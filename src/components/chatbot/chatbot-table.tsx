@@ -350,6 +350,7 @@ export default function ChatbotTable() {
 
   // Helper function to render the table row
   const renderChatbotRow = (bot: Chatbot, idx: number) => {
+    console.log("Rendering chatbot:", bot);
     const status = bot.progress_status;
     const isCrawling = status === "in_progress";
 
