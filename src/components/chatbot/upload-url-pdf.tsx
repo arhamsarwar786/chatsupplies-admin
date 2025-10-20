@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from "react";
-import { Play, Loader } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Play, Loader, ChevronDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/src/components/ui/tooltip";
+
+// 2. 💡 IMPORT DROPDOWN COMPONENTS
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/src/components/ui/dropdown-menu";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -254,6 +262,10 @@ const UploadUrlWithPDF = ({
   // 🔹 NEW STATE: Track if we should auto-populate the URL
   const [shouldAutoPopulateUrl, setShouldAutoPopulateUrl] = useState(false);
 
+  // 🔹 NEW STATE: Store crawled URLs from API
+  const [crawledUrls, setCrawledUrls] = useState<string[]>([]);
+  const [loadingCrawledUrls, setLoadingCrawledUrls] = useState(false);
+
   // 🔹 Check if the external chatbot status indicates active crawling/processing
   const isChatbotCrawling = status === "in_progress" || status === "scraping";
 
@@ -262,6 +274,73 @@ const UploadUrlWithPDF = ({
 
   // 🛑 NEW: Combined state to determine if the stop button should replace the URL input
   const showStopButtonInInput = isChatbotCrawling || isLocalProcessing;
+
+  // =========================================================================
+  // 🔹 NEW: FUNCTION TO FETCH CRAWLED URLS FROM API
+  // =========================================================================
+  
+  const fetchCrawledUrls = async (): Promise<string[]> => {
+    try {
+      const token = localStorage.getItem("token");
+      const apikey = localStorage.getItem("apikey");
+
+      const headers: HeadersInit = {
+        'accept': 'application/json',
+      };
+
+      if (apikey) {
+        headers['api-key'] = apikey;
+      }
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(
+        `https://api.chatsupplies.com/chatbots/?page=1&sort_desc=true`,
+        {
+          method: 'GET',
+          headers,
+        }
+      );
+
+      if (!response.ok) {
+        console.warn('Failed to fetch chatbots data');
+        return [];
+      }
+
+      const data = await response.json();
+      
+      // Extract URLs from the current chatbot
+      if (data && data.chatbots && Array.isArray(data.chatbots)) {
+        const currentChatbot = data.chatbots.find((chatbot: any) => chatbot.id === chatbotId);
+        if (currentChatbot && currentChatbot.urls && Array.isArray(currentChatbot.urls)) {
+          return currentChatbot.urls;
+        }
+      }
+      
+      return [];
+    } catch (error) {
+      console.warn('Error fetching crawled URLs:', error);
+      return [];
+    }
+  };
+
+  // =========================================================================
+  // 🔹 NEW: EFFECT TO LOAD CRAWLED URLS WHEN DIALOG OPENS
+  // =========================================================================
+
+  useEffect(() => {
+    const loadCrawledUrls = async () => {
+      if (open) {
+        setLoadingCrawledUrls(true);
+        const urls = await fetchCrawledUrls();
+        setCrawledUrls(urls);
+        setLoadingCrawledUrls(false);
+      }
+    };
+
+    loadCrawledUrls();
+  }, [open, chatbotId]);
 
   // =========================================================================
   // 🔹 NEW: FUNCTION TO FETCH PREVIOUSLY CRAWLED URL
@@ -373,6 +452,13 @@ const UploadUrlWithPDF = ({
     setScrapingLoading(false);
   };
 
+  // =========================================================================
+  // 🔹 NEW: FUNCTION TO HANDLE URL SELECTION FROM DROPDOWN
+  // =========================================================================
+  const handleUrlSelect = (selectedUrl: string) => {
+    setUrl(selectedUrl);
+    toast.info("URL selected from previous crawl");
+  };
 
   // =========================================================================
   // ✅ RE-IMPLEMENTED MISSING FUNCTIONS (FIXES ERRORS)
@@ -735,9 +821,11 @@ const UploadUrlWithPDF = ({
             {/* URL input / Stop Button Field - Show when not in the discovery results view */}
             {discoveredPages.length === 0 && (
               <div>
-                <label className="text-sm font-medium mb-2 block">Website URL (required)*</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium">Website URL (required)*</label>
+                </div>
 
-                {/* 🛑 MODIFIED: Container for URL Input and Stop Button */}
+                {/* 🛑 MODIFIED: Container for URL Input with integrated dropdown and stop button */}
                 <div className="flex w-full items-center relative">
                   {/* The Input Field */}
                   <Input
@@ -747,9 +835,37 @@ const UploadUrlWithPDF = ({
                     onChange={(e) => setUrl(e.target.value)}
                     // 🛑 Disable input when any process is active
                     disabled={showStopButtonInInput}
-                    // 🛑 Add padding-right to prevent text from going under the button
-                    className={`w-full text-sm sm:text-base ${showStopButtonInInput ? 'pr-[100px] sm:pr-[120px]' : ''}`}
+                    // 🛑 Add padding to prevent text from going under the buttons
+                    className={`w-full text-sm sm:text-base ${showStopButtonInInput || crawledUrls.length > 0 ? 'pr-[120px] sm:pr-[140px]' : ''}`}
                   />
+
+                  {/* 🔹 MODIFIED: DROPDOWN FOR PREVIOUS CRAWLING LINKS - Now inside the input field */}
+                  {crawledUrls.length > 0 && (
+                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 flex items-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            disabled={showStopButtonInInput}
+                          >
+                            <ChevronDown className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-64 max-h-60 overflow-y-auto">
+                          {crawledUrls.map((crawledUrl, index) => (
+                            <DropdownMenuItem 
+                              key={index}
+                              onClick={() => handleUrlSelect(crawledUrl)}
+                              className="text-xs truncate cursor-pointer"
+                            >
+                              {formatPageDisplayName(crawledUrl)}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )}
 
                   {/* 🛑 The Stop Button - Absolutely positioned to the right */}
                   {showStopButtonInInput && (
@@ -798,8 +914,6 @@ const UploadUrlWithPDF = ({
             {/* Discovered Pages List */}
             {discoveredPages.length > 0 && (
               <div className="border rounded p-3 sm:p-4">
-                {/* ... Page selection UI (omitted for brevity) ... */}
-
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                   <p className="text-sm font-medium truncate">
                     Select pages to crawl
@@ -890,8 +1004,7 @@ const UploadUrlWithPDF = ({
               </div>
             )}
 
-            {/* PDF Upload - Show in both views (omitted for brevity) */}
-
+            {/* PDF Upload - Show in both views */}
             <div>
               <label className="text-sm font-medium mb-2 block">PDF Files (Optional)</label>
               <label
@@ -970,7 +1083,6 @@ const UploadUrlWithPDF = ({
         </DialogContent>
       </Dialog>
     </TooltipProvider>
-
   );
 };
 

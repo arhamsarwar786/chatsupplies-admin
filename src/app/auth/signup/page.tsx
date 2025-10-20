@@ -27,7 +27,7 @@ export default function SignupPage() {
     company_name: "",
     industry: "",
     send_welcome_email: true,
-    auto_activate_account: true
+    auto_activate_account: true,
   });
 
   const [error, setError] = useState("");

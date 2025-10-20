@@ -28,6 +28,26 @@ import {
 } from "@/src/hooks/usePackages";
 import EditPackages from "@/src/components/packages/update-packages";
 
+interface PackageFeature {
+  name: string;
+  value: string;
+}
+
+interface EnhancedPackage {
+  id: number;
+  name: string;
+  price: number;
+  currency: string;
+  duration_days: number;
+  is_recurring: boolean;
+  billing_cycle?: string;
+  is_active: boolean;
+  created_at?: string;
+  description: string[];
+  features: PackageFeature[];
+  isPopular: boolean;
+}
+
 const Page: React.FC = () => {
   // 🧩 Prevent SSR hydration mismatch
   if (typeof window === "undefined") return null;
@@ -52,21 +72,68 @@ const Page: React.FC = () => {
 
     console.log("Raw packages data:", packagesData);
     
-    const transformed = packagesData.map((pkg) => {
+    const transformed: EnhancedPackage[] = packagesData.map((pkg: any) => {
       let descriptionArray: string[] = [];
+      let features: PackageFeature[] = [];
       
       // Handle description transformation safely
       if (Array.isArray(pkg.description)) {
-        descriptionArray = pkg.description.map(d => String(d).trim());
+        descriptionArray = pkg.description.map((d: any) => String(d).trim());
       } else if (typeof pkg.description === 'string') {
         // Handle pipe-separated descriptions like "Limited Form|5 Form"
-        descriptionArray = pkg.description.split('|').map(item => item.trim());
+        // Split by newlines first, then by pipes within each line
+        const lines = pkg.description.split('\n');
+        descriptionArray = lines.flatMap((line: string) => 
+          line.split('|').map((item: string) => item.trim())
+        ).filter(item => item.length > 0);
+      }
+      
+      // Extract features from package data
+      // For your data format, we'll parse features from the description
+      if (pkg.features && Array.isArray(pkg.features)) {
+        features = pkg.features.map((feature: any) => ({
+          name: feature.name || 'Feature',
+          value: feature.value || ''
+        }));
+      } else {
+        // Parse features from description lines that contain pipe separator
+        features = [];
+        if (typeof pkg.description === 'string') {
+          const lines = pkg.description.split('\n');
+          lines.forEach((line: string) => {
+            if (line.includes('|')) {
+              const [name, value] = line.split('|').map(part => part.trim());
+              if (name && value) {
+                features.push({
+                  name: name,
+                  value: value
+                });
+              }
+            } else if (line.trim()) {
+              // For lines without pipe, treat the whole line as a feature name
+              features.push({
+                name: line.trim(),
+                value: ''
+              });
+            }
+          });
+        }
+        
+        // If no features were parsed from pipe format, fall back to description array
+        if (features.length === 0 && descriptionArray.length > 0) {
+          features = descriptionArray.map((desc: string) => ({
+            name: 'Feature',
+            value: desc
+          }));
+        }
       }
       
       return {
         ...pkg,
         description: descriptionArray,
-        isPopular: pkg.isPopular || false
+        features: features,
+        isPopular: pkg.isPopular || false,
+        is_active: pkg.is_active ?? true
       };
     });
     
@@ -143,7 +210,7 @@ const Page: React.FC = () => {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {displayPackages?.map(pkg => (
+            {displayPackages?.map((pkg: EnhancedPackage) => (
               <div
                 key={pkg.id}
                 className={`relative p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${
@@ -163,7 +230,7 @@ const Page: React.FC = () => {
                   <h3 className="text-xl font-bold text-gray-900">{pkg.name}</h3>
                   {role === "super_admin" && (
                     <div className="flex items-center space-x-2">
-                      <EditPackages id={pkg.id} pkg={pkg} />
+                      <EditPackages id={pkg.id} pkg={pkg as any} />
                       <Dialog
                         open={openDialogId === pkg.id}
                         onOpenChange={o => !o && setOpenDialogId(null)}
@@ -225,7 +292,28 @@ const Page: React.FC = () => {
                     Features
                   </h4>
                   <ul className="space-y-3">
-                    {pkg.description && pkg.description.map((line, i) => (
+                    {pkg.features && pkg.features.map((feature: PackageFeature, i: number) => (
+                      <li key={i} className="flex items-start">
+                        <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <div className="flex flex-col">
+                          {feature.name && feature.name !== 'Feature' && (
+                            <span className="font-medium text-gray-900">{feature.name}</span>
+                          )}
+                          {feature.value && (
+                            <span className="text-gray-700 text-sm mt-0.5">
+                              {feature.value}
+                            </span>
+                          )}
+                          {/* If there's only a name and no value, show just the name */}
+                          {feature.name && feature.name !== 'Feature' && !feature.value && (
+                            <span className="text-gray-700">{feature.name}</span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                    
+                    {/* Fallback to description if no features available */}
+                    {(!pkg.features || pkg.features.length === 0) && pkg.description && pkg.description.map((line: string, i: number) => (
                       <li key={i} className="flex items-start">
                         <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" />
                         <span className="text-gray-700">
