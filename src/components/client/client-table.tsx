@@ -114,6 +114,10 @@ export default function ClientTable() {
     }
   };
 
+  // Check if current user is Super Admin
+  // Replace this with your actual authentication logic
+  const isSuperAdmin = true; // TODO: Replace with actual auth check
+
   return (
     <div className="border rounded-xl shadow-sm">
       {isLoading && <div className="p-4">Loading clients...</div>}
@@ -146,12 +150,15 @@ export default function ClientTable() {
                   </TableRow>
                 ) : (
                   clients.map((client) => {
-                    const isDisabled = !client.is_active;
+                    const isClientInactive = !client.is_active;
+                    
+                    // FIXED: Actions are disabled only if client is inactive AND user is NOT Super Admin
+                    const isActionDisabled = isClientInactive && !isSuperAdmin;
 
                     return (
                       <TableRow
                         key={client.id}
-                        className={`group transition-all ${isDisabled
+                        className={`group transition-all ${isActionDisabled
                             ? "opacity-50 bg-gray-50"
                             : "hover:bg-gray-50"
                           }`}
@@ -254,13 +261,12 @@ export default function ClientTable() {
                               <TooltipTrigger>
                                 <ShieldMinus
                                   title="Deactivate"
-                                  className={`w-4 h-4 transition-transform hover:scale-110 ${!client.is_active
+                                  className={`w-4 h-4 transition-transform hover:scale-110 ${isActionDisabled
                                       ? "text-gray-400 cursor-not-allowed"
                                       : "text-red-500 cursor-pointer"
                                     }`}
                                   onClick={() =>
-                                    client.is_active &&
-                                    handleUpdateStatusClick(client)
+                                    !isActionDisabled && handleUpdateStatusClick(client)
                                   }
                                 />
                               </TooltipTrigger>
@@ -274,12 +280,12 @@ export default function ClientTable() {
                               <TooltipTrigger>
                                 <Pencil
                                   title="Edit"
-                                  className={`w-4 h-4 transition-transform hover:scale-110 ${!client.is_active
+                                  className={`w-4 h-4 transition-transform hover:scale-110 ${isActionDisabled
                                       ? "text-gray-400 cursor-not-allowed"
                                       : "text-green-600 cursor-pointer"
                                     }`}
                                   onClick={() =>
-                                    client.is_active &&
+                                    !isActionDisabled &&
                                     router.push(
                                       `/dashboard/client-management/edit-client/${client.id}`
                                     )
@@ -297,12 +303,11 @@ export default function ClientTable() {
                                 <MailPlus
                                   title="Resend Welcome Email"
                                   onClick={() =>
-                                    client.is_active &&
-                                    handleResendEmail(client.id)
+                                    !isActionDisabled && handleResendEmail(client.id)
                                   }
-                                  className={`w-4 h-4 transition-transform hover:scale-110 ${client.is_active
-                                      ? "text-blue-600 cursor-pointer"
-                                      : "text-gray-400 cursor-not-allowed"
+                                  className={`w-4 h-4 transition-transform hover:scale-110 ${isActionDisabled
+                                      ? "text-gray-400 cursor-not-allowed"
+                                      : "text-blue-600 cursor-pointer"
                                     } ${isSending ? "opacity-50" : ""}`}
                                 />
                               </TooltipTrigger>

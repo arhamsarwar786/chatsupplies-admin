@@ -111,13 +111,13 @@ const apiService = {
     }
 
     // Use the requested API endpoint structure: /clients/{user_id}
-    const USER_ID = localStorage.getItem("userid"); 
+    const USER_ID = localStorage.getItem("userid");
     const PROFILE_UPDATE_URL = `${API_BASE_URL_PROFILE}${USER_ID}`;
 
     // Prepare body: include first_name, last_name and phone_number
-    const requestBody: { first_name: string; last_name: string; phone_number?: string } = { 
+    const requestBody: { first_name: string; last_name: string; phone_number?: string } = {
       first_name: firstName,
-      last_name: lastName 
+      last_name: lastName
     };
     if (phoneNumber !== undefined && phoneNumber !== "") {
       requestBody.phone_number = phoneNumber;
@@ -470,7 +470,7 @@ const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoadin
       if (userString) {
         const user = JSON.parse(userString);
         console.log("User Object in ManageChatsForm:", user);
-        
+
         // Use first_name and last_name from userObject
         return {
           firstName: user?.first_name || '',
@@ -480,7 +480,7 @@ const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoadin
     } catch (error) {
       console.error("Error parsing userObject:", error);
     }
-    
+
     // Fallback: split the existing name prop
     const nameParts = name.split(' ');
     return {
@@ -539,22 +539,22 @@ const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoadin
     try {
       // API call to update profile - now with firstName and lastName
       const responseData = await apiService.updateProfile(
-        form.firstName.trim(), 
-        form.lastName.trim(), 
+        form.firstName.trim(),
+        form.lastName.trim(),
         form.phone_number
       );
 
       // ✅ LOG THE BACKEND RESPONSE
       console.log("Updated profile response:", responseData);
-      
+
       localStorage.setItem("userObject", JSON.stringify(responseData));
-      
+
       // Update name in localStorage (preserving existing behavior)
       // Combine first and last name for the username to maintain backward compatibility
-      const fullName = form.lastName.trim() 
+      const fullName = form.lastName.trim()
         ? `${form.firstName.trim()} ${form.lastName.trim()}`
         : form.firstName.trim();
-      
+
       if (fullName) {
         localStorage.setItem("username", fullName);
       }
@@ -699,9 +699,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ email, name, onClose }) => {
       console.log("ProfileCard: Window focused - data auto-updated");
       // You can add any auto-update logic here if needed
     };
-    
+
     window.addEventListener("focus", handleFocus);
-    
+
     // Cleanup: remove event listener when component unmounts
     return () => {
       window.removeEventListener("focus", handleFocus);
@@ -816,6 +816,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ email, name, onClose }) => {
             className="flex items-center space-x-2 text-sm cursor-pointer font-medium text-gray-700 hover:text-gray-900 transition duration-150"
           >
             <span className="text-blue-500">
+              {/* UPDATED ICON SVG to match the Log Out/Door style from c102.PNG */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="w-5 h-5"
@@ -826,9 +827,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ email, name, onClose }) => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <path d="M9 21H5a2 2 2 0 1 1-2-2V5a2 2 0 0 1 2-2h4" />
+                {/* Door/Box */}
+                <path d="M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5" />
+                {/* Arrow */}
                 <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
+                <line x1="21" y1="12" x2="10" y2="12" />
               </svg>
             </span>
             <span>Sign out</span>
