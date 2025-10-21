@@ -46,6 +46,7 @@ export default function ClientTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedClient, setSelectedClient] = useState(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [resendingClientId, setResendingClientId] = useState<number | null>(null);
 
   // Fetch clients
   const {
@@ -77,11 +78,14 @@ export default function ClientTable() {
 
   // Email resend
   const handleResendEmail = async (clientId: number) => {
+    setResendingClientId(clientId);
     try {
       await resendWelcomeEmail({ id: clientId }).unwrap();
       toast.success("Welcome email has been resent successfully.");
     } catch {
       toast.error("An error occurred while resending the welcome email.");
+    } finally {
+      setResendingClientId(null);
     }
   };
 
@@ -154,6 +158,7 @@ export default function ClientTable() {
                     
                     // FIXED: Actions are disabled only if client is inactive AND user is NOT Super Admin
                     const isActionDisabled = isClientInactive && !isSuperAdmin;
+                    const isThisClientResending = resendingClientId === client.id;
 
                     return (
                       <TableRow
@@ -308,7 +313,7 @@ export default function ClientTable() {
                                   className={`w-4 h-4 transition-transform hover:scale-110 ${isActionDisabled
                                       ? "text-gray-400 cursor-not-allowed"
                                       : "text-blue-600 cursor-pointer"
-                                    } ${isSending ? "opacity-50" : ""}`}
+                                    } ${isThisClientResending ? "opacity-50" : ""}`}
                                 />
                               </TooltipTrigger>
                               <TooltipContent>
@@ -334,8 +339,8 @@ export default function ClientTable() {
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
                 className={`px-2 py-1 rounded ${currentPage === 1
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-100 text-gray-700 cursor-pointer"
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700 cursor-pointer"
                   }`}
               >
                 Previous
@@ -347,8 +352,8 @@ export default function ClientTable() {
                 onClick={handleNextPage}
                 disabled={clients.length < 10}
                 className={`px-2 py-1 rounded ${clients.length < 10
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-100 text-gray-700 cursor-pointer"
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-100 text-gray-700 cursor-pointer"
                   }`}
               >
                 Next
