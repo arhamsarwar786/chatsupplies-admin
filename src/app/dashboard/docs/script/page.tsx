@@ -41,6 +41,15 @@ interface Chatbot {
   total_interactions: number;
   interaction_change_percent: number;
 }
+
+interface ChatbotResponse {
+  total_count: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+  chatbots: Chatbot[];
+}
+
 const tabData = [
   {
     id: "react",
@@ -60,7 +69,7 @@ const tabData = [
       {
         title: "Step 3: Dynamically add the chatbot script",
         description:
-          "Dynamically add the chatbot script. Create the <script> tag programmatically and append it to the document only if it hasn’t been added yet. This avoids multiple inserts.",
+          "Dynamically add the chatbot script. Create the <script> tag programmatically and append it to the document only if it hasn't been added yet. This avoids multiple inserts.",
       },
       {
         title: "Step 4: Make sure it loads once",
@@ -119,12 +128,12 @@ const tabData = [
       {
         title: "Step 2: Add Script Dynamically",
         description:
-          "Use the component’s lifecycle hook to inject the chatbot script into the page when the app starts.",
+          "Use the component's lifecycle hook to inject the chatbot script into the page when the app starts.",
       },
       {
         title: "Step 3: Confirm Script Path",
         description:
-          "Ensure the script file (e.g., https://widget.chatsupplies.com/index.js) is hosted publicly (like on a CDN) or accessible via your app’s /public directory.",
+          "Ensure the script file (e.g., https://widget.chatsupplies.com/index.js) is hosted publicly (like on a CDN) or accessible via your app's /public directory.",
       },
       {
         title: "Step 4: Test Integration",
@@ -151,7 +160,7 @@ const tabData = [
       {
         title: "Step 2: Provide Script Parameters",
         description:
-          "Use Nuxt’s <Head> section or useHead (in Nuxt 3 with Composition API) to inject the chatbot script so it loads client-side and avoids SSR issues.",
+          "Use Nuxt's <Head> section or useHead (in Nuxt 3 with Composition API) to inject the chatbot script so it loads client-side and avoids SSR issues.",
       },
       {
         title: "Step 3: Client-Side Only Handling",
@@ -282,15 +291,15 @@ const ScriptManagementPage = () => {
   }, []);
 
   const {
-    data = [],
+    data,
     isLoading,
     error,
     refetch,
   } = useGetChatbotQuery({ page: 1 });
 
   React.useEffect(() => {
-    if (data && data.length > 0 && selectedBotId === null) {
-      setSelectedBotId(data[0].id);
+    if (data?.chatbots && data.chatbots.length > 0 && selectedBotId === null) {
+      setSelectedBotId(data.chatbots[0].id);
     }
   }, [data, selectedBotId]);
 
@@ -355,8 +364,8 @@ const ScriptManagementPage = () => {
                   </SelectItem>
                 )}
 
-                {!isLoading && !error && data?.length > 0 ? (
-                  data.map((bot: Chatbot) => (
+                {!isLoading && !error && data?.chatbots?.length > 0 ? (
+                  data.chatbots.map((bot: Chatbot) => (
                     <SelectItem
                       key={bot.id}
                       value={bot.id.toString()}
@@ -388,7 +397,7 @@ const ScriptManagementPage = () => {
           </div>
         </div>
 
-        {selectedBotId !== null && data.length > 0 && (
+        {selectedBotId !== null && data?.chatbots?.length > 0 && (
           <Tabs defaultValue={tabData[0].id} className="space-y-4">
             <TabsList className="grid grid-cols-4 sm:grid-cols-7 bg-white text-primary border border-black w-full">
               {tabData.map((tab) => (

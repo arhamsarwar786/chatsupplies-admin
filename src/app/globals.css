@@ -120,3 +120,57 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* CORRECTED CSS for right border attachment */
+
+/* Target the WRAPPER: Allow Tailwind to apply the outer border, but remove library's default padding */
+.phone-input-fix.PhoneInput {
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center;
+  /* Add overflow: hidden to ensure rounded corners clip properly if inner elements extend slightly */
+  overflow: hidden; 
+}
+
+/* Target the ACTUAL INPUT FIELD (.PhoneInputInput) */
+.phone-input-fix .PhoneInputInput {
+  border: none !important;
+  box-shadow: none !important;
+  background-color: white !important;
+
+  /* Keep vertical padding for height */
+  padding-top: 0.4rem !important;
+  padding-bottom: 0.4rem !important;
+  padding-left: 0 !important; /* Managed by .PhoneInputCountry */
+  
+  /* FIX: Adjust right padding. If it's still slightly off, 
+          you might need to go to 0.6rem or 0.5rem if 0.75rem is too much.
+          Let's try a smaller value like 0.5rem (approx px-2) to ensure it pulls in.
+  */
+  padding-right: 0.5rem !important; /* Adjusted from 0.75rem for better right edge alignment */
+
+  flex-grow: 1; 
+  /* Also add min-width: 0; for better flexbox behavior on some browsers/versions */
+  min-width: 0; 
+}
+
+/* Target the COUNTRY FLAG/CODE (.PhoneInputCountry) */
+.phone-input-fix .PhoneInputCountry {
+    padding-left: 0.75rem !important;
+    padding-top: 0.625rem !important;
+    padding-bottom: 0.625rem !important;
+    margin-right: 0 !important;
+}
+
+/* Fix for the country select dropdown itself */
+.phone-input-fix .PhoneInputCountrySelect {
+  background-color: transparent !important;
+  border: none !important;
+  height: auto !important;
+}
+
+/* Optional: Clean up the focus state */
+.phone-input-fix .PhoneInputInput:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}

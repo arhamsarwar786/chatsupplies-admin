@@ -231,8 +231,8 @@ export default function SignupPage() {
                   onChange={handleChange}
                   placeholder="First Name"
                   className={`${missing.includes("first_name") || invalidNames.includes("first_name")
-                      ? "border-red-500"
-                      : "border-gray-400"
+                    ? "border-red-500"
+                    : "border-gray-400"
                     }`}
                 />
                 <Input
@@ -241,8 +241,8 @@ export default function SignupPage() {
                   onChange={handleChange}
                   placeholder="Last Name"
                   className={`${missing.includes("last_name") || invalidNames.includes("last_name")
-                      ? "border-red-500"
-                      : "border-gray-400"
+                    ? "border-red-500"
+                    : "border-gray-400"
                     }`}
                 />
               </div>
@@ -261,7 +261,9 @@ export default function SignupPage() {
               <PhoneInput
                 value={form.phone_number}
                 onChange={handlePhoneChange}
-                className={`mt-1 w-full border rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${missing.includes("phone_number") ? "border-red-500" : "border-gray-400"
+                // FIX: Modify padding classes to allow CSS to control it, but keep border/size/error state
+                // We remove px-3 and py-1.5 from here, as that space is now controlled by CSS on internal elements
+                className={`mt-1 w-full border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${missing.includes("phone_number") ? "border-red-500" : "border-gray-400"
                   }`}
               />
 
@@ -283,8 +285,8 @@ export default function SignupPage() {
                 >
                   <SelectTrigger
                     className={`mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${missing.includes("industry")
-                        ? "border-red-500"
-                        : "border-gray-400"
+                      ? "border-red-500"
+                      : "border-gray-400"
                       }`}
                   >
                     <SelectValue placeholder="Select Industry" />
