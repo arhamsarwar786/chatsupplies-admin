@@ -181,10 +181,10 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-y-auto bg-gradient-to-br from-[#eeeaff] to-white flex items-center justify-center">
+    <div className="h-screen overflow-y-auto bg-gradient-to-br from-[#eeeaff] to-white flex items-center justify-center">
       <div className="grid grid-cols-1 h-full md:grid-cols-2 w-full bg-white shadow-xl overflow-hidden">
         {/* Left Section - Form */}
-        <div className="p-8">
+        <div className="p-8 overflow-y-auto h-screen">
           <div className="flex flex-col w-full mb-12 items-start gap-3">
             <div className="flex items-center gap-3 hover:scale-105 transition-transform duration-300">
               <Image

@@ -6,6 +6,8 @@ import { CheckCircle, Loader2 } from "lucide-react"
 export default function TrainingSection() {
   const [progress] = useState(65)
 
+
+  
   return (
     <div className="w-full ">
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 grid grid-cols-1 md:grid-cols-3 gap-8">
