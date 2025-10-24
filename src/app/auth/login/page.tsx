@@ -178,21 +178,21 @@ export default function LoginPage() {
               </p>
             </form>
 
-            <div className="text-center max-w-xl mx-auto sm:mt-1">
-              <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
-                <span
-                  onClick={() => window.location.href = "https://chatsupplies.com"}
-                  className="text-primary font-bold cursor-pointer"
-                >
-                  ChatSupplies
-                </span>{" "}
-                is a modern AI-powered platform designed to enhance customer
-                interactions through intelligent chat solutions. It empowers
-                businesses to automate conversations, improve support
-                efficiency, and drive user engagement with smart, responsive
-                chatbots.
-              </p>
-            </div>
+           <div className="text-center max-w-xl mx-auto sm:mt-1">
+  <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
+    <span
+      onClick={() => window.open("https://chatsupplies.com", "_blank")}
+      className="text-primary font-bold cursor-pointer"
+    >
+      ChatSupplies
+    </span>{" "}
+    is a modern AI-powered platform designed to enhance customer
+    interactions through intelligent chat solutions. It empowers
+    businesses to automate conversations, improve support
+    efficiency, and drive user engagement with smart, responsive
+    chatbots.
+  </p>
+</div>
           </div>
         </div>
 
