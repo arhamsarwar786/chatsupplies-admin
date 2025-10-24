@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { DashboardHeader } from "@/src/components/layout/dashboard-header";
-import { Loader2, Check, Star, Gem, Trash2 } from "lucide-react";
+import { Loader2, Check, Star, Gem, Trash2, X } from "lucide-react";
 import StripeCheckoutDialog from "@/src/components/StripeCheckoutDialog";
 import { useSelector } from "react-redux";
 import { stripePromise } from "@/src/lib/stripe";
@@ -53,6 +53,7 @@ const Page: React.FC = () => {
   if (typeof window === "undefined") return null;
 
   const [openDialogId, setOpenDialogId] = useState<number | null>(null);
+  const [showContactSales, setShowContactSales] = useState(false);
   const role = useSelector((state: RootState) => state.authSlice.role);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -342,12 +343,52 @@ const Page: React.FC = () => {
             <p className="text-gray-600 mb-6">
               Need custom pricing or features for your organization? Our team can create a plan tailored to your specific requirements.
             </p>
-            <button className="bg-white border border-primary text-primary hover:bg-primary/10 py-2 px-6 rounded-lg">
+            <Button 
+              className="bg-white border border-primary text-primary hover:bg-primary/10 py-6 px-8 rounded-lg"
+              onClick={() => setShowContactSales(true)}
+            >
               Contact Sales
-            </button>
+            </Button>
           </div>
         </div>
       </div>
+
+      {/* Calendar Modal */}
+      {showContactSales && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="relative w-full h-full max-w-[95vw] max-h-[95vh] bg-white rounded-lg shadow-2xl flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Schedule a Meeting with Our Sales Team</h2>
+                <p className="text-sm text-gray-600">
+                  Book a time that works for you to discuss enterprise solutions and custom pricing.
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowContactSales(false)}
+                className="h-8 w-8 rounded-full"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            {/* Calendar Iframe */}
+            <div className="flex-1 min-h-0">
+              <iframe 
+                src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ2rHh8wWbK63YzdsCt1sqMjhGGDhoUGq_t2jworrQuGyHABuYkoId8F7PKaeRDMnpAdQXXMX7rx?gv=true" 
+                style={{ border: 0 }} 
+                width="100%" 
+                height="100%" 
+                frameBorder="0"
+                className="rounded-b-lg"
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      )}
 
       {clientSecret && (
         <Elements

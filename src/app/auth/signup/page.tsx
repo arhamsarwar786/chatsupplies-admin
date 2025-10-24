@@ -202,7 +202,7 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in -mt-9">
+          <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in mt-25">
             <div className="flex flex-col items-center text-center">
               <h2 className="text-4xl font-bold text-gray-800 mb-2">
                 Create Account
@@ -320,6 +320,21 @@ export default function SignupPage() {
                 </span>
               </p>
             </form>
+            <div className="text-center max-w-xl mx-auto sm:mt-1">
+  <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
+    <span
+      onClick={() => window.open("https://chatsupplies.com", "_blank")}
+      className="text-primary font-bold cursor-pointer"
+    >
+      ChatSupplies
+    </span>{" "}
+    is a modern AI-powered platform designed to enhance customer
+    interactions through intelligent chat solutions. It empowers
+    businesses to automate conversations, improve support
+    efficiency, and drive user engagement with smart, responsive
+    chatbots.
+  </p>
+</div>
           </div>
         </div>
 
