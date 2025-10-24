@@ -1,4 +1,4 @@
-// ts-nocheck
+// @ts-nocheck
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { RadioGroup } from "@headlessui/react";
@@ -185,13 +185,20 @@ const EditChatbot = () => {
     };
 
     try {
-      await updateChatbot({
+      const result = await updateChatbot({
         chatbotId,
         body: chatbotForm,
-      }).unwrap();
-      toast.success("Chatbot updated successfully");
+      });
+
+      // Check if the mutation was successful
+      if ('data' in result) {
+        toast.success("Chatbot updated successfully");
+      } else if ('error' in result) {
+        console.error("Error updating chatbot:", result.error);
+        toast.error("Error updating chatbot");
+      }
     } catch (error) {
-      console.error("Error updating chatbot:", error);
+      console.error("Unexpected error updating chatbot:", error);
       toast.error("Error updating chatbot");
     }
   };

@@ -16,15 +16,13 @@ import {
 } from "@/src/components/ui/select";
 import PhoneInput from "@/src/components/PhoneInput";
 
-import { useCreateClientMutation } from "@/src/hooks/useClients";
-
 export default function SignupPage() {
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
     email: "",
     phone_number: "",
-    company_name: "",
+    website_url: "",
     industry: "",
     send_welcome_email: true,
     auto_activate_account: true,
@@ -33,7 +31,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [missing, setMissing] = useState<string[]>([]);
   const [invalidNames, setInvalidNames] = useState<string[]>([]);
-  const [createClient, { isLoading }] = useCreateClientMutation();
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   // ✅ Handle input changes with live validation
@@ -92,19 +90,30 @@ export default function SignupPage() {
       last_name: form.last_name.trim(),
       email: form.email.trim(),
       phone_number: form.phone_number.trim(),
-      company_name: form.company_name.trim(),
+      website_url: form.website_url.trim(),
       industry: form.industry.trim(),
+      send_welcome_email: form.send_welcome_email,
+      auto_activate_account: form.auto_activate_account,
     };
 
-    // Check for empty fields
-    const emptyFields = Object.entries(trimmedForm)
+    // Check for empty fields - only check string fields that are required
+    const requiredFields = {
+      first_name: trimmedForm.first_name,
+      last_name: trimmedForm.last_name,
+      email: trimmedForm.email,
+      phone_number: trimmedForm.phone_number,
+      industry: trimmedForm.industry,
+    };
+
+    const emptyFields = Object.entries(requiredFields)
       .filter(([_, val]) => val === "")
       .map(([key]) => key);
 
-    // Check for invalid first/last names
-    const invalidNameFields = ["first_name", "last_name"].filter(
-      (key) => !/^[A-Za-z\s]+$/.test(trimmedForm[key as keyof typeof trimmedForm])
-    );
+    // Check for invalid first/last names - only check string fields
+    const invalidNameFields = ["first_name", "last_name"].filter((key) => {
+      const value = trimmedForm[key as keyof typeof trimmedForm];
+      return typeof value === "string" && !/^[A-Za-z\s]+$/.test(value);
+    });
 
     if (emptyFields.length > 0 || invalidNameFields.length > 0) {
       setMissing(emptyFields);
@@ -120,33 +129,62 @@ export default function SignupPage() {
       return; // Prevent form submission
     }
 
+    setIsLoading(true);
     try {
-      const response = await createClient(trimmedForm).unwrap();
+      const response = await fetch("https://api.chatsupplies.com/beta/signup", {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(trimmedForm),
+      });
 
-      if (response?.success === false) {
-        toast.error(response.detail || "Something went wrong.");
-        setError(response.detail || "Something went wrong.");
-        return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 409) {
+          toast.error("Account already exists");
+          setError("Account already exists");
+          return; // Don't redirect to login
+        } else {
+          let errorMsg = "Something went wrong";
+
+          if (typeof data.detail === "string") {
+            errorMsg = data.detail;
+          } else if (Array.isArray(data.detail) && data.detail.length > 0) {
+            errorMsg = data.detail.map((err: any) => err.msg).join(", ");
+          } else if (data.detail?.msg) {
+            errorMsg = data.detail.msg;
+          } else if (data.error) {
+            errorMsg = data.error;
+          }
+
+          throw new Error(errorMsg);
+        }
       }
 
-      toast.success("Signup successful! Please log in.");
-      router.push("/auth/login");
+      // Handle successful response - always show custom success message
+      if (data.success || response.ok) {
+        toast.success("Account is created successfully, please log in");
+        router.push("/auth/login");
+      } else {
+        throw new Error(data.message || "Something went wrong");
+      }
     } catch (err: any) {
-      const message =
-        err?.data?.message ||
-        err?.data?.detail ||
-        err?.message ||
-        "Failed to create client";
+      const message = err?.message || "Failed to create client";
       setError(message);
       toast.error(message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen overflow-y-auto bg-gradient-to-br from-[#eeeaff] to-white flex items-center justify-center">
+    <div className="h-screen overflow-y-auto bg-gradient-to-br from-[#eeeaff] to-white flex items-center justify-center">
       <div className="grid grid-cols-1 h-full md:grid-cols-2 w-full bg-white shadow-xl overflow-hidden">
         {/* Left Section - Form */}
-        <div className="p-8">
+        <div className="p-8 overflow-y-auto h-screen">
           <div className="flex flex-col w-full mb-12 items-start gap-3">
             <div className="flex items-center gap-3 hover:scale-105 transition-transform duration-300">
               <Image
@@ -193,8 +231,8 @@ export default function SignupPage() {
                   onChange={handleChange}
                   placeholder="First Name"
                   className={`${missing.includes("first_name") || invalidNames.includes("first_name")
-                      ? "border-red-500"
-                      : "border-gray-400"
+                    ? "border-red-500"
+                    : "border-gray-400"
                     }`}
                 />
                 <Input
@@ -203,8 +241,8 @@ export default function SignupPage() {
                   onChange={handleChange}
                   placeholder="Last Name"
                   className={`${missing.includes("last_name") || invalidNames.includes("last_name")
-                      ? "border-red-500"
-                      : "border-gray-400"
+                    ? "border-red-500"
+                    : "border-gray-400"
                     }`}
                 />
               </div>
@@ -223,17 +261,20 @@ export default function SignupPage() {
               <PhoneInput
                 value={form.phone_number}
                 onChange={handlePhoneChange}
-                className={`mt-1 w-full border rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${missing.includes("phone_number") ? "border-red-500" : "border-gray-400"
+                // FIX: Modify padding classes to allow CSS to control it, but keep border/size/error state
+                // We remove px-3 and py-1.5 from here, as that space is now controlled by CSS on internal elements
+                className={`mt-1 w-full border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${missing.includes("phone_number") ? "border-red-500" : "border-gray-400"
                   }`}
               />
 
-              {/* Company */}
+              {/* Website URL */}
               <Input
-                name="company_name"
-                value={form.company_name}
+                name="website_url"
+                type="url"
+                value={form.website_url}
                 onChange={handleChange}
-                placeholder="Company Name"
-                className={missing.includes("company_name") ? "border-red-500" : "border-gray-400"}
+                placeholder="Website URL (optional)"
+                className="border-gray-400"
               />
 
               {/* Industry */}
@@ -244,8 +285,8 @@ export default function SignupPage() {
                 >
                   <SelectTrigger
                     className={`mt-1 w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${missing.includes("industry")
-                        ? "border-red-500"
-                        : "border-gray-400"
+                      ? "border-red-500"
+                      : "border-gray-400"
                       }`}
                   >
                     <SelectValue placeholder="Select Industry" />
@@ -302,4 +343,4 @@ export default function SignupPage() {
       </div>
     </div>
   );
-} 
+}

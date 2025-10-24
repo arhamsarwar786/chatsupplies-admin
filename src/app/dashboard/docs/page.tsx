@@ -1,8 +1,9 @@
 import React from 'react'
+import ScriptManagementPage from "./script/page"
 
 const page = () => {
   return (
-    <div>page</div>
+    <ScriptManagementPage/>
   )
 }
 

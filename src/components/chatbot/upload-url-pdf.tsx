@@ -852,7 +852,7 @@ const UploadUrlWithPDF = ({
                             <ChevronDown className="h-3 w-3" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-64 max-h-60 overflow-y-auto">
+                        <DropdownMenuContent align="end" className="w-115 max-h-60 overflow-y-auto">
                           {crawledUrls.map((crawledUrl, index) => (
                             <DropdownMenuItem 
                               key={index}

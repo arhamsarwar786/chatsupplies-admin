@@ -35,7 +35,8 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
       onChange={handleChange}
       defaultCountry="PK"
       placeholder="Enter phone number"
-      className={cn("", className)}
+      // FIX: Add a custom class for CSS targeting
+      className={cn("phone-input-fix", className)}
       international
       limitMaxLength
       disabled={disabled}
