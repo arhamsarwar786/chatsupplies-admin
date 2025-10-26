@@ -82,7 +82,7 @@ useEffect(() => {
           <Pencil className="w-5 h-5" />
         </button>
       </DialogTrigger>
-      <DialogContent >
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Package - {form.name}</DialogTitle>
         </DialogHeader>
