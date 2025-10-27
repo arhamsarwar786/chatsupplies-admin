@@ -11,7 +11,6 @@ import { RootState } from "@/src/store/store"
 import Image from "next/image"
 import Link from "next/link"
 
-// ✅ Added props definition (even if not used now)
 interface AppSidebarProps {
   isSidebarOpen?: boolean
   toggleSidebar?: () => void
@@ -19,8 +18,6 @@ interface AppSidebarProps {
 
 export function AppSidebar({ isSidebarOpen, toggleSidebar }: AppSidebarProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null)
-
-  // ✅ initialize collapsed directly from localStorage (lazy init)
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("sidebar-collapsed")
@@ -32,25 +29,36 @@ export function AppSidebar({ isSidebarOpen, toggleSidebar }: AppSidebarProps) {
   const pathname = usePathname()
   const role = useSelector((state: RootState) => state.authSlice.role)
 
-  // ✅ Listen for toggle events from header
   useEffect(() => {
     const handleSidebarToggle = (event: CustomEvent) => {
       setCollapsed(event.detail.collapsed)
     }
-
     window.addEventListener("sidebar-toggle", handleSidebarToggle as EventListener)
     return () => {
       window.removeEventListener("sidebar-toggle", handleSidebarToggle as EventListener)
     }
   }, [])
 
-  // ✅ keep collapsed state in sync with localStorage
   useEffect(() => {
     localStorage.setItem("sidebar-collapsed", String(collapsed))
   }, [collapsed])
 
-  const isActive = (url: string) =>
-    pathname === url || (url !== "/dashboard" && pathname.startsWith(url))
+  // Updated isActive function to check sub-items
+  const isActive = (url: string, subItems?: Array<{url: string}>) => {
+    // Direct match
+    if (pathname === url) return true
+    
+    // Check if any sub-item is active
+    if (subItems) {
+      return subItems.some(subItem => 
+        pathname === subItem.url || 
+        (subItem.url !== "/dashboard" && pathname.startsWith(subItem.url))
+      )
+    }
+    
+    // For non-dashboard items, check if path starts with url
+    return url !== "/dashboard" && pathname.startsWith(url)
+  }
 
   const toggleMenu = (title: string) => {
     setOpenMenu((prev) => (prev === title ? null : title))
@@ -60,38 +68,29 @@ export function AppSidebar({ isSidebarOpen, toggleSidebar }: AppSidebarProps) {
     { title: "Dashboard", url: "/dashboard", icon: Home },
     {
       title: "Chatbot Management",
-      url: "/dashboard/chatbot-management",
+      url: "#",
       icon: Bot,
       subItems: [
-        {
-          title: "Chat History",
-          url: "/dashboard/chatbot-management/chat-history",
-          icon: Home,
-        },
+        { title: "Chatbot", url: "/dashboard/chatbot-management/chatbot", icon: Bot },
+        { title: "Chat History", url: "/dashboard/chatbot-management/chat-history", icon: Home },
       ],
     },
     ...(role === "super_admin"
       ? [{ title: "Client Management", url: "/dashboard/client-management", icon: User }]
       : []),
-    {
-      title: "Docs",
-      url: "/dashboard/docs",
-      icon: Book,
-      subItems: [{ title: "Script", url: "/dashboard/docs/script", icon: Home }],
-    },
+   
     {
       title: "Packages Management",
-      url: "/dashboard/subscription-packages",
+      url: "#", // 👈 prevent navigation
       icon: Package,
       subItems: [
+        { title: "Packages", url: "/dashboard/packages", icon: Package },
         ...(role === "super_admin"
           ? [{ title: "Add Package", url: "/dashboard/add-packages", icon: PackagePlus }]
           : []),
       ],
     },
-    ...(role === "super_admin"
-      ? [{ title: "Beta Users", url: "/dashboard/beta-users", icon: Home }]
-      : []),
+   
     { title: "Terms and Conditions", url: "/dashboard/term-and-condition", icon: Home },
     { title: "Privacy Policy", url: "/dashboard/privacy-policy", icon: Home },
   ]
@@ -101,7 +100,7 @@ export function AppSidebar({ isSidebarOpen, toggleSidebar }: AppSidebarProps) {
       className={`left-0 bottom-0 sticky top-0 h-screen relative bg-white border-r shadow-sm flex flex-col justify-between transition-all duration-300 
         ${collapsed ? "w-[70px]" : "w-[320px] md:w-[250px]"}`}
     >
-      {/* Logo Header */}
+      {/* Header */}
       <div className="p-4 h-[85px] border-b flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Image src="/Frame.svg" alt="Logo" width={40} height={40} className="rounded-md" />
@@ -120,39 +119,71 @@ export function AppSidebar({ isSidebarOpen, toggleSidebar }: AppSidebarProps) {
           {items.map((item) => {
             const hasSubItems = item.subItems && item.subItems.length > 0
             const isOpen = openMenu === item.title
+            const isChatbotManagement = item.title === "Chatbot Management"
+            const isPackageManagement = item.title === "Packages Management"
+            const itemIsActive = isActive(item.url, item.subItems)
 
             return (
               <div key={item.title} className="px-2">
-                <Link
-                  href={item.url}
-                  className={`w-full flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all ${
-                    isActive(item.url)
-                      ? "bg-primary text-white"
-                      : "hover:bg-gray-100 text-gray-700"
-                  } ${collapsed ? "justify-center" : "justify-between"}`}
-                >
-                  <div
-                    className={`flex items-center gap-2 ${
-                      collapsed ? "w-full justify-center" : ""
-                    }`}
+                {/* For Chatbot & Package Management: expand/collapse only */}
+                {isChatbotManagement || isPackageManagement ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleMenu(item.title)}
+                    className={`w-full flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                      itemIsActive
+                        ? "bg-primary text-white"
+                        : "hover:bg-gray-100 text-gray-700"
+                    } ${collapsed ? "justify-center" : "justify-between"}`}
                   >
-                    <item.icon size={18} />
-                    {!collapsed && <span>{item.title}</span>}
-                  </div>
-                  {!collapsed && hasSubItems && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        toggleMenu(item.title)
-                      }}
-                      className="ml-auto"
+                    <div
+                      className={`flex items-center gap-2 ${
+                        collapsed ? "w-full justify-center" : ""
+                      }`}
                     >
-                      {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    </button>
-                  )}
-                </Link>
+                      <item.icon size={18} />
+                      {!collapsed && <span>{item.title}</span>}
+                    </div>
+                    {!collapsed && hasSubItems && (
+                      <div className="ml-auto">
+                        {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </div>
+                    )}
+                  </button>
+                ) : (
+                  // All other items behave normally
+                  <Link
+                    href={item.url}
+                    className={`w-full flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all ${
+                      itemIsActive
+                        ? "bg-primary text-white"
+                        : "hover:bg-gray-100 text-gray-700"
+                    } ${collapsed ? "justify-center" : "justify-between"}`}
+                  >
+                    <div
+                      className={`flex items-center gap-2 ${
+                        collapsed ? "w-full justify-center" : ""
+                      }`}
+                    >
+                      <item.icon size={18} />
+                      {!collapsed && <span>{item.title}</span>}
+                    </div>
+                    {!collapsed && hasSubItems && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          toggleMenu(item.title)
+                        }}
+                        className="ml-auto"
+                      >
+                        {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      </button>
+                    )}
+                  </Link>
+                )}
 
+                {/* Sub-items */}
                 {hasSubItems && isOpen && !collapsed && (
                   <div className="ml-6 mt-2 space-y-1">
                     {item.subItems.map((subItem) => (
@@ -183,7 +214,7 @@ export function AppSidebar({ isSidebarOpen, toggleSidebar }: AppSidebarProps) {
           collapsed ? "hidden" : ""
         }`}
       >
-        © 2024 Admin Dashboard
+        © 2025 ChatSupplies
       </div>
     </aside>
   )

@@ -162,13 +162,10 @@ const ChatHistoryPage = () => {
 
       {/* Back button + Stat Cards (Only back button remains after removal) */}
       <div className="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <button
-          onClick={() => history.back()}
-          className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 !cursor-pointer flex-shrink-0"
-          title="Back to chatbot Management"
-        >
-          Back to Previous
-        </button>
+   <button
+  onClick={() => history.back()}>
+  <ArrowLeft size={16} />
+</button>
 
         {/* ❌ REMOVED: Stat Cards Row 
         

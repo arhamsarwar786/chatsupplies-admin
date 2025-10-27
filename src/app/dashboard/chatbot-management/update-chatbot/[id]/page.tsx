@@ -8,7 +8,7 @@ const page = () => {
   const router = useRouter()
 
     const handleBackToChatbot = () => {
-      router.push("/dashboard/chatbot-management")
+      router.push("/dashboard/chatbot-management/chatbot")
     }
   return (
    <div>
