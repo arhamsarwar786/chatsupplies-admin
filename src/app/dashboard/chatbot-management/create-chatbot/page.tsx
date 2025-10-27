@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 export default function ChatbotSetupForm() {
   const router = useRouter()
   const handleBackToChatbot = () => {
-    router.push("/dashboard/chatbot-management")
+    router.push("/dashboard/chatbot-management/chatbot")
   }
 
   return (

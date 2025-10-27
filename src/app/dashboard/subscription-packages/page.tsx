@@ -1,9 +1,6 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import dynamic from "next/dynamic";
-
-const ClientPage = dynamic(() => import("./ClientPage"), { ssr: false });
-
-export default function SubscriptionPackagesPage() {
-  return <ClientPage />;
+export default function PackageManagementPage() {
+  // Redirect clicking on "Package Management" to /dashboard/packages
+  redirect("/dashboard/packages");
 }

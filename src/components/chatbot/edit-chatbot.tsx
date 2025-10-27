@@ -377,7 +377,7 @@ const EditChatbot = () => {
                       <div className="flex items-center">
                         <div
                           className={`h-4 w-4 rounded-full border flex items-center justify-center mr-3 ${checked ? "border-blue-500 bg-blue-500" : "border-gray-400"
-                          }`}
+                            }`}
                         >
                           {checked && (
                             <div className="h-2 w-2 rounded-full bg-white"></div>
@@ -657,12 +657,12 @@ const EditChatbot = () => {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-200">
+                <div className="pt-4 border-t border-gray-200 flex items-center justify-start gap-3">
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className={`w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition flex items-center justify-center shadow-md ${!isLoading ? "cursor-pointer" : "cursor-not-allowed"
-                    }`}
+                    className={`px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition flex items-center justify-center shadow-md ${!isLoading ? "cursor-pointer" : "cursor-not-allowed"
+                      }`}
                   >
                     {isLoading ? (
                       <>
@@ -680,11 +680,12 @@ const EditChatbot = () => {
                   <button
                     type="button"
                     onClick={resetForm}
-                    className="mt-3 text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer"
+                    className="px-6 py-3 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition cursor-pointer shadow-sm"
                   >
                     Reset form
                   </button>
                 </div>
+
               </div>
 
               <div className="w-full md:w-96">

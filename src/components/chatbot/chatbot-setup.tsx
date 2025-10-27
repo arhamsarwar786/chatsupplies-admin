@@ -704,7 +704,7 @@ const ChatbotSetup = () => {
                         <p className="text-xs text-gray-500">{description}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                       
+
                         <input
                           type="color"
                           value={value}
@@ -840,7 +840,7 @@ const ChatbotSetup = () => {
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-gray-200">
+                    <div className="pt-4 border-t border-gray-200 flex items-center justify-start gap-3">
                       <button
                         type="submit"
                         disabled={!isFormComplete || isLoading}
@@ -866,9 +866,9 @@ const ChatbotSetup = () => {
                       <button
                         type="button"
                         onClick={() => setShowResetConfirm(true)}
-                        className="mt-3 text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer"
+  className="px-6 py-3 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition cursor-pointer shadow-sm"
                       >
-                        Reset form
+                        Reset
                       </button>
                       <Reset
                         isOpen={showResetConfirm}
