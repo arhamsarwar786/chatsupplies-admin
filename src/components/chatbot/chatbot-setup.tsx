@@ -225,9 +225,10 @@ const ChatbotSetup = () => {
     if (includePdf && pdfFile) {
       formData.append("files", pdfFile);
     }
-    if (selectedEmail) {
+    if (role === "super_admin" && selectedEmail) {
       formData.append("client_email", selectedEmail);
     }
+
     if (logoFile) {
       formData.append("logo", logoFile);
     }
@@ -262,7 +263,8 @@ const ChatbotSetup = () => {
     industry.trim() !== "" &&
     welcomeMessage.trim() !== "" &&
     !!logoFile &&
-    selectedEmail.trim() !== "";
+    (role === "super_admin" ? selectedEmail.trim() !== "" : true);
+
 
 
 
@@ -866,7 +868,7 @@ const ChatbotSetup = () => {
                       <button
                         type="button"
                         onClick={() => setShowResetConfirm(true)}
-  className="px-6 py-3 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition cursor-pointer shadow-sm"
+                        className="px-6 py-3 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition cursor-pointer shadow-sm"
                       >
                         Reset
                       </button>
