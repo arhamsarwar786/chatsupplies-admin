@@ -31,7 +31,7 @@ const ChatbotSetup = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { data: clientResults = [] } = useSearchClientsQuery(
     { query: searchTerm },
-    { skip: searchTerm.length < 2 } // skip search unless input is at least 2 chars
+    { skip: searchTerm.length < 1 } // skip search unless input is at least 2 chars
   );
   const [progress] = useState(65);
   const [message, setMessage] = useState("");
@@ -293,9 +293,14 @@ const ChatbotSetup = () => {
           {role === "super_admin" && (
             <div className="w-full max-w-md mt-4">
               <div className="relative">
+                {/* Search Icon on the left */}
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  🔍
+                </div>
+                
                 <input
                   type="text"
-                  placeholder="🔍 Search client by email..."
+                  placeholder="Search client by email..."
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
@@ -303,8 +308,22 @@ const ChatbotSetup = () => {
                     setIsDropdownOpen(true);
                     markDirty();
                   }}
-                  className="border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 rounded-lg p-2.5 w-full shadow-sm"
+                  className="border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 rounded-lg p-2.5 w-full shadow-sm pl-10 pr-10" // Added padding for icons
                 />
+
+                {/* Loading indicator on the right */}
+                {searchTerm.length >= 2 && clientResults?.length === 0 && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+                  </div>
+                )}
+
+                {/* Checkmark when user is selected */}
+                {selectedEmail && searchTerm === selectedEmail && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <Check className="w-4 h-4 text-green-500" />
+                  </div>
+                )}
 
                 {/* ✅ Confirmation Modal must be outside handlers */}
                 <ConfirmationPopup

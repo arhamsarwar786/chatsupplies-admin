@@ -1,17 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useDispatch } from "react-redux";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
+// Import Google icon
+import { FcGoogle } from "react-icons/fc";
+
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Alert, AlertDescription } from "@/src/components/ui/alert";
 import { useLoginMutation } from "@/src/hooks/UseAuth";
 import { setLogin } from "@/src/slice/authSlice";
+// Updated imports
+import { auth, provider, signInWithEmailAndPassword, signInWithPopup, logAnalyticsEvent } from "@/src/lib/firebase";
+import app from "@/src/lib/firebase";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -23,6 +29,15 @@ export default function LoginPage() {
   const dispatch = useDispatch();
   const [login] = useLoginMutation();
 
+  // Track page view on component mount
+  useEffect(() => {
+    logAnalyticsEvent('page_view', {
+      page_title: 'Login Page',
+      page_location: '/auth/login'
+    });
+  }, []);
+
+  // Enhanced login function with analytics
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -31,6 +46,14 @@ export default function LoginPage() {
     if (!username || !password) {
       setError("Please fill in all fields");
       toast.error("Please fill in all fields");
+      
+      // Track validation error
+      logAnalyticsEvent('login_validation_error', {
+        error_type: 'empty_fields',
+        username_provided: !!username,
+        password_provided: !!password
+      });
+      
       setIsLoading(false);
       return;
     }
@@ -53,19 +76,112 @@ export default function LoginPage() {
         localStorage.setItem("userid", user.id);
         localStorage.setItem("userObject", JSON.stringify(user));
 
+        // Track successful login
+        logAnalyticsEvent('login_success', {
+          method: 'email_password',
+          user_id: user.id,
+          user_role: user.role,
+          username: username,
+          email: email
+        });
+
+        // Track admin-specific login
+        if (user.role === 'admin') {
+          logAnalyticsEvent('admin_login', {
+            user_id: user.id,
+            username: username,
+            email: email,
+            login_timestamp: new Date().toISOString()
+          });
+        }
+
         toast.success("Login successful!");
         setTimeout(() => router.push("/dashboard"), 700);
       } else {
         setError("Invalid response from server");
         toast.error("Invalid response from server");
+        
+        // Track server error
+        logAnalyticsEvent('login_server_error', {
+          error_type: 'invalid_response',
+          has_token: !!token,
+          has_role: !!user?.role
+        });
       }
     } catch (err: any) {
       const message = err?.data?.message || "Invalid username or password";
       setError(message);
       toast.error(message);
+      
+      // Track login failure
+      logAnalyticsEvent('login_failed', {
+        method: 'email_password',
+        error_message: message,
+        username: username,
+        error_code: err?.data?.code || 'unknown'
+      });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Enhanced Google Sign-in with analytics
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    setError("");
+    
+    // Track Google sign-in attempt
+    logAnalyticsEvent('google_signin_attempt');
+    
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Track successful Google sign-in
+      logAnalyticsEvent('google_signin_success', {
+        user_id: user.uid,
+        email: user.email,
+        display_name: user.displayName
+      });
+
+      // *** IMPORTANT: Replace with your backend token exchange logic ***
+      // After backend authentication, track admin status
+      // Example:
+      // const backendResponse = await yourBackendAuth(user);
+      // if (backendResponse.user.role === 'admin') {
+      //   logAnalyticsEvent('admin_google_login', {
+      //     user_id: backendResponse.user.id,
+      //     email: user.email,
+      //     login_timestamp: new Date().toISOString()
+      //   });
+      // }
+
+      toast.success(`Welcome, ${user.displayName || user.email}!`);
+      setTimeout(() => router.push("/dashboard"), 700);
+
+    } catch (err: any) {
+      const message = err.code ? err.code.replace('auth/', '').replace(/-/g, ' ') : "An unknown error occurred during Google sign-in.";
+      setError(`Google Sign-in failed: ${message}`);
+      toast.error(`Google Sign-in failed: ${message}`);
+      
+      // Track Google sign-in failure
+      logAnalyticsEvent('google_signin_failed', {
+        error_code: err.code || 'unknown',
+        error_message: message
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Track other user interactions
+  const trackUserInteraction = (interactionType: string, additionalParams = {}) => {
+    logAnalyticsEvent('user_interaction', {
+      interaction_type: interactionType,
+      page: 'login',
+      timestamp: new Date().toISOString(),
+      ...additionalParams
+    });
   };
 
   return (
@@ -81,6 +197,7 @@ export default function LoginPage() {
                 width={40}
                 height={40}
                 className="rounded-md shadow-md shadow-primary"
+                onClick={() => trackUserInteraction('logo_click')}
               />
               <h1 className="text-[22px] sm:text-2xl font-bold tracking-tight text-gray-900">
                 <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -90,7 +207,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in -mt-10">
+          <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in">
             <div className="flex flex-col items-center text-center">
               <h2 className="text-4xl font-bold text-gray-800 mb-2">
                 Welcome Back
@@ -101,10 +218,12 @@ export default function LoginPage() {
               </p>
             </div>
 
+            {/* The Login Form */}
             <form
               onSubmit={handleLogin}
               className="space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/30 -mt-3"
             >
+
               {error && (
                 <Alert
                   variant="destructive"
@@ -116,6 +235,7 @@ export default function LoginPage() {
                 </Alert>
               )}
 
+              {/* Username Input */}
               <Input
                 type="text"
                 placeholder="Username"
@@ -125,12 +245,17 @@ export default function LoginPage() {
                   if (error && e.target.value.trim()) {
                     setError("");
                   }
+                  trackUserInteraction('username_input', {
+                    input_length: e.target.value.length
+                  });
                 }}
+                onFocus={() => trackUserInteraction('username_focus')}
                 disabled={isLoading}
                 className={`bg-[#f3f0ff] ${error && !username ? "border border-red-500" : ""
                   }`}
               />
 
+              {/* Password Input */}
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
@@ -142,6 +267,7 @@ export default function LoginPage() {
                       setError("");
                     }
                   }}
+                  onFocus={() => trackUserInteraction('password_focus')}
                   disabled={isLoading}
                   className={`bg-[#f3f0ff] ${error && !password ? "border border-red-500" : ""
                     }`}
@@ -151,26 +277,58 @@ export default function LoginPage() {
                   variant="ghost"
                   size="sm"
                   className="absolute bg-gray-100 right-2 top-1/2 -translate-y-1/2 cursor-pointer"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => {
+                    setShowPassword(!showPassword);
+                    trackUserInteraction('toggle_password_visibility', {
+                      new_state: !showPassword ? 'visible' : 'hidden'
+                    });
+                  }}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </Button>
               </div>
 
-              {/* ✅ Single Login button */}
+              {/* ✅ Primary Login button */}
               <Button
                 type="submit"
                 className="w-full rounded-full bg-gradient-to-r from-[#2648EF] to-[#252F8B] hover:opacity-90 text-white"
                 disabled={isLoading}
+                onClick={() => trackUserInteraction('login_button_click')}
               >
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
 
+              {/* === GOOGLE BUTTON === */}
+              <div className="pt-2 space-y-4">
+                {/* Separator */}
+                <div className="relative flex items-center justify-center w-full">
+                  <div className="flex-grow border-t border-gray-300"></div>
+                  <span className="flex-shrink mx-4 text-gray-400 text-sm">
+                    or continue with
+                  </span>
+                  <div className="flex-grow border-t border-gray-300"></div>
+                </div>
+
+                {/* Google Button */}
+                <Button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  className="w-full rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 shadow-md transition-colors duration-300 flex items-center justify-center gap-3 font-medium"
+                  disabled={isLoading}
+                >
+                  <FcGoogle className="w-5 h-5" />
+                  <span className="text-center flex-1">{isLoading ? "Signing in..." : "Sign in with Google"}</span>
+                </Button>
+              </div>
+
               {/* ✅ Signup link */}
               <p className="text-center text-sm text-gray-600 mt-4">
-                Don’t have an account?{" "}
+                Don't have an account?{" "}
                 <span
-                  onClick={() => router.push("/auth/signup")}
+                  onClick={() => {
+                    trackUserInteraction('signup_link_click');
+                    router.push("/auth/signup");
+                  }}
                   className="text-primary font-semibold cursor-pointer hover:underline"
                 >
                   Sign up
@@ -181,7 +339,10 @@ export default function LoginPage() {
             <div className="text-center max-w-xl mx-auto sm:mt-1">
               <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
                 <span
-                  onClick={() => window.open("https://chatsupplies.com", "_blank")}
+                  onClick={() => {
+                    trackUserInteraction('website_link_click');
+                    window.open("https://chatsupplies.com", "_blank");
+                  }}
                   className="text-primary font-bold cursor-pointer"
                 >
                   ChatSupplies
