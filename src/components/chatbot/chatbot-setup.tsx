@@ -29,7 +29,10 @@ const ChatbotSetup = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmail, setSelectedEmail] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { data: clientResults = [] } = useSearchClientsQuery(
+  // Add search status state
+  const [searchStatus, setSearchStatus] = useState<'idle' | 'loading' | 'success' | 'not_found' | 'error'>('idle');
+
+  const { data: clientResults = [], error: searchError } = useSearchClientsQuery(
     { query: searchTerm },
     { skip: searchTerm.length < 1 } // skip search unless input is at least 2 chars
   );
@@ -158,6 +161,7 @@ const ChatbotSetup = () => {
     setUploadedFiles([]);
     setIncludePdf(true);
     setMessage("");
+    setSearchStatus('idle');
   };
   const searchParams = useSearchParams();
   const [clientEmail, setClientEmail] = useState('');
@@ -167,8 +171,39 @@ const ChatbotSetup = () => {
     if (emailFromQuery) {
       setSelectedEmail(emailFromQuery);
       setSearchTerm(emailFromQuery);
+      setSearchStatus('success');
     }
   }, [searchParams]);
+
+  // Add useEffect to handle search status updates based on query results
+  useEffect(() => {
+    if (searchTerm.length >= 2) {
+      if (!clientResults && !searchError) {
+        // still loading, no result yet
+        setSearchStatus("loading");
+        return;
+      }
+
+      if (clientResults && clientResults.length === 0) {
+        setSearchStatus("not_found");
+      } else if (clientResults && clientResults.length > 0) {
+        setSearchStatus("success");
+      }
+    } else if (searchTerm.length > 0) {
+      // when typing less than 2 chars (start typing)
+      setSearchStatus("loading");
+    } else {
+      setSearchStatus("idle");
+    }
+  }, [clientResults, searchError, searchTerm]);
+
+
+  // Add useEffect to handle search errors
+  useEffect(() => {
+    if (searchError) {
+      setSearchStatus('error');
+    }
+  }, [searchError]);
 
   const validateForm = () => {
     const errors = {
@@ -297,7 +332,7 @@ const ChatbotSetup = () => {
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                   🔍
                 </div>
-                
+
                 <input
                   type="text"
                   placeholder="Search client by email..."
@@ -306,22 +341,39 @@ const ChatbotSetup = () => {
                     setSearchTerm(e.target.value);
                     setSelectedEmail(e.target.value); // Sync with selected email
                     setIsDropdownOpen(true);
+                    setSearchStatus('loading'); // Set loading when user types
                     markDirty();
                   }}
                   className="border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 rounded-lg p-2.5 w-full shadow-sm pl-10 pr-10" // Added padding for icons
                 />
 
-                {/* Loading indicator on the right */}
-                {searchTerm.length >= 2 && clientResults?.length === 0 && (
+                {/* Loading indicator */}
+                {/* Loading indicator - only show when search term is relevant (>= 2 chars) and query is loading */}
+                {searchStatus === 'loading' && searchTerm.length > 0 && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
                   </div>
                 )}
 
-                {/* Checkmark when user is selected */}
-                {selectedEmail && searchTerm === selectedEmail && (
+
+                {/* Success state - user selected from dropdown */}
+                {searchStatus === 'success' && selectedEmail && searchTerm === selectedEmail && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     <Check className="w-4 h-4 text-green-500" />
+                  </div>
+                )}
+
+                {/* Not found state - search completed but no results */}
+                {searchStatus === 'not_found' && searchTerm.length >= 2 && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <span className="text-gray-400 text-sm">No results</span>
+                  </div>
+                )}
+
+                {/* Error state */}
+                {searchStatus === 'error' && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <span className="text-red-400 text-sm">Error</span>
                   </div>
                 )}
 
@@ -342,6 +394,7 @@ const ChatbotSetup = () => {
                           setSelectedEmail(client.email);
                           setSearchTerm(client.email);
                           setIsDropdownOpen(false);
+                          setSearchStatus('success'); // Set success when user selects
                           markDirty();
                         }}
                       >
@@ -360,12 +413,21 @@ const ChatbotSetup = () => {
 
                 )}
               </div>
-              {/* Show selected email */}
-              {/* {selectedEmail && (
-      <div className="mt-3 text-sm text-purple-700 bg-purple-50 p-2 rounded-md shadow-sm border border-purple-200">
-        <span className="font-medium">Selected:</span> {selectedEmail}
-      </div>
-    )} */}
+              {/* Status message below search input */}
+              <div className="mt-1">
+                {searchStatus === 'loading' && searchTerm.length >= 2 && (
+                  <p className="text-xs text-blue-600">Searching clients...</p>
+                )}
+                {searchStatus === 'not_found' && searchTerm.length >= 2 && (
+                  <p className="text-xs text-amber-600">No clients found with that email</p>
+                )}
+                {searchStatus === 'error' && (
+                  <p className="text-xs text-red-600">Search failed. Please try again.</p>
+                )}
+                {searchStatus === 'success' && selectedEmail && searchTerm === selectedEmail && (
+                  <p className="text-xs text-green-600">Client selected: {selectedEmail}</p>
+                )}
+              </div>
             </div>
           )}
         </div>

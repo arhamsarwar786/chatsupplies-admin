@@ -186,9 +186,9 @@ export default function LoginPage() {
 
   return (
     <div className="h-screen overflow-y-auto bg-gradient-to-br from-[#eeeaff] to-white flex items-center justify-center">
-      <div className="grid grid-cols-1 h-full md:grid-cols-2 w-full bg-white shadow-xl overflow-hidden">
-        {/* Left Section - Form */}
-        <div className="p-8 overflow-y-auto  max-h-screen">
+      <div className="grid grid-cols-1 h-full lg:grid-cols-2 w-full bg-white shadow-xl overflow-hidden">
+        {/* Left Section - Form - Always visible */}
+        <div className="p-8 overflow-y-auto max-h-screen">
           <div className="flex flex-col w-full mb-12 items-start gap-3">
             <div className="flex items-center gap-3 hover:scale-105 transition-transform duration-300">
               <Image
@@ -357,8 +357,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right Section - Image */}
-        <div className="hidden md:block bg-gradient-to-br from-primary to-secondary relative w-full h-full">
+        {/* Right Section - Image - Only show on desktop (lg breakpoint and above) */}
+        <div className="hidden lg:block bg-gradient-to-br from-primary to-secondary relative w-full h-full">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="rounded-3xl overflow-hidden p-8 bg-white/10 backdrop-blur-lg shadow-2xl border border-white/20">
               <Image
