@@ -55,3 +55,4 @@ export const config = {
     "/((?!api|_next/static|_next/image|favicon.ico|images/|icons/).*)",
   ], // Excludes static assets and public folder
 };
+
