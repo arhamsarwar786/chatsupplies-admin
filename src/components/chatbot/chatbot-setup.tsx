@@ -1,6 +1,6 @@
 // @ts-nocheck
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { RadioGroup } from "@headlessui/react";
 import { useCreateChatbotMutation } from "@/src/hooks/useChatbot";
 import { useSelector } from "react-redux";
@@ -9,15 +9,32 @@ import { toast } from "sonner";
 import { useSearchClientsQuery } from "@/src/hooks/useClients";
 import axios from "axios";
 import { CheckCircle, Loader2, Trash, Send, BotIcon, ImageIcon, Check, ChevronDown, ChevronUp, Upload, Palette, Settings, FileText, MessageSquare } from "lucide-react";
-import { useRouter } from "next/navigation"; // Add this import at the top
+import { useRouter } from "next/navigation";
 import Reset from "./set"
 import useExitPrompt from "./restriction";
-import ConfirmationPopup from "./confirmationPopup"; // Make sure this import path is correct
+import ConfirmationPopup from "./confirmationPopup";
+import LivePreview from "./live-preview"
 
 interface UploadedFile {
   name: string;
   status: "uploaded" | "processing";
 }
+
+// --- DEBOUNCE UTILITY FUNCTION ---
+/**
+ * Returns a function that delays invoking func until after wait milliseconds have elapsed 
+ * since the last time the debounced function was invoked.
+ */
+const debounce = (func, delay) => {
+  let timeoutId;
+  return function(...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func.apply(this, args);
+    }, delay);
+  };
+};
+// ----------------------------------
 
 
 const ChatbotSetup = () => {
@@ -26,16 +43,37 @@ const ChatbotSetup = () => {
   const [showCreateConfirm, setShowCreateConfirm] = useState(false);
   const { showPrompt, confirmLeave, cancelLeave, markDirty } = useExitPrompt();
   const role = useSelector((state: RootState) => state.authSlice.role);
+  
+  // 1. State for immediate input value
+  const [searchInput, setSearchInput] = useState('');
+  
+  // 2. State for the actual search term (triggers API call)
   const [searchTerm, setSearchTerm] = useState('');
+  
   const [selectedEmail, setSelectedEmail] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   // Add search status state
   const [searchStatus, setSearchStatus] = useState<'idle' | 'loading' | 'success' | 'not_found' | 'error'>('idle');
+  
+  // 3. Debounced function to update the actual searchTerm
+  const debouncedSetSearchTerm = useCallback(
+    debounce((value) => {
+      // Only set the search term if it meets the minimum length to avoid initial empty search
+      if (value.length >= 2) {
+        setSearchTerm(value);
+      } else {
+        setSearchTerm(''); // Clear term if typing less than min length
+      }
+    }, 500), // 500ms debounce delay
+    []
+  );
 
   const { data: clientResults = [], error: searchError } = useSearchClientsQuery(
     { query: searchTerm },
-    { skip: searchTerm.length < 1 } // skip search unless input is at least 2 chars
+    // Skip query if searchTerm is empty or too short (controlled by debounced function)
+    { skip: searchTerm.length < 2 } 
   );
+  
   const [progress] = useState(65);
   const [message, setMessage] = useState("");
 
@@ -74,7 +112,7 @@ const ChatbotSetup = () => {
     }));
   };
 
-  // 1. Add state for the new checkbox
+  // Add state for the new checkbox
   const [includePdf, setIncludePdf] = useState(false);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,44 +204,68 @@ const ChatbotSetup = () => {
   const searchParams = useSearchParams();
   const [clientEmail, setClientEmail] = useState('');
 
+  // 4. Update useEffect to use searchInput and searchTerm for initialization
   useEffect(() => {
     const emailFromQuery = searchParams.get('clientEmail');
     if (emailFromQuery) {
       setSelectedEmail(emailFromQuery);
-      setSearchTerm(emailFromQuery);
+      setSearchInput(emailFromQuery); // Initialize immediate input state
+      setSearchTerm(emailFromQuery); // Initialize API trigger state
       setSearchStatus('success');
     }
   }, [searchParams]);
 
+  // 5. Input change handler that uses debounce
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchInput(value); // Update immediate input state
+    setSelectedEmail(value); // Sync with selected email
+    setIsDropdownOpen(true);
+    markDirty();
+
+    // Call the debounced function. It will handle the minimum length check internally 
+    // before updating searchTerm
+    debouncedSetSearchTerm(value);
+    
+    // Immediate visual feedback: show loading spinner as soon as typing starts
+    if (value.length > 0) {
+        setSearchStatus('loading');
+    } else {
+        setSearchStatus('idle');
+    }
+  };
+
+
   // Add useEffect to handle search status updates based on query results
   useEffect(() => {
     if (searchTerm.length >= 2) {
-      if (!clientResults && !searchError) {
-        // still loading, no result yet
-        setSearchStatus("loading");
-        return;
-      }
-
-      if (clientResults && clientResults.length === 0) {
-        setSearchStatus("not_found");
-      } else if (clientResults && clientResults.length > 0) {
+      // Check for loading via query (if useSearchClientsQuery provided isFetching, that'd be better)
+      // For now, rely on result presence/absence
+      
+      // If results are available and match the current active search term
+      if (clientResults && clientResults.length > 0) {
         setSearchStatus("success");
+      } 
+      // If search completed and found nothing
+      else if (clientResults && clientResults.length === 0) {
+        setSearchStatus("not_found");
       }
-    } else if (searchTerm.length > 0) {
-      // when typing less than 2 chars (start typing)
-      setSearchStatus("loading");
-    } else {
-      setSearchStatus("idle");
-    }
-  }, [clientResults, searchError, searchTerm]);
-
-
-  // Add useEffect to handle search errors
-  useEffect(() => {
+    } 
+    
+    // Handle error state separately
     if (searchError) {
       setSearchStatus('error');
+    } 
+    // If the input is active but the debounce hasn't triggered an API call yet
+    // or if the search term is below the minimum length but the user is typing
+    else if (searchInput.length > 0 && searchStatus !== 'success' && searchStatus !== 'not_found') {
+       setSearchStatus("loading");
+    } else if (searchInput.length === 0) {
+       setSearchStatus("idle");
     }
-  }, [searchError]);
+
+  }, [clientResults, searchError, searchTerm, searchInput, searchStatus]);
+
 
   const validateForm = () => {
     const errors = {
@@ -336,20 +398,16 @@ const ChatbotSetup = () => {
                 <input
                   type="text"
                   placeholder="Search client by email..."
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setSelectedEmail(e.target.value); // Sync with selected email
-                    setIsDropdownOpen(true);
-                    setSearchStatus('loading'); // Set loading when user types
-                    markDirty();
-                  }}
+                  // Use the immediate input state for value
+                  value={searchInput} 
+                  // Use the new debounced input handler
+                  onChange={handleSearchInputChange} 
                   className="border border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 rounded-lg p-2.5 w-full shadow-sm pl-10 pr-10" // Added padding for icons
                 />
 
                 {/* Loading indicator */}
-                {/* Loading indicator - only show when search term is relevant (>= 2 chars) and query is loading */}
-                {searchStatus === 'loading' && searchTerm.length > 0 && (
+                {/* Show loading when user is typing (length > 0) and the final status isn't yet reached */}
+                {searchStatus === 'loading' && searchInput.length > 0 && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
                   </div>
@@ -357,14 +415,14 @@ const ChatbotSetup = () => {
 
 
                 {/* Success state - user selected from dropdown */}
-                {searchStatus === 'success' && selectedEmail && searchTerm === selectedEmail && (
+                {searchStatus === 'success' && selectedEmail && searchInput === selectedEmail && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     <Check className="w-4 h-4 text-green-500" />
                   </div>
                 )}
 
-                {/* Not found state - search completed but no results */}
-                {searchStatus === 'not_found' && searchTerm.length >= 2 && (
+                {/* Not found state - search completed but no results (uses current input length) */}
+                {searchStatus === 'not_found' && searchInput.length >= 2 && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     <span className="text-gray-400 text-sm">No results</span>
                   </div>
@@ -383,8 +441,8 @@ const ChatbotSetup = () => {
                   onConfirm={confirmLeave}
                   onCancel={cancelLeave}
                 />
-                {/* Dropdown results */}
-                {isDropdownOpen && searchTerm.length >= 2 && clientResults?.length > 0 && (
+                {/* Dropdown results - Only show if open, input is long enough, and results exist */}
+                {isDropdownOpen && searchInput.length >= 2 && clientResults?.length > 0 && (
                   <ul className="absolute z-20 bg-white border border-gray-200 shadow-lg mt-1 w-full rounded-lg overflow-hidden max-h-60 overflow-y-auto">
                     {clientResults.map((client: any) => (
                       <li
@@ -392,7 +450,8 @@ const ChatbotSetup = () => {
                         className="px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-800 cursor-pointer transition-colors"
                         onClick={() => {
                           setSelectedEmail(client.email);
-                          setSearchTerm(client.email);
+                          setSearchInput(client.email); // Set input field value
+                          setSearchTerm(client.email); // Set API trigger value
                           setIsDropdownOpen(false);
                           setSearchStatus('success'); // Set success when user selects
                           markDirty();
@@ -415,16 +474,16 @@ const ChatbotSetup = () => {
               </div>
               {/* Status message below search input */}
               <div className="mt-1">
-                {searchStatus === 'loading' && searchTerm.length >= 2 && (
+                {searchStatus === 'loading' && searchInput.length >= 2 && (
                   <p className="text-xs text-blue-600">Searching clients...</p>
                 )}
-                {searchStatus === 'not_found' && searchTerm.length >= 2 && (
+                {searchStatus === 'not_found' && searchInput.length >= 2 && (
                   <p className="text-xs text-amber-600">No clients found with that email</p>
                 )}
                 {searchStatus === 'error' && (
                   <p className="text-xs text-red-600">Search failed. Please try again.</p>
                 )}
-                {searchStatus === 'success' && selectedEmail && searchTerm === selectedEmail && (
+                {searchStatus === 'success' && selectedEmail && searchInput === selectedEmail && (
                   <p className="text-xs text-green-600">Client selected: {selectedEmail}</p>
                 )}
               </div>
@@ -527,6 +586,7 @@ const ChatbotSetup = () => {
                         <option value="Education">Education</option>
                         <option value="E-commerce">E-commerce</option>
                         <option value="Technology">Technology</option>
+                        <option value="Other">Other</option>
                       </select>
 
                       {/* Popup correctly placed outside */}
@@ -799,91 +859,21 @@ const ChatbotSetup = () => {
                   ))}
 
                 </div>
-                {/* Live Preview */}
-                <div className="space-y-4 w-full">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Live Preview</h3>
-                  <div
-                    className="border flex flex-col justify-between rounded-xl overflow-hidden shadow-lg w-full h-[450px]"
-                    style={{ backgroundColor: windowBgColor }}
-                  >
-                    <div>
-                      {/* Chat Header */}
-                      <div
-                        className="text-white p-4 flex items-center space-x-3"
-                        style={{ backgroundColor: primaryColor }}
-                      >
-                        {logoPreview ? (
-                          <img src={logoPreview} alt="Logo" className="w-8 h-8 rounded-full object-cover" />
-                        ) : (
-                          <div className="bg-white/20 p-1.5 rounded-full">
-                            <BotIcon className="w-5 h-5 text-white" />
-                          </div>
-                        )}
-                        <div>
-                          <p className="font-medium">{name || "Customer Support"}</p>
-                          <p className="text-xs text-white/80">Online</p>
-                        </div>
-                      </div>
-                      {/* Chat Messages */}
-                      <div className="p-4 space-y-4 h-64 overflow-y-auto">
-                        {/* Bot Message */}
-                        <div className="flex items-start space-x-2">
-                          {logoPreview ? (
-                            <img src={logoPreview} alt="Logo" className="w-6 h-6 rounded-full mt-0.5 object-cover" />
-                          ) : (
-                            <BotIcon className="w-5 h-5 mt-0.5" style={{ color: primaryColor }} />
-                          )}
-                          <div
-                            className="rounded-lg px-3 py-2 max-w-xs"
-                            style={{ backgroundColor: botBubbleColor, color: botTextColor }}
-                          >
-                            {welcomeMessage}
-                          </div>
-                        </div>
-                        {/* User Message */}
-                        <div className="flex justify-end">
-                          <div
-                            className="rounded-lg px-3 py-2 max-w-xs"
-                            style={{ backgroundColor: userBubbleColor, color: userTextColor }}
-                          >
-                            What are your business hours?
-                          </div>
-                        </div>
-                        {/* Bot Response */}
-                        <div className="flex items-start space-x-2">
-                          {logoPreview ? (
-                            <img src={logoPreview} alt="Logo" className="w-6 h-6 rounded-full mt-0.5 object-cover" />
-                          ) : (
-                            <BotIcon className="w-5 h-5 mt-0.5" style={{ color: primaryColor }} />
-                          )}
-                          <div
-                            className="rounded-lg px-3 py-2 max-w-xs"
-                            style={{ backgroundColor: botBubbleColor, color: botTextColor }}
-                          >
-                            We're open Monday to Friday, 9 AM to 6 PM EST.
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Chat Input */}
-                    <div className="flex items-center p-3 border-t  bg-white">
-                      <input
-                        type="text"
-                        placeholder="Type your message..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault(); // stop form submission
-                            handleSend();       // just send preview message
-                          }
-                        }}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      />
-
-                    </div>
-                  </div>
-                </div>
+                {/* Live Preview - Using the separate component */}
+                <LivePreview
+                  primaryColor={primaryColor}
+                  windowBgColor={windowBgColor}
+                  botBubbleColor={botBubbleColor}
+                  botTextColor={botTextColor}
+                  userBubbleColor={userBubbleColor}
+                  userTextColor={userTextColor}
+                  name={name}
+                  welcomeMessage={welcomeMessage}
+                  logoPreview={logoPreview}
+                  message={message}
+                  setMessage={setMessage}
+                  handleSend={handleSend}
+                />
               </div>
             )}
           </div>
@@ -966,99 +956,21 @@ const ChatbotSetup = () => {
                   </div>
                   <div className="w-full md:w-96">
                     <h3 className="text-lg font-medium text-gray-800 mb-4">Final Preview</h3>
-                    <div
-                      className="border rounded-xl overflow-hidden shadow-lg mx-auto"
-                      style={{
-                        backgroundColor: windowBgColor,
-                        maxWidth: '320px',
-                        transform: 'scale(0.9)',
-                        transformOrigin: 'top'
-                      }}
-                    >
-                      {/* Chat Header */}
-                      <div
-                        className="text-white p-4 flex items-center space-x-3"
-                        style={{ backgroundColor: primaryColor }}
-                      >
-                        {logoPreview ? (
-                          <img src={logoPreview} alt="Logo" className="w-8 h-8 rounded-full object-cover" />
-                        ) : (
-                          <div className="bg-white/20 p-1.5 rounded-full">
-                            <BotIcon className="w-5 h-5 text-white" />
-                          </div>
-                        )}
-                        <div>
-                          <p className="font-medium text-sm">{name || "Customer Support"}</p>
-                          <p className="text-xs text-white/80">Online</p>
-                        </div>
-                      </div>
-                      {/* Chat Messages */}
-                      <div className="p-3 space-y-3 h-56 overflow-y-auto">
-                        {/* Bot Message */}
-                        <div className="flex items-start space-x-2">
-                          {logoPreview ? (
-                            <img src={logoPreview} alt="Logo" className="w-5 h-5 rounded-full mt-0.5 object-cover" />
-                          ) : (
-                            <BotIcon className="w-4 h-4 mt-0.5" style={{ color: primaryColor }} />
-                          )}
-                          <div
-                            className="rounded-lg px-3 py-2 text-sm max-w-xs"
-                            style={{ backgroundColor: botBubbleColor, color: botTextColor }}
-                          >
-                            {welcomeMessage}
-                          </div>
-                        </div>
-
-                        {/* User Message */}
-                        <div className="flex justify-end">
-                          <div
-                            className="rounded-lg px-3 py-2 text-sm max-w-xs"
-                            style={{ backgroundColor: userBubbleColor, color: userTextColor }}
-                          >
-                            Hi, how can you help me?
-                          </div>
-                        </div>
-
-                        {/* Bot Response */}
-                        <div className="flex items-start space-x-2">
-                          {logoPreview ? (
-                            <img src={logoPreview} alt="Logo" className="w-5 h-5 rounded-full mt-0.5 object-cover" />
-                          ) : (
-                            <BotIcon className="w-4 h-4 mt-0.5" style={{ color: primaryColor }} />
-                          )}
-                          <div
-                            className="rounded-lg px-3 py-2 text-sm max-w-xs"
-                            style={{ backgroundColor: botBubbleColor, color: botTextColor }}
-                          >
-                            I can answer questions about our products and services.
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Chat Input */}
-                      <div className="flex items-center p-2 border-t bg-white">
-                        <input
-                          type="text"
-                          placeholder="Type your message..."
-                          value={message}
-                          onChange={(e) => setMessage(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault(); // stop form submission
-                              handleSend();       // just send preview message
-                            }
-                          }}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        />
-
-                        <button
-                          className="text-white px-3 py-1.5 rounded-r-lg flex items-center justify-center text-sm"
-                          style={{ backgroundColor: primaryColor }}
-                        >
-                          <Send className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
+                    {/* Final Preview matching Live Preview design */}
+                    <LivePreview
+                      primaryColor={primaryColor}
+                      windowBgColor={windowBgColor}
+                      botBubbleColor={botBubbleColor}
+                      botTextColor={botTextColor}
+                      userBubbleColor={userBubbleColor}
+                      userTextColor={userTextColor}
+                      name={name}
+                      welcomeMessage={welcomeMessage}
+                      logoPreview={logoPreview}
+                      message={message}
+                      setMessage={setMessage}
+                      handleSend={handleSend}
+                    />
                   </div>
                 </div>
               </div>

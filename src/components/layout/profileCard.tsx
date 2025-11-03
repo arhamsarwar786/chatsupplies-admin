@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from "react"
 import PhoneInput from "@/src/components/PhoneInput";
+import { useResendWelcomeEmailMutation } from "@/src/hooks/useClients"; // Import the mutation
 
 // SVG Icons for visibility toggle with proper TypeScript types
 const EyeIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -139,30 +140,6 @@ const apiService = {
 
     return response.json();
   },
-
-  // Add forgot password functionality
-  async forgotPassword(email: string) {
-    const FORGOT_PASSWORD_URL = "https://api.chatsupplies.com/clients/forgot-password";
-
-    const response = await fetch(FORGOT_PASSWORD_URL, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        detail: `HTTP ${response.status}: ${response.statusText}`
-      }));
-      throw new Error(errorData.detail || 'Failed to send reset password email');
-    }
-
-    return response.json();
-  }
 };
 
 // --- MODIFIED COMPONENT: UpdatePasswordForm ---
@@ -187,7 +164,9 @@ const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  
+  // Use the resend welcome email mutation for forgot password
+  const [forgotPasswordMutation, { isLoading: forgotPasswordLoading }] = useResendWelcomeEmailMutation();
 
   const toggleCurrentPasswordVisibility = () => {
     setShowCurrentPassword(prev => !prev);
@@ -202,17 +181,29 @@ const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
   };
 
   const handleForgotPassword = async () => {
-    setForgotPasswordLoading(true);
     setError(null);
 
     try {
-      await apiService.forgotPassword(email);
+      // Get user ID from localStorage
+      const userId = localStorage.getItem("userid");
+      
+      if (!userId) {
+        setError("User ID not found. Please try logging in again.");
+        return;
+      }
+
+      // Use the resend welcome email mutation for forgot password
+      const result = await forgotPasswordMutation({ id: parseInt(userId) }).unwrap();
+      
+      // Check if the response indicates success
+      if (result.success === false) {
+        throw new Error(result.detail || "Failed to send reset password email");
+      }
+      
       setSuccess("Password reset email sent! Please check your inbox.");
     } catch (error) {
       console.error("Error sending reset password email:", error);
       setError(error instanceof Error ? error.message : "Failed to send reset password email. Please try again.");
-    } finally {
-      setForgotPasswordLoading(false);
     }
   };
 
