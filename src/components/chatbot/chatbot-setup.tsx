@@ -59,7 +59,7 @@ const ChatbotSetup = () => {
   const debouncedSetSearchTerm = useCallback(
     debounce((value) => {
       // Only set the search term if it meets the minimum length to avoid initial empty search
-      if (value.length >= 2) {
+      if (value.length >= 1) {
         setSearchTerm(value);
       } else {
         setSearchTerm(''); // Clear term if typing less than min length
@@ -71,7 +71,7 @@ const ChatbotSetup = () => {
   const { data: clientResults = [], error: searchError } = useSearchClientsQuery(
     { query: searchTerm },
     // Skip query if searchTerm is empty or too short (controlled by debounced function)
-    { skip: searchTerm.length < 2 } 
+    { skip: searchTerm.length < 1 } 
   );
   
   const [progress] = useState(65);
@@ -159,7 +159,7 @@ const ChatbotSetup = () => {
 
 
   // Form State
-  const [windowBgColor, setWindowBgColor] = useState("#ffffff");
+  const [windowBgColor, setWindowBgColor] = useState("#800000");
   const [userBubbleColor, setUserBubbleColor] = useState("#e2e8f0");
   const [botBubbleColor, setBotBubbleColor] = useState("#1e40af");
   const [primaryColor, setPrimaryColor] = useState("#3b82f6");

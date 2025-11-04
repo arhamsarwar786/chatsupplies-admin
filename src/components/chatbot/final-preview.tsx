@@ -40,7 +40,7 @@ const BotIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-interface LivePreviewProps {
+interface FinalPreviewProps {
     primaryColor: string;
     windowBgColor: string;
     botBubbleColor: string;
@@ -60,7 +60,7 @@ interface MessageProps {
     time: string;
 }
 
-const LivePreview = ({
+const FinalPreview = ({
     primaryColor,
     windowBgColor,
     botBubbleColor,
@@ -73,7 +73,7 @@ const LivePreview = ({
     message,
     setMessage,
     handleSend,
-}: LivePreviewProps) => {
+}: FinalPreviewProps) => {
 
     // Helper component for message bubbles with specific styles
     const BotMessage = ({ text, time }: MessageProps) => (
@@ -106,7 +106,7 @@ const LivePreview = ({
 
     return (
         <div className="space-y-4 w-full">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Live Preview</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Final Preview</h3>
 
             {/* Main Chat Window Container */}
             <div
@@ -173,19 +173,21 @@ const LivePreview = ({
                             onChange={(e) => setMessage(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    handleSend();
+                                    e.preventDefault(); // stop form submission
+                                    return false;
                                 }
                             }}
-                            // Styling for transparent input look, ensuring text starts below the line and has margin for the button
-                            className="flex-1 w-full text-white text-sm bg-transparent border-0 focus:ring-0 placeholder-white/80 pt-4 pb-2 pl-0 pr-16"
+                            className="flex-1 w-full text-white text-sm bg-transparent border-none outline-none focus:outline-none focus:border-none focus:ring-0 placeholder-white/80 pt-4 pb-2 pl-0 pr-16"
                         />
+
+
+
 
                         {/* Send Button - positioned absolutely right of the input text field */}
                         <button
-                            onClick={handleSend}
-                            // Positioned relative to the input line
-                            className="p-4 rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95 absolute right-0 -bottom-4 z-10"
+                            type="button" // ✅ ensures this button never submits the parent form
+                            disabled
+                            className="p-4 rounded-full shadow-lg transition-all transform opacity-50 cursor-not-allowed absolute right-0 -bottom-4 z-10"
                             style={{
                                 backgroundColor: primaryColor,
                                 boxShadow:
@@ -195,6 +197,8 @@ const LivePreview = ({
                         >
                             <SendIcon className="w-6 h-6 text-white" />
                         </button>
+
+
 
                     </div>
 
@@ -217,4 +221,4 @@ const LivePreview = ({
     );
 };
 
-export default LivePreview;
+export default FinalPreview;

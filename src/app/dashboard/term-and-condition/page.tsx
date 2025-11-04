@@ -360,9 +360,17 @@ const TermsAndConditions = () => {
                      
                       12. Contact Information
                     </h2>
-                    <p className="mt-4 text-gray-600">
-                      If you have any questions about these Terms, please contact us at <span className="text-indigo-600 font-medium">legal@chatsupplies.com</span>.
-                    </p>
+                   <p className="mt-4 text-gray-600">
+                        If you have any questions about these Terms, please contact us at{" "}
+                        <a
+                          href="https://mail.google.com/mail/?view=cm&fs=1&to=hello@chatsupplies.com"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-600 font-medium hover:underline"
+                        >
+                          hello@chatsupplies.com
+                        </a>.
+                      </p>
                   </section>
                 </div>
                 

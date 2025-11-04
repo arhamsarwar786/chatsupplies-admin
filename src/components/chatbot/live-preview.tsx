@@ -40,7 +40,7 @@ const BotIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-interface FinalPreviewProps {
+interface LivePreviewProps {
     primaryColor: string;
     windowBgColor: string;
     botBubbleColor: string;
@@ -60,7 +60,7 @@ interface MessageProps {
     time: string;
 }
 
-const FinalPreview = ({
+const LivePreview = ({
     primaryColor,
     windowBgColor,
     botBubbleColor,
@@ -73,7 +73,7 @@ const FinalPreview = ({
     message,
     setMessage,
     handleSend,
-}: FinalPreviewProps) => {
+}: LivePreviewProps) => {
 
     // Helper component for message bubbles with specific styles
     const BotMessage = ({ text, time }: MessageProps) => (
@@ -165,26 +165,27 @@ const FinalPreview = ({
                     <div className="flex items-end w-full relative">
 
                         {/* Input Field */}
-                        <input
-                            type="text"
-                            placeholder="Enter Your Message..."
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    handleSend();
-                                }
-                            }}
-                            // Styling for transparent input look, ensuring text starts below the line and has margin for the button
-                            className="flex-1 w-full text-white text-sm bg-transparent border-0 focus:ring-0 placeholder-white/80 pt-4 pb-2 pl-0 pr-16"
-                        />
+                       <input
+  type="text"
+  placeholder="Enter Your Message..."
+  value={message}
+  onChange={(e) => setMessage(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // stop form submission
+      return false;
+    }
+  }}
+  className="flex-1 w-full text-white text-sm bg-transparent border-none outline-none focus:outline-none focus:border-none focus:ring-0 placeholder-white/80 pt-4 pb-2 pl-0 pr-16"
+/>
+
+
 
                         {/* Send Button - positioned absolutely right of the input text field */}
                         <button
-                            onClick={handleSend}
-                            // Positioned relative to the input line
-                            className="p-4 rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95 absolute right-0 -bottom-4 z-10"
+                            type="button" // ✅ ensures this button never submits the parent form
+                            disabled
+                            className="p-4 rounded-full shadow-lg transition-all transform opacity-50 cursor-not-allowed absolute right-0 -bottom-4 z-10"
                             style={{
                                 backgroundColor: primaryColor,
                                 boxShadow:
@@ -194,6 +195,8 @@ const FinalPreview = ({
                         >
                             <SendIcon className="w-6 h-6 text-white" />
                         </button>
+
+
 
                     </div>
 
@@ -216,4 +219,4 @@ const FinalPreview = ({
     );
 };
 
-export default FinalPreview;
+export default LivePreview;
