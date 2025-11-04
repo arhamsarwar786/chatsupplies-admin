@@ -291,7 +291,7 @@ export default function LoginPage() {
               {/* ✅ Primary Login button */}
               <Button
                 type="submit"
-                className="w-full rounded-full bg-gradient-to-r from-[#2648EF] to-[#252F8B] hover:opacity-90 text-white"
+                className="w-full rounded-full   hover:opacity-90 text-white"
                 disabled={isLoading}
                 onClick={() => trackUserInteraction('login_button_click')}
               >

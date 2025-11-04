@@ -1,5 +1,4 @@
 "use client";
-import ChatbotCards from '@/src/components/chatbot/chatbot-cards'
 import ChatbotTable from '@/src/components/chatbot/chatbot-table'
 import { DashboardHeader } from "@/src/components/layout/dashboard-header"
 import { useRouter } from "next/navigation"
@@ -22,7 +21,6 @@ const ChatbotsPage = () => {
       />
       <div className="flex md:p-5 p-4 flex-col gap-8">
         <ChatbotTable />
-        <ChatbotCards />
       </div>
     </div>
   )

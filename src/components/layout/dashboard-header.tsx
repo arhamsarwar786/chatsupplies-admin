@@ -142,7 +142,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <ProfileCard
             email={role}
             name={username}
-            onClose={() => setShowProfile(false)}
+            onClose={() => setShowProfile(true)}
           />
         </DialogContent>
       </Dialog>
