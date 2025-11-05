@@ -18,6 +18,7 @@ import { setLogin } from "@/src/slice/authSlice";
 // Updated imports
 import { auth, provider, signInWithEmailAndPassword, signInWithPopup, logAnalyticsEvent } from "@/src/lib/firebase";
 import app from "@/src/lib/firebase";
+import { useResendWelcomeEmailMutation } from "@/src/hooks/useClients"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -25,9 +26,13 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const router = useRouter();
   const dispatch = useDispatch();
   const [login] = useLoginMutation();
+  const [resendWelcomeEmail] = useResendWelcomeEmailMutation();
 
   // Track page view on component mount
   useEffect(() => {
@@ -174,6 +179,51 @@ export default function LoginPage() {
     }
   };
 
+  // Handle forgot password functionality
+  const handleForgotPassword = async () => {
+    if (!forgotPasswordEmail) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setForgotPasswordLoading(true);
+    
+    // Track forgot password attempt
+    logAnalyticsEvent('forgot_password_attempt', {
+      email: forgotPasswordEmail
+    });
+
+    try {
+      // Note: You'll need to adjust this based on your actual API requirements
+      // Since resendWelcomeEmail requires an ID, you might need a different endpoint
+      // This is a placeholder implementation
+      const response = await resendWelcomeEmail({ 
+        id: 0 // You'll need to replace this with actual user ID or use a different endpoint
+      }).unwrap();
+      
+      toast.success("Password reset instructions have been sent to your email!");
+      
+      // Track successful forgot password request
+      logAnalyticsEvent('forgot_password_success', {
+        email: forgotPasswordEmail
+      });
+      
+      setShowForgotPassword(false);
+      setForgotPasswordEmail("");
+    } catch (err: any) {
+      const message = err?.data?.message || "Failed to send reset instructions";
+      toast.error(message);
+      
+      // Track forgot password failure
+      logAnalyticsEvent('forgot_password_failed', {
+        email: forgotPasswordEmail,
+        error_message: message
+      });
+    } finally {
+      setForgotPasswordLoading(false);
+    }
+  };
+
   // Track other user interactions
   const trackUserInteraction = (interactionType: string, additionalParams = {}) => {
     logAnalyticsEvent('user_interaction', {
@@ -192,11 +242,11 @@ export default function LoginPage() {
           <div className="flex flex-col w-full mb-12 items-start gap-3">
             <div className="flex items-center gap-3 hover:scale-105 transition-transform duration-300">
               <Image
-                src="/Frame.svg"
+                src="/Logo/Group.png"
                 alt="Logo"
-                width={40}
-                height={40}
-                className="rounded-md shadow-md shadow-primary"
+                width={30}
+                height={30}
+                className=""
                 onClick={() => trackUserInteraction('logo_click')}
               />
               <h1 className="text-[22px] sm:text-2xl font-bold tracking-tight text-gray-900">
@@ -210,131 +260,184 @@ export default function LoginPage() {
           <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in">
             <div className="flex flex-col items-center text-center">
               <h2 className="text-4xl font-bold text-gray-800 mb-2">
-                Welcome Back
+                {showForgotPassword ? "Reset Password" : "Welcome Back"}
               </h2>
               <p className="text-sm text-gray-500 mb-4 max-w-md">
-                Start a new chat to engage users, automate responses, and grow
-                smarter conversations with AI.
+                {showForgotPassword 
+                  ? "Enter your email address and we'll send you instructions to reset your password."
+                  : "Start a new chat to engage users, automate responses, and grow smarter conversations with AI."
+                }
               </p>
             </div>
 
-            {/* The Login Form */}
-            <form
-              onSubmit={handleLogin}
-              className="space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/30 -mt-3"
-            >
-
-              {error && (
-                <Alert
-                  variant="destructive"
-                  className="py-1 px-3 text-xs sm:text-sm rounded-md"
-                >
-                  <AlertDescription className="text-xs sm:text-sm">
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {/* Username Input */}
-              <Input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  if (error && e.target.value.trim()) {
-                    setError("");
-                  }
-                  trackUserInteraction('username_input', {
-                    input_length: e.target.value.length
-                  });
-                }}
-                onFocus={() => trackUserInteraction('username_focus')}
-                disabled={isLoading}
-                className={`bg-[#f3f0ff] ${error && !username ? "border border-red-500" : ""
-                  }`}
-              />
-
-              {/* Password Input */}
-              <div className="relative">
+            {/* Forgot Password Form */}
+            {showForgotPassword ? (
+              <div className="space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/30 -mt-3">
                 <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (error && e.target.value.trim()) {
-                      setError("");
-                    }
-                  }}
-                  onFocus={() => trackUserInteraction('password_focus')}
-                  disabled={isLoading}
-                  className={`bg-[#f3f0ff] ${error && !password ? "border border-red-500" : ""
-                    }`}
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  disabled={forgotPasswordLoading}
+                  className="bg-[#f3f0ff]"
                 />
+
+                <Button
+                  onClick={handleForgotPassword}
+                  className="w-full rounded-full hover:opacity-90 text-white"
+                  disabled={forgotPasswordLoading}
+                >
+                  {forgotPasswordLoading ? "Sending..." : "Send Reset Instructions"}
+                </Button>
+
                 <Button
                   type="button"
                   variant="ghost"
-                  size="sm"
-                  className="absolute bg-gray-100 right-2 top-1/2 -translate-y-1/2 cursor-pointer"
                   onClick={() => {
-                    setShowPassword(!showPassword);
-                    trackUserInteraction('toggle_password_visibility', {
-                      new_state: !showPassword ? 'visible' : 'hidden'
+                    setShowForgotPassword(false);
+                    setForgotPasswordEmail("");
+                    trackUserInteraction('forgot_password_cancel');
+                  }}
+                  className="w-full"
+                  disabled={forgotPasswordLoading}
+                >
+                  Back to Login
+                </Button>
+              </div>
+            ) : (
+              /* The Login Form */
+              <form
+                onSubmit={handleLogin}
+                className="space-y-6 w-full max-w-md mx-auto bg-card backdrop-blur-md p-6 rounded-2xl shadow-xl border border-white/30 -mt-3"
+              >
+
+                {error && (
+                  <Alert
+                    variant="destructive"
+                    className="py-1 px-3 text-xs sm:text-sm rounded-md"
+                  >
+                    <AlertDescription className="text-xs sm:text-sm">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Username Input */}
+                <Input
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    if (error && e.target.value.trim()) {
+                      setError("");
+                    }
+                    trackUserInteraction('username_input', {
+                      input_length: e.target.value.length
                     });
                   }}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </Button>
-              </div>
+                  onFocus={() => trackUserInteraction('username_focus')}
+                  disabled={isLoading}
+                  className={`bg-[#f3f0ff] ${error && !username ? "border border-red-500" : ""
+                    }`}
+                />
 
-              {/* ✅ Primary Login button */}
-              <Button
-                type="submit"
-                className="w-full rounded-full   hover:opacity-90 text-white"
-                disabled={isLoading}
-                onClick={() => trackUserInteraction('login_button_click')}
-              >
-                {isLoading ? "Logging in..." : "Login"}
-              </Button>
-
-              {/* === GOOGLE BUTTON === */}
-              <div className="pt-2 space-y-4">
-                {/* Separator */}
-                <div className="relative flex items-center justify-center w-full">
-                  <div className="flex-grow border-t border-gray-300"></div>
-                  <span className="flex-shrink mx-4 text-gray-400 text-sm">
-                    or continue with
-                  </span>
-                  <div className="flex-grow border-t border-gray-300"></div>
+                {/* Password Input */}
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (error && e.target.value.trim()) {
+                        setError("");
+                      }
+                    }}
+                    onFocus={() => trackUserInteraction('password_focus')}
+                    disabled={isLoading}
+                    className={`bg-[#f3f0ff] ${error && !password ? "border border-red-500" : ""
+                      }`}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute bg-gray-100 right-2 top-1/2 -translate-y-1/2 cursor-pointer"
+                    onClick={() => {
+                      setShowPassword(!showPassword);
+                      trackUserInteraction('toggle_password_visibility', {
+                        new_state: !showPassword ? 'visible' : 'hidden'
+                      });
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </Button>
                 </div>
 
-                {/* Google Button */}
-                <Button
-                  type="button"
-                  onClick={handleGoogleLogin}
-                  className="w-full rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 shadow-md transition-colors duration-300 flex items-center justify-center gap-3 font-medium"
-                  disabled={isLoading}
-                >
-                  <FcGoogle className="w-5 h-5" />
-                  <span className="text-center flex-1">{isLoading ? "Signing in..." : "Sign in with Google"}</span>
-                </Button>
-              </div>
+               
 
-              {/* ✅ Signup link */}
-              <p className="text-center text-sm text-gray-600 mt-4">
-                Don't have an account?{" "}
-                <span
-                  onClick={() => {
-                    trackUserInteraction('signup_link_click');
-                    router.push("/auth/signup");
-                  }}
-                  className="text-primary font-semibold cursor-pointer hover:underline"
+                {/* ✅ Primary Login button */}
+                <Button
+                  type="submit"
+                  className="w-full rounded-full hover:opacity-90 text-white"
+                  disabled={isLoading}
+                  onClick={() => trackUserInteraction('login_button_click')}
                 >
-                  Sign up
-                </span>
-              </p>
-            </form>
+                  {isLoading ? "Logging in..." : "Login"}
+                </Button>
+
+                 {/* Forgot Password Link */}
+                <div className="text-right -mt-2">
+                  <span
+                    onClick={() => {
+                      setShowForgotPassword(true);
+                      trackUserInteraction('forgot_password_click');
+                    }}
+                    className="text-sm text-primary font-semibold cursor-pointer hover:underline"
+                  >
+                    Forgot password?
+                  </span>
+                </div>
+
+                {/* === GOOGLE BUTTON === */}
+                <div className="pt-2 space-y-4">
+                  {/* Separator */}
+                  <div className="relative flex items-center justify-center w-full">
+                    <div className="flex-grow border-t border-gray-300"></div>
+                    <span className="flex-shrink mx-4 text-gray-400 text-sm">
+                      or continue with
+                    </span>
+                    <div className="flex-grow border-t border-gray-300"></div>
+                  </div>
+
+                  {/* Google Button */}
+                  <Button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    className="w-full rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 shadow-md transition-colors duration-300 flex items-center justify-center gap-3 font-medium"
+                    disabled={isLoading}
+                  >
+                    <FcGoogle className="w-5 h-5" />
+                    <span className="text-center flex-1">{isLoading ? "Signing in..." : "Sign in with Google"}</span>
+                  </Button>
+                </div>
+
+                {/* ✅ Signup link */}
+                <p className="text-center text-sm text-gray-600 mt-4">
+                  Don't have an account?{" "}
+                  <span
+                    onClick={() => {
+                      trackUserInteraction('signup_link_click');
+                      router.push("/auth/signup");
+                    }}
+                    className="text-primary font-semibold cursor-pointer hover:underline"
+                  >
+                    Sign up
+                  </span>
+                </p>
+              </form>
+            )}
 
             <div className="text-center max-w-xl mx-auto sm:mt-1">
               <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">

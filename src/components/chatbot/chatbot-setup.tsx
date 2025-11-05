@@ -238,7 +238,7 @@ const ChatbotSetup = () => {
 
   // Add useEffect to handle search status updates based on query results
   useEffect(() => {
-    if (searchTerm.length >= 2) {
+    if (searchTerm.length >= 1) {
       // Check for loading via query (if useSearchClientsQuery provided isFetching, that'd be better)
       // For now, rely on result presence/absence
       
@@ -422,7 +422,7 @@ const ChatbotSetup = () => {
                 )}
 
                 {/* Not found state - search completed but no results (uses current input length) */}
-                {searchStatus === 'not_found' && searchInput.length >= 2 && (
+                {searchStatus === 'not_found' && searchInput.length >= 1 && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     <span className="text-gray-400 text-sm">No results</span>
                   </div>
@@ -442,7 +442,7 @@ const ChatbotSetup = () => {
                   onCancel={cancelLeave}
                 />
                 {/* Dropdown results - Only show if open, input is long enough, and results exist */}
-                {isDropdownOpen && searchInput.length >= 2 && clientResults?.length > 0 && (
+                {isDropdownOpen && searchInput.length >= 1 && clientResults?.length > 0 && (
                   <ul className="absolute z-20 bg-white border border-gray-200 shadow-lg mt-1 w-full rounded-lg overflow-hidden max-h-60 overflow-y-auto">
                     {clientResults.map((client: any) => (
                       <li
@@ -474,10 +474,10 @@ const ChatbotSetup = () => {
               </div>
               {/* Status message below search input */}
               <div className="mt-1">
-                {searchStatus === 'loading' && searchInput.length >= 2 && (
+                {searchStatus === 'loading' && searchInput.length >= 1 && (
                   <p className="text-xs text-blue-600">Searching clients...</p>
                 )}
-                {searchStatus === 'not_found' && searchInput.length >= 2 && (
+                {searchStatus === 'not_found' && searchInput.length >= 1 && (
                   <p className="text-xs text-amber-600">No clients found with that email</p>
                 )}
                 {searchStatus === 'error' && (
