@@ -21,9 +21,11 @@ import {
   CheckCircle,
   Trash,
   Palette,
-  MessageSquare, // Added MessageSquare import
-  Check, // Added Check import
+  MessageSquare,
+  Check,
 } from "lucide-react";
+import FinalPreview from "./final-preview";
+import LivePreview from "./live-preview";
 
 const tones = [
   { name: "Professional", value: "professional" },
@@ -49,7 +51,6 @@ const EditChatbot = () => {
   const [description, setDescription] = useState("");
   const [industry, setIndustry] = useState("");
   const [language, setLanguage] = useState("English");
-  // Correctly initialize tone state with a value from the `tones` array's `value` property
   const [tone, setTone] = useState("friendly");
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [businessHoursStart, setBusinessHoursStart] = useState("");
@@ -57,7 +58,7 @@ const EditChatbot = () => {
   const [isActive, setIsActive] = useState(true);
 
   // Colors
-  const [windowBgColor, setWindowBgColor] = useState("#ffffff");
+  const [windowBgColor, setWindowBgColor] = useState("#800000");
   const [userBubbleColor, setUserBubbleColor] = useState("#e2e8f0");
   const [botBubbleColor, setBotBubbleColor] = useState("#1e40af");
   const [primaryColor, setPrimaryColor] = useState("#133242");
@@ -72,13 +73,13 @@ const EditChatbot = () => {
   // Message preview
   const [message, setMessage] = useState("");
 
-  // Placeholder for uploaded files to fix the reference error in the summary section
+  // Placeholder for uploaded files
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
 
   // Section toggling
   const [openSections, setOpenSections] = useState({
     appearance: true,
-    preview: true, // Added a default state for the preview section
+    preview: true,
   });
 
   const toggleSection = (section: string) => {
@@ -95,7 +96,6 @@ const EditChatbot = () => {
       setDescription(chatbotData.description || "");
       setIndustry(chatbotData.industry || "");
       setLanguage(chatbotData.language || "English");
-      // Set the tone state using the 'value' from the tones array, not the 'name'
       const initialTone =
         tones.find((t) => t.value === chatbotData.personality_tone)?.value ||
         "friendly";
@@ -165,7 +165,7 @@ const EditChatbot = () => {
     const chatbotForm = {
       name,
       description,
-      personality_tone: tone, // The value of tone is now correct
+      personality_tone: tone,
       industry,
       language,
       welcome_message: welcomeMessage,
@@ -190,7 +190,6 @@ const EditChatbot = () => {
         body: chatbotForm,
       });
 
-      // Check if the mutation was successful
       if ('data' in result) {
         toast.success("Chatbot updated successfully");
       } else if ('error' in result) {
@@ -203,9 +202,7 @@ const EditChatbot = () => {
     }
   };
 
-  // Added a placeholder function to fix reference error
   const resetForm = () => {
-    // Implement form reset logic here
     console.log("Form reset initiated");
   };
 
@@ -482,128 +479,30 @@ const EditChatbot = () => {
               ))}
             </div>
 
-            {/* Live Preview */}
+            {/* Live Preview - UPDATED TO USE YOUR LivePreview COMPONENT */}
             <div className="space-y-4 w-full">
               <h3 className="text-sm font-medium text-gray-700 mb-2">
                 Live Preview
               </h3>
-              <div
-                className="border flex flex-col justify-between rounded-xl overflow-hidden shadow-lg w-full h-[450px]"
-                style={{ backgroundColor: windowBgColor }}
-              >
-                <div>
-                  {/* Chat Header */}
-                  <div
-                    className="text-white p-4 flex items-center space-x-3"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    {logoPreview ? (
-                      <img
-                        src={logoPreview}
-                        alt="Logo"
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="bg-white/20 p-1.5 rounded-full">
-                        <BotIcon className="w-5 h-5 text-white" />
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-medium">
-                        {name || "Customer Support"}
-                      </p>
-                      <p className="text-xs text-white/80">Online</p>
-                    </div>
-                  </div>
-
-                  {/* Chat Messages */}
-                  <div className="p-4 space-y-4 h-64 overflow-y-auto">
-                    {/* Bot Message */}
-                    <div className="flex items-start space-x-2">
-                      {logoPreview ? (
-                        <img
-                          src={logoPreview}
-                          alt="Logo"
-                          className="w-6 h-6 rounded-full mt-0.5 object-cover"
-                        />
-                      ) : (
-                        <BotIcon
-                          className="w-5 h-5 mt-0.5"
-                          style={{ color: primaryColor }}
-                        />
-                      )}
-                      <div
-                        className="rounded-lg px-3 py-2 max-w-xs"
-                        style={{
-                          backgroundColor: botBubbleColor,
-                          color: botTextColor,
-                        }}
-                      >
-                        {welcomeMessage}
-                      </div>
-                    </div>
-
-                    {/* User Message */}
-                    <div className="flex justify-end">
-                      <div
-                        className="rounded-lg px-3 py-2 max-w-xs"
-                        style={{
-                          backgroundColor: userBubbleColor,
-                          color: userTextColor,
-                        }}
-                      >
-                        What are your business hours?
-                      </div>
-                    </div>
-
-                    {/* Bot Response */}
-                    <div className="flex items-start space-x-2">
-                      {logoPreview ? (
-                        <img
-                          src={logoPreview}
-                          alt="Logo"
-                          className="w-6 h-6 rounded-full mt-0.5 object-cover"
-                        />
-                      ) : (
-                        <BotIcon
-                          className="w-5 h-5 mt-0.5"
-                          style={{ color: primaryColor }}
-                        />
-                      )}
-                      <div
-                        className="rounded-lg px-3 py-2 max-w-xs"
-                        style={{
-                          backgroundColor: botBubbleColor,
-                          color: botTextColor,
-                        }}
-                      >
-                        We're open Monday to Friday, 9 AM to 6 PM EST.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Chat Input */}
-                <div className="flex items-center p-3 border-t  bg-white">
-                  <input
-                    type="text"
-                    placeholder="Type your message..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault(); // stop form submission
-                        handleSend(); // just send preview message
-                      }
-                    }}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
+              <LivePreview
+                primaryColor={primaryColor}
+                windowBgColor={windowBgColor}
+                botBubbleColor={botBubbleColor}
+                botTextColor={botTextColor}
+                userBubbleColor={userBubbleColor}
+                userTextColor={userTextColor}
+                name={name}
+                welcomeMessage={welcomeMessage}
+                logoPreview={logoPreview}
+                message={message}
+                setMessage={setMessage}
+                handleSend={handleSend}
+              />
             </div>
           </div>
         )}
       </div>
+
       {/* Final Preview Section */}
       <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden mt-6">
         <div
@@ -644,7 +543,6 @@ const EditChatbot = () => {
                   </div>
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <p className="text-sm text-gray-500">Personality</p>
-                    {/* Display the tone name, not the value */}
                     <p className="font-medium">
                       {tones.find((t) => t.value === tone)?.name || "N/A"}
                     </p>
@@ -685,136 +583,23 @@ const EditChatbot = () => {
                     Reset form
                   </button>
                 </div>
-
               </div>
 
               <div className="w-full md:w-96">
-                <h3 className="text-lg font-medium text-gray-800 mb-4">
-                  Final Preview
-                </h3>
-                <div
-                  className="border rounded-xl overflow-hidden shadow-lg mx-auto"
-                  style={{
-                    backgroundColor: windowBgColor,
-                    maxWidth: "320px",
-                    transform: "scale(0.9)",
-                    transformOrigin: "top",
-                  }}
-                >
-                  {/* Chat Header */}
-                  <div
-                    className="text-white p-4 flex items-center space-x-3"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    {logoPreview ? (
-                      <img
-                        src={logoPreview}
-                        alt="Logo"
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="bg-white/20 p-1.5 rounded-full">
-                        <BotIcon className="w-5 h-5 text-white" />
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-medium text-sm">
-                        {name || "Customer Support"}
-                      </p>
-                      <p className="text-xs text-white/80">Online</p>
-                    </div>
-                  </div>
-
-                  {/* Chat Messages */}
-                  <div className="p-3 space-y-3 h-56 overflow-y-auto">
-                    {/* Bot Message */}
-                    <div className="flex items-start space-x-2">
-                      {logoPreview ? (
-                        <img
-                          src={logoPreview}
-                          alt="Logo"
-                          className="w-5 h-5 rounded-full mt-0.5 object-cover"
-                        />
-                      ) : (
-                        <BotIcon
-                          className="w-4 h-4 mt-0.5"
-                          style={{ color: primaryColor }}
-                        />
-                      )}
-                      <div
-                        className="rounded-lg px-3 py-2 text-sm max-w-xs"
-                        style={{
-                          backgroundColor: botBubbleColor,
-                          color: botTextColor,
-                        }}
-                      >
-                        {welcomeMessage}
-                      </div>
-                    </div>
-
-                    {/* User Message */}
-                    <div className="flex justify-end">
-                      <div
-                        className="rounded-lg px-3 py-2 text-sm max-w-xs"
-                        style={{
-                          backgroundColor: userBubbleColor,
-                          color: userTextColor,
-                        }}
-                      >
-                        Hi, how can you help me?
-                      </div>
-                    </div>
-
-                    {/* Bot Response */}
-                    <div className="flex items-start space-x-2">
-                      {logoPreview ? (
-                        <img
-                          src={logoPreview}
-                          alt="Logo"
-                          className="w-5 h-5 rounded-full mt-0.5 object-cover"
-                        />
-                      ) : (
-                        <BotIcon
-                          className="w-4 h-4 mt-0.5"
-                          style={{ color: primaryColor }}
-                        />
-                      )}
-                      <div
-                        className="rounded-lg px-3 py-2 text-sm max-w-xs"
-                        style={{
-                          backgroundColor: botBubbleColor,
-                          color: botTextColor,
-                        }}
-                      >
-                        I can answer questions about our products and services.
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Chat Input */}
-                  <div className="flex items-center p-2 border-t bg-white">
-                    <input
-                      type="text"
-                      placeholder="Type your message..."
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault(); // stop form submission
-                          handleSend(); // just send preview message
-                        }
-                      }}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-
-                    <button
-                      className="text-white px-3 py-1.5 rounded-r-lg flex items-center justify-center text-sm"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
+                <FinalPreview
+                  primaryColor={primaryColor}
+                  windowBgColor={windowBgColor}
+                  botBubbleColor={botBubbleColor}
+                  botTextColor={botTextColor}
+                  userBubbleColor={userBubbleColor}
+                  userTextColor={userTextColor}
+                  name={name}
+                  welcomeMessage={welcomeMessage}
+                  logoPreview={logoPreview}
+                  message={message}
+                  setMessage={setMessage}
+                  handleSend={handleSend}
+                />
               </div>
             </div>
           </div>
