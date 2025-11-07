@@ -19,13 +19,13 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       // 💡 Added 'shortcut icon' for better Safari compatibility (Fix for tab image)
-      { url: "/face.png", rel: "shortcut icon", type: "image/png" },
+      { url: "/Logo/Group.png", rel: "shortcut icon", type: "image/png" },
       // Existing definitions
-      { url: "/face.png", type: "image/png" },
-      { url: "/face-180.png", type: "image/png", sizes: "32x32" },
-      { url: "/face-180.png", type: "image/png", sizes: "16x16" },
+      { url: "/Logo/Group.png", type: "image/png" },
+      { url: "/Logo/Group.png", type: "image/png", sizes: "32x32" },
+      { url: "/Logo/Group.png", type: "image/png", sizes: "16x16" },
     ],
-    apple: "/face-180.png",
+    apple: "/Logo/Group.png",
   },
 };
 
