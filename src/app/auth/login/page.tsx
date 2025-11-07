@@ -51,14 +51,14 @@ export default function LoginPage() {
     if (!username || !password) {
       setError("Please fill in all fields");
       toast.error("Please fill in all fields");
-      
+
       // Track validation error
       logAnalyticsEvent('login_validation_error', {
         error_type: 'empty_fields',
         username_provided: !!username,
         password_provided: !!password
       });
-      
+
       setIsLoading(false);
       return;
     }
@@ -105,7 +105,7 @@ export default function LoginPage() {
       } else {
         setError("Invalid response from server");
         toast.error("Invalid response from server");
-        
+
         // Track server error
         logAnalyticsEvent('login_server_error', {
           error_type: 'invalid_response',
@@ -117,7 +117,7 @@ export default function LoginPage() {
       const message = err?.data?.message || "Invalid username or password";
       setError(message);
       toast.error(message);
-      
+
       // Track login failure
       logAnalyticsEvent('login_failed', {
         method: 'email_password',
@@ -134,10 +134,10 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     setError("");
-    
+
     // Track Google sign-in attempt
     logAnalyticsEvent('google_signin_attempt');
-    
+
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
@@ -168,7 +168,7 @@ export default function LoginPage() {
       const message = err.code ? err.code.replace('auth/', '').replace(/-/g, ' ') : "An unknown error occurred during Google sign-in.";
       setError(`Google Sign-in failed: ${message}`);
       toast.error(`Google Sign-in failed: ${message}`);
-      
+
       // Track Google sign-in failure
       logAnalyticsEvent('google_signin_failed', {
         error_code: err.code || 'unknown',
@@ -187,7 +187,7 @@ export default function LoginPage() {
     }
 
     setForgotPasswordLoading(true);
-    
+
     // Track forgot password attempt
     logAnalyticsEvent('forgot_password_attempt', {
       email: forgotPasswordEmail
@@ -197,23 +197,23 @@ export default function LoginPage() {
       // Note: You'll need to adjust this based on your actual API requirements
       // Since resendWelcomeEmail requires an ID, you might need a different endpoint
       // This is a placeholder implementation
-      const response = await resendWelcomeEmail({ 
+      const response = await resendWelcomeEmail({
         id: 0 // You'll need to replace this with actual user ID or use a different endpoint
       }).unwrap();
-      
+
       toast.success("Password reset instructions have been sent to your email!");
-      
+
       // Track successful forgot password request
       logAnalyticsEvent('forgot_password_success', {
         email: forgotPasswordEmail
       });
-      
+
       setShowForgotPassword(false);
       setForgotPasswordEmail("");
     } catch (err: any) {
       const message = err?.data?.message || "Failed to send reset instructions";
       toast.error(message);
-      
+
       // Track forgot password failure
       logAnalyticsEvent('forgot_password_failed', {
         email: forgotPasswordEmail,
@@ -257,13 +257,13 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in">
+          <div className="lg:px-28 md:px-12 sm:px-8 px-4 flex space-y-8 flex-col justify-center h-full animate-fade-in mt-18">
             <div className="flex flex-col items-center text-center">
               <h2 className="text-4xl font-bold text-gray-800 mb-2">
                 {showForgotPassword ? "Reset Password" : "Welcome Back"}
               </h2>
               <p className="text-sm text-gray-500 mb-4 max-w-md">
-                {showForgotPassword 
+                {showForgotPassword
                   ? "Enter your email address and we'll send you instructions to reset your password."
                   : "Start a new chat to engage users, automate responses, and grow smarter conversations with AI."
                 }
@@ -298,7 +298,7 @@ export default function LoginPage() {
                     setForgotPasswordEmail("");
                     trackUserInteraction('forgot_password_cancel');
                   }}
-                  className="w-full"
+                  className="w-full cursor-pointer"
                   disabled={forgotPasswordLoading}
                 >
                   Back to Login
@@ -375,7 +375,7 @@ export default function LoginPage() {
                   </Button>
                 </div>
 
-               
+
 
                 {/* ✅ Primary Login button */}
                 <Button
@@ -387,8 +387,8 @@ export default function LoginPage() {
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
 
-                 {/* Forgot Password Link */}
-                <div className="text-right -mt-2">
+                {/* Forgot Password Link */}
+                <div className="text-right -mt-2 -mb-1">
                   <span
                     onClick={() => {
                       setShowForgotPassword(true);
@@ -465,7 +465,7 @@ export default function LoginPage() {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="rounded-3xl overflow-hidden p-8 bg-white/10 backdrop-blur-lg shadow-2xl border border-white/20">
               <Image
-                src="/Bot.png"
+                src="/Bot-latest.png"
                 alt="Login Illustration"
                 width={500}
                 height={500}

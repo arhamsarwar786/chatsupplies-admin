@@ -64,7 +64,7 @@ const ChatbotSetup = () => {
       } else {
         setSearchTerm(''); // Clear term if typing less than min length
       }
-    }, 500), // 500ms debounce delay
+    }, 300), // 500ms debounce delay
     []
   );
 
@@ -238,6 +238,14 @@ const ChatbotSetup = () => {
 
   // Add useEffect to handle search status updates based on query results
   useEffect(() => {
+    
+// If input has alphabet characters but doesn't look like a valid email, mark as not found
+const alphabetOnly = /^[A-Za-z]+$/.test(searchInput.trim());
+if (alphabetOnly && searchInput.trim().length >= 1) {
+  setSearchStatus("not_found");
+  return;
+}
+
     if (searchTerm.length >= 1) {
       // Check for loading via query (if useSearchClientsQuery provided isFetching, that'd be better)
       // For now, rely on result presence/absence

@@ -1,5 +1,6 @@
 // LivePreview.tsx
 import React from 'react';
+import Image from "next/image";
 
 // --- Utility Icons (Inline SVG for self-contained file) ---
 
@@ -77,18 +78,19 @@ const LivePreview = ({
 
     // Helper component for message bubbles with specific styles
     const BotMessage = ({ text, time }: MessageProps) => (
-        <div className="flex items-start space-x-2">
-            <div className='flex flex-col items-start'>
+        <div className="flex justify-start">
+            <div className="flex flex-col items-start">
                 <div
                     className="rounded-xl rounded-br-sm px-3 py-2 max-w-xs text-sm shadow-md"
                     style={{ backgroundColor: botBubbleColor, color: botTextColor }}
                 >
                     {text}
                 </div>
-                <p className='text-xs text-white/70 mt-1'>{time}</p>
+                <p className="text-xs text-white/70 self-end pl-1 mt-1">{time}</p>
             </div>
         </div>
     );
+
 
     const UserMessage = ({ text, time }: MessageProps) => (
         <div className="flex justify-end">
@@ -99,7 +101,7 @@ const LivePreview = ({
                 >
                     {text}
                 </div>
-                <p className='text-xs text-white/70 mt-1'>{time}</p>
+                <p className='text-xs text-white/70 self-start pl-1 mt-1'>{time}</p>
             </div>
         </div>
     );
@@ -131,9 +133,15 @@ const LivePreview = ({
                         </div>
                     </div>
                     {/* Close Button */}
-                    <button className="p-1 rounded-full text-white/80 hover:bg-white/20 transition-colors">
+                    <button
+                        type="button"
+                        disabled
+                        className="p-1 rounded-full text-white/50 cursor-not-allowed"
+                        aria-label="Close button disabled"
+                    >
                         <CloseIcon className="w-5 h-5" />
                     </button>
+
                 </div>
 
                 {/* Chat Messages Area - Scrollable with same color as footer (windowBgColor) */}
@@ -149,35 +157,38 @@ const LivePreview = ({
 
                     {/* Placeholder for Bot Typing indicator from the image */}
                     <div className='flex items-center space-x-1 justify-start'>
-                        <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse"></div>
-                        <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse delay-75"></div>
-                        <div className="w-2 h-2 rounded-full bg-white/50 animate-pulse delay-150"></div>
+                        <div className="rounded-xl rounded-br-sm px-3 py-2 max-w-xs shadow-md flex items-center space-x-1"
+                            style={{ backgroundColor: botBubbleColor }}>
+                            <div className="w-2 h-2 rounded-full bg-[#9FA4B3] animate-pulse"></div>
+                            <div className="w-2 h-2 rounded-full bg-[#6E738A] animate-pulse delay-75"></div>
+                            <div className="w-2 h-2 rounded-full bg-[#2C2E4A] animate-pulse delay-150"></div>
+                        </div>
                     </div>
                 </div>
 
                 {/* Thick Separator Line */}
                 <div className="h-2 bg-white/30 mx-4 rounded-full"></div>
 
-                {/* Chat Input/Footer Area - Same color as chat area (windowBgColor) */}
-                <div className="p-4 flex flex-col items-center space-y-2 rounded-b-2xl" style={{ backgroundColor: windowBgColor }}>
+                {/* Chat Input/Footer Area - More compact height */}
+                <div className="px-3 py-1 flex flex-col items-center space-y-0.5 rounded-b-2xl" style={{ backgroundColor: windowBgColor }}>
 
                     {/* Top Row: Input and Send Button */}
                     <div className="flex items-end w-full relative">
 
                         {/* Input Field */}
-                       <input
-  type="text"
-  placeholder="Enter Your Message..."
-  value={message}
-  onChange={(e) => setMessage(e.target.value)}
-  onKeyDown={(e) => {
-    if (e.key === "Enter") {
-      e.preventDefault(); // stop form submission
-      return false;
-    }
-  }}
-  className="flex-1 w-full text-white text-sm bg-transparent border-none outline-none focus:outline-none focus:border-none focus:ring-0 placeholder-white/80 pt-4 pb-2 pl-0 pr-16"
-/>
+                        <input
+                            type="text"
+                            placeholder="Enter Your Message..."
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault(); // stop form submission
+                                    return false;
+                                }
+                            }}
+                            className="flex-1 w-full text-white text-sm bg-transparent border-none outline-none focus:outline-none focus:border-none focus:ring-0 placeholder-white/80 py-2 pl-0 pr-14"
+                        />
 
 
 
@@ -185,7 +196,7 @@ const LivePreview = ({
                         <button
                             type="button" // ✅ ensures this button never submits the parent form
                             disabled
-                            className="p-4 rounded-full shadow-lg transition-all transform opacity-50 cursor-not-allowed absolute right-0 -bottom-4 z-10"
+                            className="p-4 rounded-full shadow-lg transition-all transform opacity-50 cursor-not-allowed absolute right-0 -bottom-8 z-10"
                             style={{
                                 backgroundColor: primaryColor,
                                 boxShadow:
@@ -193,7 +204,7 @@ const LivePreview = ({
                             }}
                             aria-label="Send message"
                         >
-                            <SendIcon className="w-6 h-6 text-white" />
+                            <SendIcon className="w-6 h-6 text-white text-center" />
                         </button>
 
 
@@ -203,15 +214,55 @@ const LivePreview = ({
                     {/* Bottom Row: Social Icons and Powered By */}
                     <div className="flex justify-between items-center w-full pt-2">
                         {/* Social Icons (Left) */}
-                        <div className="flex space-x-3">
-                            <WhatsAppIcon className="w-5 h-5 text-white/80 hover:text-white transition-colors cursor-pointer" />
-                            <EmailIcon className="w-5 h-5 text-white/80 hover:text-white transition-colors cursor-pointer" />
+
+                        <div className="flex items-center space-x-3 mb-3">
+                            <div className="flex items-center space-x-3">
+                                <Image
+                                    src="/widget-ui/bot.svg"
+                                    alt="bot"
+                                    width={20}
+                                    height={20}
+                                    className="opacity-80 hover:opacity-100 cursor-pointer transition-opacity"
+                                />
+                                <div className="h-4 border-r-2 border-white"></div>
+                                <Image
+                                    src="/widget-ui/whatsapp.svg"
+                                    alt="WhatsApp"
+                                    width={20}
+                                    height={20}
+                                    className="opacity-80 hover:opacity-100 cursor-pointer transition-opacity"
+                                />
+                                <div className="h-4 border-r-2 border-white"></div>
+                                <Image
+                                    src="/widget-ui/envelope.svg"
+                                    alt="Email"
+                                    width={20}
+                                    height={20}
+                                    className="opacity-80 hover:opacity-100 cursor-pointer transition-opacity"
+                                />
+                            </div>
                         </div>
 
+
                         {/* Powered By (Right) */}
-                        <p className="text-xs text-white/70 flex items-center">
-                            Powered By ChatSupplies
-                        </p>
+                      <p className="text-xs text-white/70 flex items-center mr-20 mb-1">
+  Powered By
+  <a
+    href="https://chatsupplies.com"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="ml-2"
+  >
+    <Image
+      src="/Logo/Group-1.png"
+      alt="ChatSupplies Logo"
+      width={20}
+      height={20}
+      className="opacity-80 hover:opacity-100 cursor-pointer transition-opacity"
+    />
+  </a>
+</p>
+
                     </div>
                 </div>
             </div>
