@@ -103,7 +103,7 @@ export function AppSidebar({ isSidebarOpen, toggleSidebar }: AppSidebarProps) {
       {/* Header */}
       <div className="p-4 h-[85px] border-b flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Image src="/Frame.svg" alt="Logo" width={40} height={40} className="rounded-md" />
+          <Image src="/Logo/Group.png" alt="Logo" width={40} height={40} className="rounded-md" />
           {!collapsed && (
             <div className="flex flex-col">
               <span className="font-bold text-primary text-xl">Chat Supplies</span>

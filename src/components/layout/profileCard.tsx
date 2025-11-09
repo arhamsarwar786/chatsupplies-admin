@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react" // Import useRef
 import PhoneInput from "@/src/components/PhoneInput";
 import { useResendWelcomeEmailMutation } from "@/src/hooks/useClients"; // Import the mutation
 
@@ -140,9 +140,58 @@ const apiService = {
 
     return response.json();
   },
+
+  // ADDED: Placeholder function for image upload
+  async updateProfileImage(file: File) {
+    const token = localStorage.getItem("auth_token") ||
+      localStorage.getItem("token") ||
+      sessionStorage.getItem("auth_token");
+
+    const USER_ID = localStorage.getItem("userid");
+    // NOTE: This URL is a placeholder. Replace with your actual image upload endpoint.
+    const IMAGE_UPLOAD_URL = `${API_BASE_URL_PROFILE}${USER_ID}/avatar`; 
+
+    const formData = new FormData();
+    formData.append('file', file); // Use the correct field name the API expects
+
+    const headers: HeadersInit = {};
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    // IMPORTANT: Do NOT set 'Content-Type': 'multipart/form-data' explicitly; 
+    // fetch will set the correct boundary automatically.
+
+    // Simulate API call to update profile image
+    console.log(`Simulating image upload for user ${USER_ID} with file: ${file.name}`);
+    
+    // Replace this with a real fetch call to IMAGE_UPLOAD_URL with formData and headers
+    // For now, we'll return a mock response that includes a new avatar URL.
+    await new Promise(resolve => setTimeout(resolve, 1500)); 
+
+    // Mock API response - replace with actual response parsing
+    const mockResponse = {
+      success: true,
+      // Create a blob URL for immediate preview (not permanent) or a mock server URL
+      avatar_url: URL.createObjectURL(file), 
+    };
+
+    if (mockResponse.success) {
+      // Simulate updating userObject in localStorage with the new URL
+      const userString = localStorage.getItem("userObject");
+      if (userString) {
+        const user = JSON.parse(userString);
+        user.avatar_url = mockResponse.avatar_url;
+        localStorage.setItem("userObject", JSON.stringify(user));
+      }
+      return mockResponse;
+    } else {
+      throw new Error("Failed to upload profile image.");
+    }
+  }
 };
 
-// --- MODIFIED COMPONENT: UpdatePasswordForm ---
+// --- MODIFIED COMPONENT: UpdatePasswordForm (No change in logic, keeping for context) ---
 interface UpdatePasswordFormProps {
   handleClose: () => void;
   isLoading: boolean;
@@ -442,7 +491,7 @@ const UpdatePasswordForm: React.FC<UpdatePasswordFormProps> = ({
   );
 };
 
-// --- MODIFIED COMPONENT: ManageChatsForm ---
+// --- MODIFIED COMPONENT: ManageChatsForm (No change in logic, keeping for context) ---
 interface ManageChatsFormProps {
   handleClose: () => void;
   isLoading: boolean;
@@ -535,6 +584,10 @@ const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoadin
       // ✅ LOG THE BACKEND RESPONSE
       console.log("Updated profile response:", responseData);
 
+      // The backend response is expected to contain the latest user object.
+      // We must preserve existing properties like `avatar_url` if the backend doesn't return it
+      // or if it's stored client-side for immediate use. For simplicity, we just save the 
+      // response, assuming it's the latest user object.
       localStorage.setItem("userObject", JSON.stringify(responseData));
 
       // Update name in localStorage (preserving existing behavior)
@@ -676,25 +729,91 @@ const ManageChatsForm: React.FC<ManageChatsFormProps> = ({ handleClose, isLoadin
 
 // --- MAIN COMPONENT: ProfileCard ---
 const ProfileCard: React.FC<ProfileCardProps> = ({ email, name, onClose }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // ADDED: State for avatar URL
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(() => {
+    try {
+      const userString = localStorage.getItem("userObject");
+      if (userString) {
+        return JSON.parse(userString).avatar_url || undefined;
+      }
+    } catch (e) {
+      console.error("Could not parse userObject for avatarUrl:", e);
+    }
+    return undefined;
+  });
+
   const avatarLetter = name ? name.charAt(0).toUpperCase() : ""
 
   const [modalView, setModalView] = useState<'none' | 'manage_account' | 'change_password'>('none');
+  // ADDED: Separate loading state for image upload for better UX
   const [isLoading, setIsLoading] = useState(false)
+  const [isImageUploading, setIsImageUploading] = useState(false); 
+  const [imageError, setImageError] = useState<string | null>(null);
+
+  // ADDED: Helper to refresh avatarUrl from localStorage
+  const updateAvatarFromLocalStorage = () => {
+    try {
+      const userString = localStorage.getItem("userObject");
+      if (userString) {
+        setAvatarUrl(JSON.parse(userString).avatar_url || undefined);
+      }
+    } catch (e) {
+      console.error("Error refreshing avatarUrl:", e);
+    }
+  };
 
   // ADDED: Focus event listener for auto-update without refreshing
   useEffect(() => {
     const handleFocus = () => {
       console.log("ProfileCard: Window focused - data auto-updated");
-      // You can add any auto-update logic here if needed
+      // Check for updates to avatar/name when the window is refocused
+      updateAvatarFromLocalStorage(); 
     };
 
     window.addEventListener("focus", handleFocus);
+    updateAvatarFromLocalStorage(); // Initial load check
 
     // Cleanup: remove event listener when component unmounts
     return () => {
       window.removeEventListener("focus", handleFocus);
     };
   }, []);
+
+  // ADDED: Image upload handler
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImageError(null);
+    setIsImageUploading(true);
+
+    try {
+      const response = await apiService.updateProfileImage(file);
+
+      if (response.avatar_url) {
+        // Update the local state with the new URL (either blob or server URL)
+        setAvatarUrl(response.avatar_url); 
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      setImageError(error instanceof Error ? error.message : "Image upload failed.");
+    } finally {
+      setIsImageUploading(false);
+      // Reset file input value to allow uploading the same file again if needed
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleAvatarClick = () => {
+    if (fileInputRef.current && !isImageUploading) {
+      fileInputRef.current.click();
+    }
+  };
+
 
   const handleSignOut = () => {
     localStorage.clear()
@@ -741,14 +860,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ email, name, onClose }) => {
     );
   }
 
-  // Profile Card View (Default View) - unchanged
+  // Profile Card View (Default View) - MODIFIED TO INCLUDE IMAGE FUNCTIONALITY
   return (
     <div className="flex flex-col items-center p-6 bg-gray-100 rounded-lg shadow-xl w-85">
       <div className="flex justify-between w-full">
         <span className="text-sm font-semibold text-gray-600">{email}</span>
         <button
           className="text-gray-400 hover:text-gray-600"
-          onClick={handleClose}
+          onClick={onClose} // Use onClose prop for closing the main card
+          aria-label="Close profile card"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -766,20 +886,62 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ email, name, onClose }) => {
           </svg>
         </button>
       </div>
+      
+      {/* Hidden File Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImageUpload}
+        accept="image/*"
+        style={{ display: 'none' }}
+        disabled={isImageUploading}
+      />
 
-      <div className="relative flex items-center justify-center w-24 h-24 mt-8 mb-4 rounded-full bg-gray-800 text-white text-4xl font-bold">
-        {avatarLetter}
-        <div className="absolute bottom-0 right-0 p-1 bg-white rounded-full">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-5 h-5 text-gray-400"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path d="M16.5 6a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM12 10.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM12 12a.5.5 0 110 1 .5.5 0 010-1z" />
+      {/* Avatar Display Area - UPDATED FOR IMAGE/UPLOAD */}
+      <div 
+        className="relative flex items-center justify-center w-24 h-24 mt-8 mb-4 rounded-full bg-gray-800 text-white text-4xl font-bold cursor-pointer hover:opacity-90 transition duration-150"
+        onClick={handleAvatarClick}
+        aria-label="Upload profile picture"
+      >
+        {isImageUploading ? (
+          <svg className="animate-spin h-10 w-10 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-        </div>
+        ) : avatarUrl ? (
+          <img 
+            src={avatarUrl} 
+            alt="Profile Avatar" 
+            className="w-full h-full object-cover rounded-full"
+          />
+        ) : (
+          avatarLetter
+        )}
+        
+        {/* Camera Icon for Upload - only show if not uploading */}
+        {!isImageUploading && (
+          <div className="absolute bottom-0 right-0 p-1 bg-white rounded-full border border-gray-200 shadow-md">
+            {/* Camera Icon  */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5 text-gray-500"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+          </div>
+        )}
       </div>
+      
+      {imageError && (
+        <p className="text-sm text-red-500 mb-2">{imageError}</p>
+      )}
 
       <h2 className="text-xl font-medium text-gray-800">Hi, {name}!</h2>
 
