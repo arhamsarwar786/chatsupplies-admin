@@ -24,7 +24,7 @@ import {
   MessageSquare,
   Check,
 } from "lucide-react";
-import FinalPreview from "./final-preview";
+// import FinalPreview from "./final-preview";
 import LivePreview from "./live-preview";
 
 const tones = [
@@ -586,20 +586,7 @@ const EditChatbot = () => {
               </div>
 
               <div className="w-full md:w-96">
-                <FinalPreview
-                  primaryColor={primaryColor}
-                  windowBgColor={windowBgColor}
-                  botBubbleColor={botBubbleColor}
-                  botTextColor={botTextColor}
-                  userBubbleColor={userBubbleColor}
-                  userTextColor={userTextColor}
-                  name={name}
-                  welcomeMessage={welcomeMessage}
-                  logoPreview={logoPreview}
-                  message={message}
-                  setMessage={setMessage}
-                  handleSend={handleSend}
-                />
+              
               </div>
             </div>
           </div>
